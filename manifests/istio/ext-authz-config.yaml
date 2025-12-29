@@ -1,0 +1,19 @@
+# Istio configuration for Authorino ext_authz integration
+# This patch enables request body forwarding for OPA policy inspection
+
+# Apply with:
+# oc patch istio default -n istio-system --type=merge --patch-file manifests/istio/ext-authz-config.yaml
+
+spec:
+  values:
+    meshConfig:
+      extensionProviders:
+      - name: kuadrant-authorization
+        envoyExtAuthzGrpc:
+          service: authorino-authorino-authorization.kuadrant-system.svc.cluster.local
+          port: 50051
+          timeout: 5s
+          # IMPORTANT: Enable request body forwarding for OPA inspection
+          includeRequestBodyInCheck:
+            maxRequestBytes: 8192
+            allowPartialMessage: true

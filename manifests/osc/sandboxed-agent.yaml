@@ -1,0 +1,60 @@
+# Example agent deployment with sandboxed runtime
+# Uses kata runtimeClass for VM-level isolation
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: agent-sandbox
+  labels:
+    istio-discovery: enabled
+    istio-injection: enabled
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sandboxed-agent
+  namespace: agent-sandbox
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sandboxed-agent
+  template:
+    metadata:
+      labels:
+        app: sandboxed-agent
+    spec:
+      # Kata runtime for VM-level isolation
+      runtimeClassName: kata
+      containers:
+      - name: agent
+        image: registry.access.redhat.com/ubi9/ubi-minimal:latest
+        command: ["sleep", "infinity"]
+        ports:
+        - containerPort: 8080
+        # IMPORTANT: Kata pods require at least 2Gi memory
+        # due to QEMU overhead for micro-VMs
+        resources:
+          limits:
+            memory: "2Gi"
+            cpu: "1"
+          requests:
+            memory: "2Gi"
+            cpu: "500m"
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+      volumes:
+      - name: tmp
+        emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sandboxed-agent
+  namespace: agent-sandbox
+spec:
+  selector:
+    app: sandboxed-agent
+  ports:
+  - port: 8080
+    targetPort: 8080

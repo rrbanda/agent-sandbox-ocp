@@ -1,0 +1,10 @@
+# KataConfig for OpenShift Sandboxed Containers
+# Apply this to enable Kata runtime on worker nodes
+apiVersion: kataconfiguration.openshift.io/v1
+kind: KataConfig
+metadata:
+  name: example-kataconfig
+spec:
+  kataConfigPoolSelector:
+    matchLabels:
+      node-role.kubernetes.io/kata-oc: ""
