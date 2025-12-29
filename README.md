@@ -6,7 +6,32 @@ This repository demonstrates how to achieve [Anthropic SRT (Sandbox Runtime)](ht
 
 - **OpenShift Sandboxed Containers (OSC)** - VM-level isolation via Kata Containers
 - **Kagenti MCP Gateway** - Centralized tool call routing and policy enforcement
-- **Authorino + OPA** - Fine-grained tool argument inspection and blocking
+- **Authorino + OPA** - Fine-grained tool argument inspection and URL blocking
+
+## ✅ Verified Demo Results
+
+### URL Blocking via OPA Policy
+
+The MCP Gateway intercepts `tools/call` requests and blocks based on OPA policies:
+
+| Tool Call | URL | Result |
+|-----------|-----|--------|
+| `fetch_url` | `https://malicious.com/steal-data` | ✅ **BLOCKED** (403) |
+| `fetch_url` | `https://evil-site.net/api` | ✅ **BLOCKED** (403) |
+| `fetch_url` | `http://169.254.169.254/metadata` | ✅ **BLOCKED** (403) |
+| `fetch_url` | `https://api.weather.gov/forecast` | ✅ **ALLOWED** (200) |
+| `fetch_url` | `https://httpbin.org/get` | ✅ **ALLOWED** (200) |
+| `fetch_url` | `https://example.com/page` | ✅ **ALLOWED** (200) |
+
+### Sandboxed Agent (Kata Runtime)
+
+```
+Pod: weather-time-agent-5776df7cb6-bfstw
+RuntimeClass: kata
+Node: worker-cluster-nngf2-4
+Status: Running
+✅ Agent is running with Kata VM-level isolation!
+```
 
 ## Architecture
 
@@ -52,19 +77,22 @@ This repository demonstrates how to achieve [Anthropic SRT (Sandbox Runtime)](ht
 
 ## Quick Start
 
-### 1. Install Kagenti (if not already installed)
+### 1. Install Kagenti
 
 Follow the [Kagenti Installation Guide](https://github.com/kagenti/kagenti/blob/main/docs/ocp/openshift-install.md)
 
 ### 2. Configure Istio for OPA Body Forwarding
 
 ```bash
-# Switch from ambient to sidecar mode (if needed)
+# Switch from ambient to sidecar mode (required for ext_authz)
 oc patch istio default -n istio-system --type=json -p='[
   {"op": "remove", "path": "/spec/values/profile"}
 ]'
 
-# Enable request body forwarding for ext_authz
+# Create istio-cni namespace if missing
+oc create namespace istio-cni
+
+# Enable request body forwarding for OPA inspection
 oc patch istio default -n istio-system --type=merge -p '
 {
   "spec": {
@@ -90,79 +118,63 @@ oc patch istio default -n istio-system --type=merge -p '
 }'
 ```
 
-### 3. Enable Sidecar Injection for Required Namespaces
+### 3. Enable Sidecar Injection
 
 ```bash
-oc label namespace kuadrant-system istio-discovery=enabled istio-injection=enabled --overwrite
-oc label namespace mcp-system istio-discovery=enabled istio-injection=enabled --overwrite
-oc rollout restart deployment/authorino -n kuadrant-system
-oc delete pods -n mcp-system --all
+./scripts/setup-namespaces.sh
 ```
 
-### 4. Apply OPA Policy for URL Blocking
+### 4. Apply OPA Policy
 
 ```bash
 kubectl apply -f manifests/policies/url-blocking-policy.yaml
 ```
 
-### 5. Deploy Agent with Sandboxed Runtime
+### 5. Deploy Sandboxed Agent
 
 ```bash
 kubectl apply -f manifests/osc/sandboxed-agent.yaml
 ```
 
-### 6. Test the Policy
+### 6. Run Demo Test
 
 ```bash
 ./scripts/test-policy.sh
 ```
 
-## Demo: Blocking Malicious URLs
+## OPA Policy Example
 
-The OPA policy in `manifests/policies/url-blocking-policy.yaml` demonstrates:
+The policy blocks `fetch_url` calls to non-approved URLs:
 
-- **Blocking** `fetch_url` calls to non-approved URLs
-- **Allowing** approved URLs (e.g., `api.weather.gov`, `httpbin.org`)
-- **Blocking** specific tool arguments (e.g., weather queries for restricted cities)
+```rego
+package authorino.authz
 
-### Example Test Results
+allow { count(deny) == 0 }
 
-```
-✓ tools/list (not a tools/call) - HTTP 200
-✓ fetch_url → https://malicious.com - BLOCKED (HTTP 403)
-✓ fetch_url → https://api.weather.gov - ALLOWED (HTTP 200)
-✓ weather → Moscow (restricted) - BLOCKED (HTTP 403)
-✓ weather → New York (allowed) - ALLOWED (HTTP 200)
-```
+deny[msg] {
+  input.context.request.http.body
+  body := json.unmarshal(input.context.request.http.body)
+  body.method == "tools/call"
+  body.params.name == "fetch_url"
+  url := body.params.arguments.url
+  not approved_url(url)
+  msg := sprintf("BLOCKED: URL '%s' not in approved list", [url])
+}
 
-## Project Structure
-
-```
-.
-├── manifests/
-│   ├── osc/                    # OpenShift Sandboxed Containers configs
-│   │   ├── kataconfig.yaml     # KataConfig for OSC
-│   │   └── sandboxed-agent.yaml # Agent deployment with kata runtime
-│   ├── policies/               # OPA/AuthPolicy definitions
-│   │   └── url-blocking-policy.yaml
-│   └── mcp-servers/            # MCP Server registrations
-│       └── fetch-server.yaml
-├── scripts/
-│   └── test-policy.sh          # Policy verification script
-├── docs/
-│   └── troubleshooting.md      # Common issues and solutions
-└── README.md
+approved_url(url) { startswith(url, "https://api.weather.gov") }
+approved_url(url) { startswith(url, "https://httpbin.org") }
+approved_url(url) { startswith(url, "https://example.com") }
 ```
 
 ## Key Configuration Details
 
 ### Istio Mode: Sidecar (Not Ambient)
 
-For OPA body inspection to work, Istio must be in **sidecar mode**, not ambient mode. This is because ambient mode has limited support for CUSTOM AuthorizationPolicy with ext_authz.
+For OPA body inspection to work, Istio must be in **sidecar mode**. Ambient mode has limited ext_authz support.
 
 ### Memory for Kata Pods
 
-Kata pods require at least **2Gi memory** due to the QEMU overhead for micro-VMs:
+Kata pods require at least **2Gi memory** due to QEMU overhead:
 
 ```yaml
 resources:
@@ -174,12 +186,23 @@ resources:
 
 ### Body Forwarding in ext_authz
 
-The `includeRequestBodyInCheck` configuration is essential for OPA to inspect tool call arguments:
+The `includeRequestBodyInCheck` is essential for OPA to inspect tool arguments.
 
-```yaml
-includeRequestBodyInCheck:
-  maxRequestBytes: 8192
-  allowPartialMessage: true
+## Project Structure
+
+```
+.
+├── manifests/
+│   ├── istio/                    # Istio ext_authz configuration
+│   ├── osc/                      # OpenShift Sandboxed Containers
+│   ├── policies/                 # OPA/AuthPolicy definitions
+│   └── mcp-servers/              # MCP Server registrations
+├── scripts/
+│   ├── setup-namespaces.sh       # Namespace configuration
+│   └── test-policy.sh            # Policy verification
+├── docs/
+│   └── troubleshooting.md        # Common issues
+└── README.md
 ```
 
 ## References
