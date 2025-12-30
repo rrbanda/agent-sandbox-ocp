@@ -148,7 +148,48 @@ helm install kagenti oci://ghcr.io/kagenti/kagenti/kagenti \
 >   --set components.spire.enabled=false
 > ```
 
-### Step 4: Configure Istio for OPA Body Forwarding
+### Step 4: Post-Install Fixes
+
+#### Fix 1: Remove Ambient Mode from kagenti-system
+
+The Kagenti controller needs direct Kubernetes API access. If ambient mode is enabled, remove it:
+
+```bash
+# Check if ambient label exists
+oc get namespace kagenti-system -o jsonpath='{.metadata.labels.istio\.io/dataplane-mode}'
+
+# If it shows "ambient", remove it:
+oc label namespace kagenti-system istio.io/dataplane-mode-
+
+# Restart controller
+oc delete pod -n kagenti-system -l control-plane=controller-manager
+```
+
+#### Fix 2: Add `*.mcp.local` Listener to MCP Gateway
+
+The default MCP Gateway only listens on `mcp.127-0-0-1.sslip.io`. Add a listener for custom hostnames:
+
+```bash
+oc patch gateway mcp-gateway -n gateway-system --type=json -p='[
+  {
+    "op": "add",
+    "path": "/spec/listeners/-",
+    "value": {
+      "name": "mcps",
+      "hostname": "*.mcp.local",
+      "port": 8080,
+      "protocol": "HTTP",
+      "allowedRoutes": {
+        "namespaces": {
+          "from": "All"
+        }
+      }
+    }
+  }
+]'
+```
+
+#### Fix 3: Configure Istio for OPA Body Forwarding
 
 **Required** for OPA to inspect tool call arguments:
 
