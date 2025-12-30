@@ -53,11 +53,11 @@ flowchart TB
     MCPGateway -.->|"blocked by OPA"| Blocked
     IstioSidecar -.->|"REGISTRY_ONLY blocks"| Blocked
 
-    style KataVM fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
-    style Kagenti fill:#fff3e0,stroke:#ff9800
-    style Policy fill:#fce4ec,stroke:#e91e63
-    style Blocked fill:#ffebee,stroke:#f44336
-    style Approved fill:#e8f5e9,stroke:#4caf50
+    style KataVM fill:#CC0000,color:#FFFFFF,stroke:#820000,stroke-width:2px
+    style Kagenti fill:#A30000,color:#FFFFFF,stroke:#820000
+    style Policy fill:#820000,color:#FFFFFF,stroke:#6A0000
+    style Blocked fill:#4A4A4A,color:#FFFFFF,stroke:#2A2A2A
+    style Approved fill:#6A6A6A,color:#FFFFFF,stroke:#4A4A4A
 ```
 
 ## Request Flow
@@ -104,15 +104,15 @@ sequenceDiagram
 
 ```mermaid
 flowchart LR
-    subgraph Layer1["Layer 1: Kagenti + OPA"]
+    subgraph Layer1["Layer 1: Kata (Foundation)"]
         direction TB
-        L1A["Tool-level policy"]
-        L1B["Argument inspection"]
-        L1C["Currency blocking"]
-        L1D["Audit logging"]
+        L1A["VM isolation"]
+        L1B["Separate kernel"]
+        L1C["Host not visible"]
+        L1D["Unix sockets isolated"]
     end
 
-    subgraph Layer2["Layer 2: Istio"]
+    subgraph Layer2["Layer 2: Istio (Network)"]
         direction TB
         L2A["Network egress control"]
         L2B["REGISTRY_ONLY mode"]
@@ -120,19 +120,19 @@ flowchart LR
         L2D["ServiceEntry allowlist"]
     end
 
-    subgraph Layer3["Layer 3: Kata"]
+    subgraph Layer3["Layer 3: OPA (Application)"]
         direction TB
-        L3A["VM isolation"]
-        L3B["Separate kernel"]
-        L3C["Host not visible"]
-        L3D["Unix sockets isolated"]
+        L3A["Tool-level policy"]
+        L3B["Argument inspection"]
+        L3C["Currency blocking"]
+        L3D["Audit logging"]
     end
 
     Layer1 --> Layer2 --> Layer3
 
-    style Layer1 fill:#fff3e0
-    style Layer2 fill:#e3f2fd
-    style Layer3 fill:#e8f5e9
+    style Layer1 fill:#CC0000,color:#FFFFFF
+    style Layer2 fill:#A30000,color:#FFFFFF
+    style Layer3 fill:#820000,color:#FFFFFF
 ```
 
 ## Kagenti Agent CRD with Kata

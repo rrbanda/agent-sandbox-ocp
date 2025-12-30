@@ -71,7 +71,7 @@ oc create secret generic gemini-api-key \
 
 ---
 
-## Step 3: Configure OPA Policy (Layer 1)
+## Step 3: Configure OPA Policy (Layer 3)
 
 Create the AuthPolicy that blocks cryptocurrency conversions:
 
@@ -145,7 +145,7 @@ With Istio ambient mesh, all other egress is blocked by default.
 
 ---
 
-## Step 5: Configure VM Isolation (Layer 3)
+## Step 5: Verify VM Isolation (Layer 1)
 
 ### Option A: Require in Agent CR
 

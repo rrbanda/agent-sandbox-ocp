@@ -20,34 +20,29 @@ Show the architecture diagram:
 
 ```mermaid
 flowchart TD
-    A[Incoming Request] --> B
-    
-    subgraph L1["Layer 1: Tool Policy"]
-        B["OPA Policy Check<br/>Is this tool call allowed?"]
+    subgraph L1["Layer 1: VM Isolation (Kata)"]
+        A["Agent runs in isolated VM"]
+        A --> B
+        
+        subgraph L2["Layer 2: Egress Control (Istio)"]
+            B["Can it reach this API?"]
+            B -->|Blocked| X2["❌ Unauthorized API"]
+            B -->|Allowed| C
+            
+            subgraph L3["Layer 3: Tool Policy (OPA)"]
+                C["Is this tool call allowed?"]
+                C -->|Blocked| X3["❌ Crypto Blocked"]
+                C -->|Allowed| D["✅ Secure Execution"]
+            end
+        end
     end
     
-    B -->|Allowed| C
-    B -->|Blocked| X1["❌ Crypto Blocked"]
-    
-    subgraph L2["Layer 2: Egress Control"]
-        C["Istio ServiceEntry<br/>Can it reach this API?"]
-    end
-    
-    C -->|Allowed| D
-    C -->|Blocked| X2["❌ Unauthorized API"]
-    
-    subgraph L3["Layer 3: VM Isolation"]
-        D["Kata Container<br/>If compromised, can it escape?"]
-    end
-    
-    D --> E["✅ Secure Execution"]
-    
-    style L1 fill:#e1f5fe
-    style L2 fill:#fff3e0
-    style L3 fill:#f3e5f5
-    style X1 fill:#ffcdd2
-    style X2 fill:#ffcdd2
-    style E fill:#c8e6c9
+    style L1 fill:#CC0000,color:#FFFFFF
+    style L2 fill:#A30000,color:#FFFFFF
+    style L3 fill:#820000,color:#FFFFFF
+    style X2 fill:#6A6A6A,color:#FFFFFF
+    style X3 fill:#6A6A6A,color:#FFFFFF
+    style D fill:#4A4A4A,color:#FFFFFF
 ```
 
 ---
@@ -87,9 +82,9 @@ Show the trace:
 
 ---
 
-### Scene 3: Layer 1 - Policy Protection (3 minutes)
+### Scene 3: Layer 3 - Tool Policy Protection (3 minutes)
 
-**Narrative**: "Now let's see what happens when someone tries to convert to cryptocurrency."
+**Narrative**: "Now let's see what happens when someone tries to convert to cryptocurrency. Layer 3 - the outermost protection - validates tool calls."
 
 #### Step 1: Test Blocked Request
 
@@ -123,7 +118,7 @@ deny if {
 
 ### Scene 4: Layer 2 - Egress Control (2 minutes)
 
-**Narrative**: "Even if a request gets past Layer 1, Layer 2 controls what external APIs the agent can reach."
+**Narrative**: "Layer 2 controls what external APIs the agent can reach, regardless of what tools are called."
 
 #### Step 1: Show the ServiceEntry
 
@@ -147,9 +142,9 @@ If Kiali is available, show the service graph with the egress traffic.
 
 ---
 
-### Scene 5: Layer 3 - VM Isolation (2 minutes)
+### Scene 5: Layer 1 - VM Isolation (2 minutes)
 
-**Narrative**: "The final layer protects against container escapes."
+**Narrative**: "Layer 1 is the foundation - the agent runs in a VM, protecting against container escapes."
 
 #### Step 1: Show the RuntimeClass
 
@@ -182,10 +177,10 @@ flowchart TB
         B1 --- B2 --- B3 --- B4
     end
     
-    style regular fill:#ffcdd2
-    style kata fill:#c8e6c9
-    style A3 fill:#ef9a9a
-    style B4 fill:#a5d6a7
+    style regular fill:#6A6A6A,color:#FFFFFF
+    style kata fill:#CC0000,color:#FFFFFF
+    style A3 fill:#4A4A4A,color:#FFFFFF
+    style B4 fill:#820000,color:#FFFFFF
 ```
 
 **Narrative**: "Even if an LLM generated malicious code that exploited a vulnerability, it would be trapped in the VM. The host and other pods are protected."

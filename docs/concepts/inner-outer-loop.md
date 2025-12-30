@@ -26,7 +26,7 @@ flowchart LR
         D --> A
     end
     
-    style laptop fill:#e3f2fd
+    style laptop fill:#CC0000,color:#FFFFFF
 ```
 
 *Iterate in seconds. No Kubernetes required.*
@@ -76,13 +76,13 @@ flowchart TD
         H --> I[Phoenix captures traces]
     end
     
-    style cluster fill:#fff3e0
-    style B fill:#e1f5fe
-    style D fill:#f3e5f5
-    style E fill:#e8f5e9
-    style F fill:#fce4ec
-    style G fill:#fff8e1
-    style H fill:#ede7f6
+    style cluster fill:#CC0000,color:#FFFFFF
+    style B fill:#A30000,color:#FFFFFF
+    style D fill:#820000,color:#FFFFFF
+    style E fill:#A30000,color:#FFFFFF
+    style F fill:#820000,color:#FFFFFF
+    style G fill:#A30000,color:#FFFFFF
+    style H fill:#820000,color:#FFFFFF
 ```
 
 *Platform handles security automatically.*
@@ -133,9 +133,9 @@ flowchart LR
     
     A --> B --> C
     
-    style inner fill:#e3f2fd
-    style transition fill:#fff3e0
-    style outer fill:#e8f5e9
+    style inner fill:#CC0000,color:#FFFFFF
+    style transition fill:#A30000,color:#FFFFFF
+    style outer fill:#820000,color:#FFFFFF
 ```
 
 ### Currency Agent Dockerfile

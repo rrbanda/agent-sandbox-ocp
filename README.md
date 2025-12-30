@@ -16,22 +16,25 @@ This demo shows how to protect AI agents with **three independent security layer
 
 ```mermaid
 flowchart LR
-    A["Agent Request"] --> B["Layer 1<br/>Tool Policy<br/>(OPA)"]
-    B --> C["Layer 2<br/>Egress Control<br/>(Istio)"]
-    C --> D["Layer 3<br/>VM Isolation<br/>(Kata)"]
-    D --> E["Secure<br/>Execution"]
+    subgraph L1["Layer 1: VM Isolation (Kata)"]
+        subgraph L2["Layer 2: Network Egress (Istio)"]
+            subgraph L3["Layer 3: Tool Policy (OPA)"]
+                A["Agent<br/>Execution"]
+            end
+        end
+    end
     
-    style B fill:#e1f5fe
-    style C fill:#fff3e0
-    style D fill:#f3e5f5
-    style E fill:#c8e6c9
+    style L1 fill:#CC0000,color:#FFFFFF
+    style L2 fill:#A30000,color:#FFFFFF
+    style L3 fill:#820000,color:#FFFFFF
+    style A fill:#4A4A4A,color:#FFFFFF
 ```
 
 | Layer | Technology | Protection |
 |-------|------------|------------|
-| **1. Tool Policy** | Kuadrant + OPA | Validates tool calls before execution |
+| **1. VM Isolation** | OpenShift Sandboxed Containers | Agent runs in hardware-isolated VM (foundation) |
 | **2. Network Egress** | Istio Service Mesh | Controls what external APIs agents can reach |
-| **3. VM Isolation** | OpenShift Sandboxed Containers | Runs agents in hardware-isolated VMs |
+| **3. Tool Policy** | Kuadrant + OPA | Validates tool calls before execution |
 
 ## Quick Start
 

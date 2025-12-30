@@ -6,52 +6,62 @@ The Currency Agent is protected by three independent security layers. Each layer
 
 ```mermaid
 flowchart TD
-    A[Incoming Request] --> B{Layer 1: Tool Policy<br/>Kuadrant + OPA}
-    B -->|Blocked| X1[❌ HTTP 403<br/>Policy Violation]
-    B -->|Allowed| C{Layer 2: Network Egress<br/>Istio ServiceEntry}
-    C -->|Blocked| X2[❌ Connection Refused<br/>Egress Denied]
-    C -->|Allowed| D{Layer 3: VM Isolation<br/>Kata Containers}
-    D --> E[✅ Request Processed<br/>in Isolated VM]
+    subgraph L1["Layer 1: VM Isolation (Kata Containers)"]
+        direction TB
+        A["Agent Pod Deployed in VM"]
+        A --> B
+        
+        subgraph L2["Layer 2: Network Egress (Istio)"]
+            B["Outbound Request"]
+            B -->|Blocked| X2[❌ Egress Denied]
+            B -->|Allowed| C
+            
+            subgraph L3["Layer 3: Tool Policy (OPA)"]
+                C["Tool Call via MCP Gateway"]
+                C -->|Blocked| X3[❌ Policy Violation]
+                C -->|Allowed| D[✅ Tool Executed]
+            end
+        end
+    end
     
-    style B fill:#e1f5fe
-    style C fill:#fff3e0
-    style D fill:#f3e5f5
-    style X1 fill:#ffcdd2
-    style X2 fill:#ffcdd2
-    style E fill:#c8e6c9
+    style L1 fill:#CC0000,color:#FFFFFF
+    style L2 fill:#A30000,color:#FFFFFF
+    style L3 fill:#820000,color:#FFFFFF
+    style X2 fill:#6A6A6A,color:#FFFFFF
+    style X3 fill:#6A6A6A,color:#FFFFFF
+    style D fill:#4A4A4A,color:#FFFFFF
 ```
 
 ---
 
-## Layer 1: Tool Policy (Kuadrant + OPA)
+## Layer 1: VM Isolation (OpenShift Sandboxed Containers)
 
-**What it does**: Inspects MCP tool calls and validates arguments against policy rules.
+**What it does**: Runs each agent pod in a lightweight virtual machine—the foundation layer.
 
-**Technology**: MCP Gateway → Kuadrant AuthPolicy → OPA/Rego
+**Technology**: OpenShift Sandboxed Containers (Kata Containers)
 
 **Currency Agent Example**:
 
 ```yaml
-# AuthPolicy blocks crypto currencies
-apiVersion: kuadrant.io/v1beta2
-kind: AuthPolicy
+# Agent runs in Kata VM
+apiVersion: kagenti.dev/v1alpha1
+kind: Agent
 spec:
-  rules:
-    authorization:
-      opa:
-        rego: |
-          # Block if currency_from or currency_to is crypto
-          deny {
-            input.args.currency_from in ["BTC", "ETH", "DOGE"]
-          }
-          deny {
-            input.args.currency_to in ["BTC", "ETH", "DOGE"]
-          }
+  podTemplateSpec:
+    spec:
+      runtimeClassName: kata  # ← VM isolation
 ```
 
-**Test**:
-- "What is 100 USD in EUR?" → ✅ Allowed
-- "What is 100 USD in BTC?" → ❌ HTTP 403
+**Effect**:
+- Agent has its own kernel (not shared with host)
+- Container escape only affects the VM
+- Host and other pods are protected
+
+**Verify**:
+```bash
+oc get pod -n agent-sandbox -l app=currency-agent -o yaml | grep runtimeClassName
+# Output: runtimeClassName: kata
+```
 
 ---
 
@@ -88,61 +98,65 @@ spec:
 
 ---
 
-## Layer 3: VM Isolation (OpenShift Sandboxed Containers)
+## Layer 3: Tool Policy (Kuadrant + OPA)
 
-**What it does**: Runs each agent pod in a lightweight virtual machine.
+**What it does**: Inspects MCP tool calls and validates arguments against policy rules.
 
-**Technology**: OpenShift Sandboxed Containers (Kata Containers)
+**Technology**: MCP Gateway → Kuadrant AuthPolicy → OPA/Rego
 
 **Currency Agent Example**:
 
 ```yaml
-# Agent runs in Kata VM
-apiVersion: kagenti.dev/v1alpha1
-kind: Agent
+# AuthPolicy blocks crypto currencies
+apiVersion: kuadrant.io/v1beta2
+kind: AuthPolicy
 spec:
-  podTemplateSpec:
-    spec:
-      runtimeClassName: kata  # ← VM isolation
+  rules:
+    authorization:
+      opa:
+        rego: |
+          # Block if currency_from or currency_to is crypto
+          deny {
+            input.args.currency_from in ["BTC", "ETH", "DOGE"]
+          }
+          deny {
+            input.args.currency_to in ["BTC", "ETH", "DOGE"]
+          }
 ```
 
-**Effect**:
-- Agent has its own kernel (not shared with host)
-- Container escape only affects the VM
-- Host and other pods are protected
-
-**Verify**:
-```bash
-oc get pod -n agent-sandbox -l app=currency-agent -o yaml | grep runtimeClassName
-# Output: runtimeClassName: kata
-```
+**Test**:
+- "What is 100 USD in EUR?" → ✅ Allowed
+- "What is 100 USD in BTC?" → ❌ HTTP 403
 
 ---
 
 ## How the Layers Work Together
 
-**Request**: "What is 100 USD in BTC?"
-
-1. **Layer 1 (OPA)**: Inspects tool call `get_exchange_rate(USD, BTC)`
-   - Policy rule: `deny if currency_to in ["BTC", "ETH"]`
-   - Result: ❌ **Request blocked** (HTTP 403)
-   - The request never reaches Layer 2 or 3
-
 **Request**: "What is 100 USD in EUR?"
 
-1. **Layer 1 (OPA)**: Inspects tool call `get_exchange_rate(USD, EUR)`
-   - Policy rule: EUR is not in blocked list
-   - Result: ✅ Allowed
+1. **Layer 1 (Kata)**: Agent pod is running in a VM
+   - Isolated kernel, protected from container escapes
+   - Result: ✅ Execution environment is secure
 
 2. **Layer 2 (Egress)**: Agent calls `api.frankfurter.app`
    - ServiceEntry: `api.frankfurter.app` is allowed
    - Result: ✅ Allowed
 
-3. **Layer 3 (Kata)**: Agent executes in VM
-   - Even if agent code had a bug, it's contained
-   - Result: ✅ Isolated
+3. **Layer 3 (OPA)**: Inspects tool call `get_exchange_rate(USD, EUR)`
+   - Policy rule: EUR is not in blocked list
+   - Result: ✅ Allowed
 
 **Response**: "100 USD is 85.06 EUR"
+
+---
+
+**Request**: "What is 100 USD in BTC?"
+
+1. **Layer 1 (Kata)**: Agent pod is running in a VM ✅
+2. **Layer 2 (Egress)**: Agent would call an external API ✅
+3. **Layer 3 (OPA)**: Inspects tool call `get_exchange_rate(USD, BTC)`
+   - Policy rule: `deny if currency_to in ["BTC", "ETH"]`
+   - Result: ❌ **Request blocked** (HTTP 403)
 
 ---
 

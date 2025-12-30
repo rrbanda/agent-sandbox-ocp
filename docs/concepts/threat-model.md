@@ -22,7 +22,7 @@ Agent thinks: "I need to call get_exchange_rate with currency_to=BTC"
 
 **Risk**: The organization has a policy against cryptocurrency transactions. Without enforcement, the agent would happily process this request.
 
-**Mitigation**: Layer 1 (OPA Policy) blocks the tool call before it executes.
+**Mitigation**: Layer 3 (OPA Policy) blocks the tool call before it executes.
 
 ## Threat 2: Data Exfiltration via Egress
 
@@ -51,7 +51,7 @@ LLM generates code that:
 
 **Risk**: In a multi-tenant environment, one compromised agent could affect others.
 
-**Mitigation**: Layer 3 (Kata Containers) runs the agent in a VM. Even if the container is compromised, the VM boundary prevents escape.
+**Mitigation**: Layer 1 (Kata Containers) runs the agent in a VM. Even if the container is compromised, the VM boundary prevents escape.
 
 ## Why Three Layers?
 
@@ -60,35 +60,35 @@ Each layer protects against different threats:
 ```mermaid
 flowchart TD
     subgraph threats["Threats"]
-        T1["🎯 Unauthorized<br/>Tool Usage"]
+        T1["💥 Container<br/>Escape"]
         T2["📤 Data<br/>Exfiltration"]
-        T3["💥 Container<br/>Escape"]
+        T3["🎯 Unauthorized<br/>Tool Usage"]
     end
     
-    subgraph layers["Defense Layers"]
-        L1["Layer 1: OPA<br/>Tool Policy"]
+    subgraph layers["Defense Layers (Infrastructure → Application)"]
+        L1["Layer 1: Kata<br/>VM Isolation"]
         L2["Layer 2: Istio<br/>Egress Control"]
-        L3["Layer 3: Kata<br/>VM Isolation"]
+        L3["Layer 3: OPA<br/>Tool Policy"]
     end
     
     T1 -.->|blocked by| L1
     T2 -.->|blocked by| L2
     T3 -.->|blocked by| L3
     
-    style T1 fill:#ffcdd2
-    style T2 fill:#ffcdd2
-    style T3 fill:#ffcdd2
-    style L1 fill:#e1f5fe
-    style L2 fill:#fff3e0
-    style L3 fill:#f3e5f5
+    style T1 fill:#6A6A6A,color:#FFFFFF
+    style T2 fill:#6A6A6A,color:#FFFFFF
+    style T3 fill:#6A6A6A,color:#FFFFFF
+    style L1 fill:#CC0000,color:#FFFFFF
+    style L2 fill:#A30000,color:#FFFFFF
+    style L3 fill:#820000,color:#FFFFFF
 ```
 
-| Threat | Layer 1 (OPA) | Layer 2 (Egress) | Layer 3 (Kata) |
-|--------|---------------|------------------|----------------|
-| Unauthorized tool usage | ✅ Blocks | - | - |
+| Threat | Layer 1 (Kata) | Layer 2 (Egress) | Layer 3 (OPA) |
+|--------|----------------|------------------|---------------|
+| Container escape | ✅ Blocks | - | - |
 | Data exfiltration | - | ✅ Blocks | - |
-| Container escape | - | - | ✅ Blocks |
-| Prompt injection | ✅ Limits damage | ✅ Limits damage | ✅ Contains |
+| Unauthorized tool usage | - | - | ✅ Blocks |
+| Prompt injection | ✅ Contains | ✅ Limits damage | ✅ Limits damage |
 
 No single layer is sufficient. Together, they provide defense in depth.
 
