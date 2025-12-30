@@ -12,30 +12,17 @@ This workshop teaches you how to deploy AI agents securely on OpenShift using **
 | **2. Network Egress** | Istio ServiceEntry | Controls external API access |
 | **3. Tool Policy** | Kuadrant + OPA | Validates tool calls before execution |
 
-## Quick Start
+## Workshop Modules
 
-### Option 1: Full Workshop
+Follow the structured workshop to learn hands-on:
 
-Follow the structured workshop modules:
-
-1. [Introduction](workshop/00-introduction/index.md) - Understand the architecture
-2. [Platform Setup](workshop/01-platform-admin/index.md) - Configure OpenShift (Platform Admin)
-3. [Agent Development](workshop/02-agent-developer/index.md) - Build with Google ADK (Developer)
-4. [Deploy & Test](workshop/03-deploy-and-test/index.md) - Verify security layers
-
-### Option 2: Quick Deploy
-
-```bash
-# Clone the repo
-git clone https://github.com/rrbanda/agent-sandbox-ocp.git
-cd agent-sandbox-ocp
-
-# Apply all manifests
-oc apply -f manifests/currency-demo/
-
-# Deploy ADK Web UI
-./scripts/deploy-adk-web.sh
-```
+| Module | Persona | Description |
+|--------|---------|-------------|
+| [00 - Introduction](workshop/00-introduction/index.md) | Everyone | Architecture and prerequisites |
+| [01 - Platform Setup](workshop/01-platform-admin/index.md) | Platform Admin | Configure OpenShift for secure agents |
+| [02 - Agent Development](workshop/02-agent-developer/index.md) | Developer | Build and test with Google ADK |
+| [03 - Deploy & Test](workshop/03-deploy-and-test/index.md) | Both | Deploy and verify security layers |
+| [04 - Appendix](workshop/04-appendix/index.md) | Reference | Troubleshooting and cleanup |
 
 ## The Demo
 
