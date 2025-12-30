@@ -69,9 +69,7 @@ Every tool call is validated before execution:
 
 ## What You'll Build
 
-### The Currency Agent
-
-A Google ADK-based agent that converts currencies:
+A **Currency Agent** using Google ADK that converts currencies:
 
 ```
 User: "What is 100 USD in EUR?"
@@ -81,16 +79,11 @@ Agent: I'll check the current exchange rate for you.
        100 USD is approximately 92.45 EUR.
 ```
 
-### The Security Demo
+By the end of this workshop, you'll verify:
 
-You'll demonstrate each layer of protection:
-
-| Test | Expected Result |
-|------|-----------------|
-| "Convert 100 USD to EUR" | ✅ Works - fiat currencies allowed |
-| "Convert 100 USD to BTC" | ❌ Blocked - OPA policy denies crypto |
-| Agent tries to call `evil.com` | ❌ Blocked - Istio egress denies |
-| Container escape attempt | ❌ Contained - Kata VM isolation |
+- ✅ Fiat currency conversion works (USD → EUR)
+- ❌ Crypto conversion is blocked by policy (USD → BTC)
+- 🔒 Agent runs in VM isolation (Kata)
 
 ## Prerequisites
 
@@ -109,32 +102,57 @@ You'll demonstrate each layer of protection:
 
 ```mermaid
 flowchart TB
-    subgraph User
-        Dev["Agent Developer"]
-        Admin["Platform Admin"]
-    end
+    User["👤 User"]
     
     subgraph OpenShift["OpenShift Cluster"]
-        subgraph NS["agent-sandbox namespace"]
-            subgraph Kata["Kata VM"]
-                Agent["Currency Agent"]
-            end
-            MCP["MCP Server"]
-            Policy["OPA Policy"]
+        subgraph Kagenti["Kagenti Platform"]
+            Gateway["MCP Gateway"]
+            Authorino["Authorino<br/>(OPA Policy)"]
         end
-        Istio["Istio Mesh"]
+        
+        subgraph NS["agent-sandbox namespace"]
+            subgraph Kata["Layer 1: Kata VM"]
+                Agent["Currency Agent<br/>(Google ADK)"]
+            end
+            
+            subgraph MCPServer["MCP Server"]
+                Tool["get_exchange_rate<br/>Tool"]
+            end
+        end
+        
+        subgraph Istio["Layer 2: Istio Mesh"]
+            Egress["Egress Control<br/>(ServiceEntry)"]
+        end
     end
     
-    subgraph External
-        API["api.frankfurter.app"]
+    subgraph External["External APIs"]
+        API["✅ api.frankfurter.app"]
+        Blocked["❌ Other APIs"]
     end
     
-    Dev -->|"Deploy Agent CR"| Agent
-    Admin -->|"Configure Policies"| Policy
-    Agent -->|"Tool Call"| MCP
-    MCP -->|"Validate"| Policy
-    Agent -->|"Egress (via Istio)"| API
+    User -->|"1. Prompt"| Agent
+    Agent -->|"2. tools/call"| Gateway
+    Gateway -->|"3. Authorize"| Authorino
+    Authorino -->|"4. Allow/Deny"| Gateway
+    Gateway -->|"5. Forward"| Tool
+    Tool -->|"6. HTTP Request"| Egress
+    Egress -->|"7. Allowed"| API
+    Egress -.->|"Blocked"| Blocked
+    API -->|"8. Response"| Tool
+    Tool -->|"9. Result"| Agent
+    Agent -->|"10. Answer"| User
 ```
+
+### Component Descriptions
+
+| Component | Location | Purpose |
+|-----------|----------|---------|
+| **Currency Agent** | Kata VM (Layer 1) | Google ADK agent that processes user prompts |
+| **MCP Gateway** | Kagenti Platform | Routes tool calls, enforces policies |
+| **Authorino** | Kagenti Platform | OPA policy engine (Layer 3) |
+| **MCP Server** | agent-sandbox namespace | Exposes `get_exchange_rate` tool |
+| **Istio Egress** | Service Mesh (Layer 2) | Controls external API access |
+| **Frankfurter API** | External | Currency exchange rates |
 
 ## Next Step
 
