@@ -1,5 +1,5 @@
-# AuthPolicy for MCP Gateway URL Blocking
-# Blocks tool calls to non-approved URLs and restricted parameters
+# OPA Policy for MCP Tool URL Blocking
+# This policy blocks fetch_url tool calls to non-approved URLs
 apiVersion: kuadrant.io/v1beta2
 kind: AuthPolicy
 metadata:
@@ -13,18 +13,14 @@ spec:
     sectionName: mcps
   rules:
     authentication:
-      "anonymous":
+      anonymous:
         anonymous: {}
     authorization:
-      "tool-policy":
+      tool-policy:
         opa:
+          allValues: true
           rego: |
-            package authorino.authz
-
-            # Allow if no denials
-            allow { count(deny) == 0 }
-
-            # Block fetch_url calls to non-approved URLs
+            # Block fetch_url with unapproved URLs
             deny[msg] {
               input.context.request.http.body
               body := json.unmarshal(input.context.request.http.body)
@@ -35,25 +31,31 @@ spec:
               msg := sprintf("BLOCKED: URL '%s' not in approved list", [url])
             }
 
-            # Block weather queries for restricted cities
+            # Block fetch_fetch_url (with prefix) 
             deny[msg] {
               input.context.request.http.body
               body := json.unmarshal(input.context.request.http.body)
               body.method == "tools/call"
-              startswith(body.params.name, "weather_")
-              city := lower(body.params.arguments.city)
-              restricted_city(city)
-              msg := sprintf("BLOCKED: Weather for '%s' is restricted", [city])
+              body.params.name == "fetch_fetch_url"
+              url := body.params.arguments.url
+              not approved_url(url)
+              msg := sprintf("BLOCKED: URL '%s' not in approved list", [url])
             }
-
+            
+            # IMDS protection
+            deny[msg] {
+              input.context.request.http.body
+              body := json.unmarshal(input.context.request.http.body)
+              body.method == "tools/call"
+              url := body.params.arguments.url
+              startswith(url, "http://169.254.169.254")
+              msg := "BLOCKED: IMDS access not permitted"
+            }
+            
             # Approved URL patterns
             approved_url(url) { startswith(url, "https://api.weather.gov") }
             approved_url(url) { startswith(url, "https://httpbin.org") }
             approved_url(url) { startswith(url, "https://example.com") }
             approved_url(url) { startswith(url, "https://api.github.com") }
-
-            # Restricted cities
-            restricted_city("moscow")
-            restricted_city("beijing")
-            restricted_city("pyongyang")
-          allValues: true
+            
+            allow { count(deny) == 0 }

@@ -1,60 +1,39 @@
-# Example agent deployment with sandboxed runtime
-# Uses kata runtimeClass for VM-level isolation
-apiVersion: v1
-kind: Namespace
+# Kagenti Agent with Kata Runtime (VM Isolation)
+# This Agent runs inside a micro-VM for execution isolation
+apiVersion: agent.kagenti.dev/v1alpha1
+kind: Agent
 metadata:
-  name: agent-sandbox
-  labels:
-    istio-discovery: enabled
-    istio-injection: enabled
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: sandboxed-agent
+  name: adk-kata-agent
   namespace: agent-sandbox
 spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: sandboxed-agent
-  template:
-    metadata:
-      labels:
-        app: sandboxed-agent
+  server:
+    name: simple-adk-agent
+    endpoint: /mcp
+  image: quay.io/rbrhssa/simple-adk-agent:latest
+  imagePullSecrets:
+    - name: quay-pull-secret
+  podTemplateSpec:
     spec:
-      # Kata runtime for VM-level isolation
-      runtimeClassName: kata
+      runtimeClassName: kata  # VM isolation via Kata Containers
       containers:
-      - name: agent
-        image: registry.access.redhat.com/ubi9/ubi-minimal:latest
-        command: ["sleep", "infinity"]
-        ports:
-        - containerPort: 8080
-        # IMPORTANT: Kata pods require at least 2Gi memory
-        # due to QEMU overhead for micro-VMs
-        resources:
-          limits:
-            memory: "2Gi"
-            cpu: "1"
-          requests:
-            memory: "2Gi"
-            cpu: "500m"
-        volumeMounts:
-        - name: tmp
-          mountPath: /tmp
+        - name: agent
+          resources:
+            limits:
+              memory: "2Gi"    # Required for QEMU overhead
+              cpu: "1"
+            requests:
+              memory: "2Gi"
+              cpu: "500m"
+          env:
+            - name: HOME
+              value: /tmp
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+            - name: adk-cache
+              mountPath: /app/.adk
       volumes:
-      - name: tmp
-        emptyDir: {}
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: sandboxed-agent
-  namespace: agent-sandbox
-spec:
-  selector:
-    app: sandboxed-agent
-  ports:
-  - port: 8080
-    targetPort: 8080
+        - name: tmp
+          emptyDir: {}
+        - name: adk-cache
+          emptyDir: {}
