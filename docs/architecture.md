@@ -2,6 +2,8 @@
 
 ## Overview
 
+The demo uses Kagenti's Agent CRD to deploy a Google ADK agent that runs inside a Kata micro-VM. The agent has built-in HTTP fetch capabilities that are subject to OPA policy enforcement.
+
 ```mermaid
 flowchart TB
     subgraph User["User/DevOps"]
@@ -16,17 +18,13 @@ flowchart TB
     end
 
     subgraph KataVM["Kata VM (Isolated Execution)"]
-        AgentPod["Agent Pod<br/>(Google ADK)"]
+        AgentPod["Agent Pod<br/>(Google ADK with fetch_url tool)"]
         IstioSidecar["Istio Sidecar"]
     end
 
     subgraph Policy["Policy Enforcement"]
         Authorino["Authorino"]
         OPA["OPA Policy"]
-    end
-
-    subgraph MCPBackend["MCP Servers"]
-        FetchServer["fetch-server"]
     end
 
     subgraph External["External APIs"]
@@ -40,17 +38,17 @@ flowchart TB
     Operator -->|"3. create pod<br/>(runtimeClassName: kata)"| AgentPod
 
     %% Tool call flow
-    AgentPod -->|"4. tools/call"| MCPGateway
+    AgentPod -->|"4. tools/call(fetch_url)"| MCPGateway
     MCPGateway -->|"5. authorize"| Authorino
     Authorino --> OPA
     OPA -->|"allow/deny"| Authorino
     Authorino -->|"6. decision"| MCPGateway
-    MCPGateway -->|"7. route"| Broker
-    Broker -->|"8. dispatch"| FetchServer
-    FetchServer -->|"9. fetch"| Approved
+    MCPGateway -->|"7. if allowed"| Broker
+    Broker -->|"8. execute"| AgentPod
+    AgentPod -->|"9. fetch"| Approved
 
     %% Blocked paths
-    FetchServer -.->|"blocked by OPA"| Blocked
+    AgentPod -.->|"blocked by OPA"| Blocked
     IstioSidecar -.->|"REGISTRY_ONLY blocks"| Blocked
 
     style KataVM fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
@@ -60,7 +58,7 @@ flowchart TB
     style Approved fill:#e8f5e9,stroke:#4caf50
 ```
 
-## Component Flow
+## Request Flow
 
 ```mermaid
 sequenceDiagram
@@ -72,16 +70,14 @@ sequenceDiagram
     participant Gateway as MCP Gateway
     participant Authorino
     participant OPA
-    participant Broker as MCP Broker
-    participant MCP as fetch-server
 
-    Note over User,MCP: 1. Agent Deployment via Kagenti CRD
+    Note over User,OPA: 1. Agent Deployment via Kagenti CRD
     User->>CRD: oc apply -f agent.yaml
     CRD->>Operator: Watch/Reconcile
     Operator->>Kata: Create Pod with<br/>runtimeClassName: kata
     Kata->>Agent: Start agent in micro-VM
 
-    Note over User,MCP: 2. Tool Call - BLOCKED by OPA
+    Note over User,OPA: 2. Tool Call - BLOCKED by OPA
     Agent->>Gateway: tools/call("fetch_url",<br/>{"url": "https://malicious.com"})
     Gateway->>Authorino: Check authorization
     Authorino->>OPA: Evaluate Rego policy
@@ -90,18 +86,14 @@ sequenceDiagram
     Authorino-->>Gateway: 403 Forbidden
     Gateway-->>Agent: HTTP 403
 
-    Note over User,MCP: 3. Tool Call - ALLOWED
+    Note over User,OPA: 3. Tool Call - ALLOWED
     Agent->>Gateway: tools/call("fetch_url",<br/>{"url": "https://httpbin.org/get"})
     Gateway->>Authorino: Check authorization
     Authorino->>OPA: Evaluate Rego policy
     OPA-->>Authorino: ALLOW
     Authorino-->>Gateway: 200 OK
-    Gateway->>Broker: Route to fetch-server
-    Broker->>MCP: Forward request
-    MCP->>MCP: Fetch https://httpbin.org/get
-    MCP-->>Broker: Response
-    Broker-->>Gateway: Response
-    Gateway-->>Agent: HTTP 200 + data
+    Gateway-->>Agent: HTTP 200 (proceed to execute)
+    Agent->>Agent: Execute fetch to httpbin.org
 ```
 
 ## What Each Layer Provides
@@ -163,4 +155,4 @@ spec:
               cpu: "1"
 ```
 
-The `runtimeClassName: kata` in the `podTemplateSpec.spec` tells Kubernetes to schedule this pod using the Kata runtime, which runs the container inside a micro-VM instead of a regular container.
+The `runtimeClassName: kata` in `podTemplateSpec.spec` tells Kubernetes to run this pod using the Kata runtime, which creates a micro-VM for the container.

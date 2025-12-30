@@ -1,5 +1,12 @@
-# Istio configuration for Authorino ext_authz integration
-# Apply with: oc patch istio default -n istio-system --type=merge --patch-file manifests/istio/ext-authz-config.yaml
+# Istio Mesh Configuration for Authorino ext_authz
+# 
+# This is a PATCH file. Apply with:
+#   oc patch istio default -n istio-system --type=merge --patch-file manifests/istio/ext-authz-config.yaml
+#
+# This configures:
+# 1. Request body forwarding to Authorino (required for OPA to inspect tool arguments)
+# 2. REGISTRY_ONLY mode to block all outbound traffic by default
+---
 spec:
   values:
     meshConfig:

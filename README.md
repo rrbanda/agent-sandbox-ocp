@@ -26,14 +26,13 @@ This is inspired by [Anthropic's SRT](https://github.com/anthropic-experimental/
 ```mermaid
 flowchart TB
     subgraph Kagenti["Kagenti Platform"]
-        Operator["Kagenti Operator"]
         AgentCRD["Agent CRD<br/>(runtimeClassName: kata)"]
+        Operator["Kagenti Operator"]
         MCPGateway["MCP Gateway"]
-        Broker["MCP Broker"]
     end
 
     subgraph KataVM["Kata VM (Isolated Execution)"]
-        AgentPod["Agent Pod<br/>(Google ADK / LangChain)"]
+        AgentPod["Agent Pod<br/>(Google ADK with fetch_url)"]
         Sidecar["Istio Sidecar"]
     end
 
@@ -42,32 +41,29 @@ flowchart TB
         OPA["OPA Policy"]
     end
 
-    subgraph MCPServers["MCP Servers"]
-        FetchServer["fetch-server"]
-    end
-
     subgraph External["External Services"]
         Approved["✅ httpbin.org<br/>✅ api.weather.gov"]
         Blocked["❌ malicious.com"]
     end
 
-    %% Kagenti creates agent in Kata VM
-    AgentCRD -->|"creates"| Operator
-    Operator -->|"runtimeClassName: kata"| AgentPod
-    
-    %% Tool calls flow through MCP Gateway
-    AgentPod -->|"tools/call()"| MCPGateway
-    MCPGateway -->|"check policy"| Authorino
+    %% Deployment: Kagenti creates agent in Kata VM
+    AgentCRD -->|"1. reconcile"| Operator
+    Operator -->|"2. create pod<br/>(runtimeClassName: kata)"| AgentPod
+
+    %% Tool call flow
+    AgentPod -->|"3. tools/call(fetch_url)"| MCPGateway
+    MCPGateway -->|"4. authorize"| Authorino
     Authorino --> OPA
-    OPA -->|"allow/deny"| Authorino
+    OPA -->|"5. allow/deny"| Authorino
     Authorino --> MCPGateway
-    MCPGateway --> Broker
-    Broker --> FetchServer
-    FetchServer --> Approved
-    
+
+    %% If allowed, agent executes fetch
+    MCPGateway -->|"6. allowed"| AgentPod
+    AgentPod -->|"7. fetch"| Approved
+
     %% Blocked paths
-    FetchServer -.->|"OPA blocks"| Blocked
-    Sidecar -.->|"Istio blocks"| Blocked
+    MCPGateway -.->|"denied by OPA"| Blocked
+    Sidecar -.->|"blocked by Istio"| Blocked
 
     style KataVM fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
     style Kagenti fill:#fff3e0,stroke:#ff9800
@@ -94,30 +90,25 @@ sequenceDiagram
     participant Agent as Agent (in Kata VM)
     participant Gateway as MCP Gateway
     participant OPA as Authorino/OPA
-    participant Broker as MCP Broker
-    participant MCP as fetch-server
 
-    Note over User,MCP: 1. Deploy Agent via Kagenti CRD
+    Note over User,OPA: 1. Deploy Agent via Kagenti CRD
     User->>CRD: oc apply -f agent.yaml<br/>(runtimeClassName: kata)
     CRD->>Operator: Reconcile
     Operator->>Kata: Create pod with Kata runtime
     Kata->>Agent: Agent running in micro-VM
 
-    Note over User,MCP: 2. Tool Call - BLOCKED
+    Note over User,OPA: 2. Tool Call - BLOCKED
     Agent->>Gateway: fetch_url("malicious.com")
     Gateway->>OPA: Check policy
     OPA-->>Gateway: DENY (url not approved)
     Gateway-->>Agent: HTTP 403
 
-    Note over User,MCP: 3. Tool Call - ALLOWED
+    Note over User,OPA: 3. Tool Call - ALLOWED
     Agent->>Gateway: fetch_url("httpbin.org")
     Gateway->>OPA: Check policy
     OPA-->>Gateway: ALLOW
-    Gateway->>Broker: Route request
-    Broker->>MCP: Dispatch to fetch-server
-    MCP-->>Broker: Response
-    Broker-->>Gateway: Response
-    Gateway-->>Agent: HTTP 200 + data
+    Gateway-->>Agent: HTTP 200 (proceed)
+    Agent->>Agent: Execute fetch to httpbin.org
 ```
 
 ---
@@ -606,19 +597,20 @@ oc get istio default -n istio-system -o jsonpath='{.spec.values.meshConfig.outbo
 .
 ├── manifests/
 │   ├── istio/
-│   │   ├── ext-authz-config.yaml      # Authorino integration
+│   │   ├── ext-authz-config.yaml      # Istio patch for body forwarding + REGISTRY_ONLY
 │   │   └── service-entry.yaml         # Approved external APIs
 │   ├── osc/
-│   │   ├── kataconfig.yaml            # Kata configuration
-│   │   └── sandboxed-agent.yaml       # Agent with Kata runtime
+│   │   ├── kataconfig.yaml            # OpenShift Sandboxed Containers config
+│   │   └── sandboxed-agent.yaml       # Kagenti Agent CR with runtimeClassName: kata
 │   └── policies/
-│       └── url-blocking-policy.yaml   # OPA policy
+│       └── url-blocking-policy.yaml   # OPA policy for URL blocking
 ├── scripts/
-│   ├── demo-complete.sh               # Full demo script
-│   ├── setup-namespaces.sh            # Namespace configuration
-│   └── test-policy.sh                 # Quick policy test
+│   ├── demo-complete.sh               # Full demo script (all 3 layers)
+│   ├── setup-namespaces.sh            # Enable Istio sidecar on namespaces
+│   └── test-policy.sh                 # Quick OPA policy test
 ├── docs/
-│   └── troubleshooting.md             # Common issues
+│   ├── architecture.md                # Detailed architecture diagrams
+│   └── troubleshooting.md             # Common issues and fixes
 └── README.md
 ```
 
