@@ -99,6 +99,126 @@ sequenceDiagram
 
 ---
 
+## Security Layers Explained
+
+### Layer 1: Tool Policy (MCP Gateway + Authorino/OPA)
+
+**What it is:** OPA policies that inspect tool call arguments before execution.
+
+**Capabilities:**
+| Capability | Status | How |
+|------------|--------|-----|
+| Block tools by name | ✅ | `input.context.request.http.body.params.name == "dangerous_tool"` |
+| Block URLs by pattern | ✅ | `not startswith(url, "https://approved-domain.com")` |
+| Block parameters by value | ✅ | `input.context.request.http.body.params.arguments.city == "Moscow"` |
+| Per-agent policies | ✅ | Multiple `AuthPolicy` resources per namespace |
+| Audit logging | ✅ | Authorino logs all decisions |
+
+**Example policy:**
+```rego
+deny[msg] {
+  input.context.request.http.body.method == "tools/call"
+  input.context.request.http.body.params.name == "fetch_url"
+  url := input.context.request.http.body.params.arguments.url
+  not approved_url(url)
+  msg := "URL not in approved list"
+}
+
+approved_url(url) if startswith(url, "https://api.weather.gov")
+approved_url(url) if startswith(url, "https://httpbin.org")
+```
+
+**What it blocks:** An agent calling `fetch_url("https://malicious.com")` → **403 Forbidden**
+
+---
+
+### Layer 2: Network Egress (Istio REGISTRY_ONLY + ServiceEntry)
+
+**What it is:** Istio sidecar proxies that block all outbound traffic except explicitly registered services.
+
+**Capabilities:**
+| Capability | Status | How |
+|------------|--------|-----|
+| Block direct internet access | ✅ | `outboundTrafficPolicy: REGISTRY_ONLY` |
+| Allow specific external hosts | ✅ | `ServiceEntry` with `MESH_EXTERNAL` |
+| Per-namespace overrides | ✅ | Namespace-scoped `Sidecar` resource |
+| Protocol enforcement | ✅ | Only allow HTTPS on port 443 |
+| mTLS between pods | ✅ | Istio mesh default |
+
+**Configuration:**
+```yaml
+# Block all outbound by default
+meshConfig:
+  outboundTrafficPolicy:
+    mode: REGISTRY_ONLY
+
+# Explicitly allow specific APIs
+apiVersion: networking.istio.io/v1beta1
+kind: ServiceEntry
+metadata:
+  name: approved-external-apis
+spec:
+  hosts:
+    - api.weather.gov
+    - httpbin.org
+  location: MESH_EXTERNAL
+  resolution: DNS
+```
+
+**What it blocks:** Agent code running `requests.get("https://evil.com")` → **Connection refused**
+
+---
+
+### Layer 3: Execution Isolation (OpenShift Sandboxed Containers / Kata)
+
+**What it is:** Each agent pod runs inside a dedicated micro-VM with its own kernel.
+
+**Capabilities:**
+| Capability | Status | How |
+|------------|--------|-----|
+| VM-level isolation | ✅ | QEMU/KVM hypervisor boundary |
+| Separate kernel | ✅ | Guest kernel inside VM, not host |
+| Host filesystem not visible | ✅ | VM has isolated root filesystem |
+| Host network not accessible | ✅ | VM has separate network namespace |
+| Unix sockets isolated | ✅ | VM cannot see host IPC sockets |
+| Kernel exploits contained | ✅ | Guest kernel crash doesn't affect host |
+
+**Configuration:**
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: agent-pod
+spec:
+  runtimeClassName: kata  # Run in VM, not container
+  containers:
+    - name: agent
+      resources:
+        limits:
+          memory: "2Gi"  # Required for QEMU overhead
+```
+
+**What it blocks:** Compromised agent code trying to:
+- Access `/etc/shadow` on host → **Sees only VM filesystem**
+- Escape to host via kernel exploit → **Trapped inside guest VM**
+- Access Docker socket → **Not visible in VM**
+
+---
+
+### How the Layers Work Together
+
+| Attack | Layer 1 (OPA) | Layer 2 (Istio) | Layer 3 (Kata) |
+|--------|---------------|-----------------|----------------|
+| `fetch_url("https://evil.com")` | ✅ BLOCKED | - | - |
+| `requests.get("https://evil.com")` | Bypassed | ✅ BLOCKED | - |
+| Kernel exploit → host escape | Bypassed | Bypassed | ✅ CONTAINED |
+| Access Docker socket | Bypassed | Bypassed | ✅ NOT VISIBLE |
+| Read `/etc/shadow` on host | Bypassed | Bypassed | ✅ ISOLATED |
+
+**Defense in depth:** If one layer is bypassed, the next layer catches the attack.
+
+---
+
 ## Verified Demo Results
 
 | Test | Expected | Result |
