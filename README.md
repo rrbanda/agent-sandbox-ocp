@@ -25,78 +25,94 @@ This is inspired by [Anthropic's SRT](https://github.com/anthropic-experimental/
 
 ```mermaid
 flowchart TB
-    subgraph AgentPod["Agent Pod (Kata VM)"]
-        Agent["Agent App<br/>(ADK / LangChain)"]
-        MCP_Client["MCP Client"]
-        Sidecar["Istio Sidecar<br/>REGISTRY_ONLY"]
+    subgraph Kagenti["Kagenti Platform"]
+        Operator["Kagenti Operator"]
+        AgentCRD["Agent CRD<br/>(runtimeClassName: kata)"]
+        MCPGateway["MCP Gateway"]
+        Broker["MCP Broker"]
     end
 
-    subgraph Gateway["MCP Gateway Layer"]
-        MCPGateway["MCP Gateway<br/>(Envoy)"]
+    subgraph KataVM["Kata VM (Isolated Execution)"]
+        AgentPod["Agent Pod<br/>(Google ADK / LangChain)"]
+        Sidecar["Istio Sidecar"]
+    end
+
+    subgraph Policy["Policy Layer"]
         Authorino["Authorino"]
         OPA["OPA Policy"]
     end
 
-    subgraph Backend["MCP Backend"]
-        Broker["MCP Broker"]
-        MCPServer["MCP Servers"]
+    subgraph MCPServers["MCP Servers"]
+        FetchServer["fetch-server"]
     end
 
     subgraph External["External Services"]
-        ServiceEntry["ServiceEntry"]
-        ApprovedAPIs["✅ api.weather.gov<br/>✅ httpbin.org"]
-        BlockedAPIs["❌ malicious.com<br/>❌ evil-site.net"]
+        Approved["✅ httpbin.org<br/>✅ api.weather.gov"]
+        Blocked["❌ malicious.com"]
     end
 
-    Agent --> MCP_Client
-    MCP_Client -->|"tools/call()"| MCPGateway
-    MCPGateway -->|"check"| Authorino
+    %% Kagenti creates agent in Kata VM
+    AgentCRD -->|"creates"| Operator
+    Operator -->|"runtimeClassName: kata"| AgentPod
+    
+    %% Tool calls flow through MCP Gateway
+    AgentPod -->|"tools/call()"| MCPGateway
+    MCPGateway -->|"check policy"| Authorino
     Authorino --> OPA
     OPA -->|"allow/deny"| Authorino
     Authorino --> MCPGateway
-    MCPGateway -->|"route"| Broker
-    Broker --> MCPServer
-    MCPServer --> ServiceEntry
-    ServiceEntry --> ApprovedAPIs
+    MCPGateway --> Broker
+    Broker --> FetchServer
+    FetchServer --> Approved
+    
+    %% Blocked paths
+    FetchServer -.->|"OPA blocks"| Blocked
+    Sidecar -.->|"Istio blocks"| Blocked
 
-    Sidecar -.->|"blocked"| BlockedAPIs
-
-    style AgentPod fill:#e1f5fe
-    style Gateway fill:#fff3e0
-    style Backend fill:#e8f5e9
-    style BlockedAPIs fill:#ffebee
-    style ApprovedAPIs fill:#c8e6c9
+    style KataVM fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
+    style Kagenti fill:#fff3e0,stroke:#ff9800
+    style Policy fill:#fce4ec,stroke:#e91e63
+    style Blocked fill:#ffebee,stroke:#f44336
+    style Approved fill:#e8f5e9,stroke:#4caf50
 ```
+
+### Key Points
+
+1. **Kagenti Agent CRD** - Deploys the agent with `runtimeClassName: kata`
+2. **Kata VM** - Agent runs inside a micro-VM (not just a container)
+3. **MCP Gateway** - Routes tool calls through policy enforcement
+4. **OPA Policy** - Inspects tool arguments and blocks unauthorized URLs
 
 ### Request Flow
 
 ```mermaid
 sequenceDiagram
-    participant Agent as Agent (Kata VM)
+    participant User
+    participant Kagenti as Kagenti Operator
+    participant Kata as Kata Runtime
+    participant Agent as Agent (in Kata VM)
     participant Gateway as MCP Gateway
     participant OPA as Authorino + OPA
-    participant MCP as MCP Server
-    participant API as External API
 
-    Note over Agent,API: ✅ Allowed: Tool call to approved URL
-    Agent->>Gateway: fetch_url("api.weather.gov")
-    Gateway->>OPA: Check policy
-    OPA-->>Gateway: ALLOW
-    Gateway->>MCP: Route request
-    MCP->>API: GET api.weather.gov
-    API-->>Agent: HTTP 200 + data
+    Note over User,OPA: Agent Deployment
+    User->>Kagenti: oc apply -f agent.yaml<br/>(runtimeClassName: kata)
+    Kagenti->>Kata: Create pod in Kata VM
+    Kata->>Agent: Agent running in micro-VM
 
-    Note over Agent,API: ❌ Blocked: Tool call to unauthorized URL
+    Note over User,OPA: Tool Call - BLOCKED
     Agent->>Gateway: fetch_url("malicious.com")
     Gateway->>OPA: Check policy
     OPA-->>Gateway: DENY
-    Gateway-->>Agent: HTTP 403 Forbidden
+    Gateway-->>Agent: HTTP 403
 
-    Note over Agent,API: ❌ Blocked: Direct internet access
-    Agent-xAgent: curl evil-site.net
-    Note right of Agent: Istio REGISTRY_ONLY<br/>Connection refused
+    Note over User,OPA: Tool Call - ALLOWED
+    Agent->>Gateway: fetch_url("httpbin.org")
+    Gateway->>OPA: Check policy
+    OPA-->>Gateway: ALLOW
+    Gateway-->>Agent: HTTP 200
 ```
 
+---
 ---
 
 ## Security Layers Explained
