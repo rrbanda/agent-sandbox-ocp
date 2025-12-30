@@ -248,17 +248,17 @@ kata                             kata
 
 ---
 
-## Files
+## Manifests
 
 | File | What | Why |
 |------|------|-----|
-| `00-kataconfig.yaml` | Kata runtime config | Enables VM isolation on nodes |
-| `01-namespaces.yaml` | Create namespaces | `mcp-test`, `agent-sandbox` |
-| `02-currency-mcp-server.yaml` | Currency MCP Server | Provides `get_exchange_rate` tool |
-| `03-currency-httproute.yaml` | HTTPRoute | Routes to MCP server via gateway |
-| `04-authpolicy.yaml` | OPA policy | Blocks BTC/ETH, allows fiat currencies |
-| `05-currency-agent.yaml` | Kagenti Agent | Runs in Kata VM |
-| `06-service-entry.yaml` | Istio egress rules | Allows `api.frankfurter.app` |
+| `manifests/00-kataconfig.yaml` | Kata runtime config | Enables VM isolation on nodes |
+| `manifests/01-namespaces.yaml` | Create namespaces | `mcp-test`, `agent-sandbox` |
+| `manifests/02-currency-mcp-server.yaml` | Currency MCP Server | Provides `get_exchange_rate` tool |
+| `manifests/03-currency-httproute.yaml` | HTTPRoute | Routes to MCP server via gateway |
+| `manifests/04-authpolicy.yaml` | OPA policy | Blocks BTC/ETH, allows fiat currencies |
+| `manifests/05-currency-agent.yaml` | Kagenti Agent | Runs in Kata VM |
+| `manifests/06-service-entry.yaml` | Istio egress rules | Allows `api.frankfurter.app` |
 
 ---
 
@@ -267,11 +267,11 @@ kata                             kata
 ```bash
 # 0. Enable Kata runtime (PREREQUISITE - wait 10-15 min)
 oc label node <NODE_NAME> node-role.kubernetes.io/kata-oc=""
-oc apply -f 00-kataconfig.yaml
+oc apply -f manifests/00-kataconfig.yaml
 watch oc get runtimeclass kata  # Wait for this to appear
 
 # 1. Create namespaces
-oc apply -f 01-namespaces.yaml
+oc apply -f manifests/01-namespaces.yaml
 
 # 2. Create secrets
 oc create secret generic gemini-api-key \
@@ -290,19 +290,19 @@ oc create secret docker-registry quay-pull-secret \
   -n agent-sandbox
 
 # 3. Deploy MCP Server
-oc apply -f 02-currency-mcp-server.yaml
+oc apply -f manifests/02-currency-mcp-server.yaml
 
 # 4. Create HTTPRoute
-oc apply -f 03-currency-httproute.yaml
+oc apply -f manifests/03-currency-httproute.yaml
 
 # 5. Apply OPA AuthPolicy
-oc apply -f 04-authpolicy.yaml
+oc apply -f manifests/04-authpolicy.yaml
 
 # 6. Configure Istio egress
-oc apply -f 06-service-entry.yaml
+oc apply -f manifests/06-service-entry.yaml
 
 # 7. Deploy Agent in Kata VM
-oc apply -f 05-currency-agent.yaml
+oc apply -f manifests/05-currency-agent.yaml
 
 # 8. Run tests
 ./scripts/demo-complete.sh
@@ -391,18 +391,19 @@ oc get agent -n agent-sandbox
 
 ```
 .
-├── 00-kataconfig.yaml       # Kata runtime (prerequisite)
-├── 01-namespaces.yaml       # mcp-test, agent-sandbox
-├── 02-currency-mcp-server.yaml  # MCP server deployment
-├── 03-currency-httproute.yaml   # Gateway routing
-├── 04-authpolicy.yaml       # OPA policy (blocks BTC/ETH)
-├── 05-currency-agent.yaml   # Kagenti Agent in Kata VM
-├── 06-service-entry.yaml    # Istio egress allowlist
+├── manifests/
+│   ├── 00-kataconfig.yaml       # Kata runtime (prerequisite)
+│   ├── 01-namespaces.yaml       # mcp-test, agent-sandbox
+│   ├── 02-currency-mcp-server.yaml  # MCP server deployment
+│   ├── 03-currency-httproute.yaml   # Gateway routing
+│   ├── 04-authpolicy.yaml       # OPA policy (blocks BTC/ETH)
+│   ├── 05-currency-agent.yaml   # Kagenti Agent in Kata VM
+│   └── 06-service-entry.yaml    # Istio egress allowlist
 ├── scripts/
-│   └── demo-complete.sh     # Test all security layers
+│   └── demo-complete.sh         # Test all security layers
 ├── docs/
-│   ├── architecture.md      # Detailed diagrams
-│   └── troubleshooting.md   # Common issues
+│   ├── architecture.md          # Detailed diagrams
+│   └── troubleshooting.md       # Common issues
 └── README.md
 ```
 
