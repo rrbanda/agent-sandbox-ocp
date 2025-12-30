@@ -16,22 +16,16 @@ This workshop teaches you how to deploy AI agents securely on OpenShift using **
 
 A structured, hands-on workshop that walks through:
 
-1. **[Introduction](workshop/00-introduction/index.md)** - Understand the security model
-2. **[Platform Setup](workshop/01-platform-admin/index.md)** - Configure OpenShift (Platform Admin)
-3. **[Agent Development](workshop/02-agent-developer/index.md)** - Build with Google ADK (Developer)
-4. **[Deploy & Test](workshop/03-deploy-and-test/index.md)** - Verify all security layers (Both)
-5. **[Appendix](workshop/04-appendix/index.md)** - Troubleshooting and cleanup
+0. **[Prerequisites](workshop/00-prerequisites/index.md)** - Install platform components (one-time)
+1. **[Introduction](workshop/01-introduction/index.md)** - Understand the security model
+2. **[Platform Setup](workshop/02-platform-setup/index.md)** - Configure namespace (Platform Admin)
+3. **[Agent Development](workshop/03-agent-developer/index.md)** - Build with Google ADK (Developer)
+4. **[Deploy & Test](workshop/04-deploy-and-test/index.md)** - Verify all security layers (Both)
+5. **[Appendix](workshop/05-appendix/index.md)** - Troubleshooting and cleanup
 
 **Duration**: ~2 hours
 
 👉 **[Start the Workshop](workshop/index.md)**
-
-## The Demo
-
-**Currency Agent**: Converts currencies but blocks cryptocurrency.
-
-- ✅ "What is 100 USD in EUR?" → Works
-- ❌ "What is 100 USD in BTC?" → Blocked by policy
 
 ## Architecture
 

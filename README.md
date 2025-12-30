@@ -92,27 +92,6 @@ open "https://$(oc get route adk-server -n adk-web -o jsonpath='{.spec.host}')/d
 | [Architecture](docs/architecture.md) | Technical architecture diagrams |
 | [Troubleshooting](docs/troubleshooting.md) | Common issues and solutions |
 
-## Demo Scenario
-
-**Currency Agent**: A Google ADK-based agent that converts currencies.
-
-- ✅ **Allowed**: "What is 100 USD in EUR?" → Returns exchange rate
-- ❌ **Blocked**: "What is 100 USD in BTC?" → Blocked by OPA policy (crypto not allowed)
-
-### ADK Web UI in Action
-
-**Select the Currency Agent and test conversions:**
-
-![ADK Web UI - Initial](docs/images/adk-web-ui-initial.png)
-
-**See the agent process your request:**
-
-![ADK Web UI - Conversion](docs/images/adk-web-ui-conversion.png)
-
-**Inspect the full execution trace:**
-
-![ADK Web UI - Trace](docs/images/adk-web-ui-trace.png)
-
 ## Project Structure
 
 ```
