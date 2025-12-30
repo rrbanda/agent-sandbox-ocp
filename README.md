@@ -55,13 +55,16 @@ Inspired by [Anthropic's SRT](https://github.com/anthropic-experimental/sandbox-
 ## Prerequisites
 
 ### Required Tools
-- OpenShift 4.14+ cluster with admin access
-- `oc` CLI configured and logged in
-- `helm` CLI (v3.10+)
+
+| Tool | Version | Purpose |
+|------|---------|---------|
+| `oc` | ≥4.16 | OpenShift CLI |
+| `helm` | ≥3.18 | Kubernetes package manager |
+| `git` | Latest | Clone repositories |
 
 ### Step 1: Install OpenShift Sandboxed Containers Operator
 
-From OperatorHub, install **"OpenShift sandboxed containers Operator"** in `openshift-sandboxed-containers-operator` namespace.
+From OperatorHub, install **"OpenShift sandboxed containers Operator"**.
 
 After installation, label worker nodes for Kata:
 ```bash
@@ -86,36 +89,68 @@ EOF
 
 ### Step 3: Install Kagenti
 
+See the [Kagenti OpenShift Installation Guide](https://github.com/kagenti/kagenti/blob/main/docs/install.md#openshift-installation) for full details.
+
+#### Option A: Ansible-Based Installer (Recommended)
+
 ```bash
-# Add Kagenti Helm repo
-helm repo add kagenti https://kagenti.github.io/kagenti
-helm repo update
+# Clone repository
+git clone https://github.com/kagenti/kagenti.git
+cd kagenti
 
-# Install dependencies (includes Istio if not present)
-helm install kagenti-deps kagenti/kagenti-deps \
-  -n kagenti-system --create-namespace \
-  --set openshift=true
+# Configure secrets
+cp deployments/envs/secret_values.yaml.example deployments/envs/.secret_values.yaml
+# Edit .secret_values.yaml with your values (quay credentials, API keys)
 
-# Install Kagenti
-helm install kagenti kagenti/kagenti \
-  -n kagenti-system \
-  --set secrets.quayUser=<your-quay-user> \
-  --set secrets.quayToken=<your-quay-token>
+# Run installer for OpenShift
+deployments/ansible/run-install.sh --env ocp
 ```
 
-> **Note:** If your cluster already has Istio, cert-manager, or other components, disable them:
+#### Option B: Helm Install from OCI Charts
+
+```bash
+# Get domain
+export DOMAIN=apps.$(oc get dns cluster -o jsonpath='{ .spec.baseDomain }')
+
+# Get latest version
+LATEST_TAG=$(git ls-remote --tags --sort="v:refname" https://github.com/kagenti/kagenti.git | tail -n1 | sed 's|.*refs/tags/v||; s/\^{}//')
+
+# Install dependencies
+helm install kagenti-deps oci://ghcr.io/kagenti/kagenti/kagenti-deps \
+  -n kagenti-system --create-namespace \
+  --version $LATEST_TAG \
+  --set spire.trustDomain=${DOMAIN}
+
+# Install MCP Gateway
+LATEST_GATEWAY_TAG=$(skopeo list-tags docker://ghcr.io/kagenti/charts/mcp-gateway | jq -r '.Tags[-1]')
+helm install mcp-gateway oci://ghcr.io/kagenti/charts/mcp-gateway \
+  -n mcp-system --create-namespace \
+  --version $LATEST_GATEWAY_TAG
+
+# Prepare secrets file (.secrets.yaml) then install Kagenti
+helm install kagenti oci://ghcr.io/kagenti/kagenti/kagenti \
+  -n kagenti-system \
+  -f .secrets.yaml \
+  --version $LATEST_TAG \
+  --set agentOAuthSecret.spiffePrefix=spiffe://${DOMAIN}/sa \
+  --set uiOAuthSecret.useServiceAccountCA=false \
+  --set agentOAuthSecret.useServiceAccountCA=false
+```
+
+> **Note:** If your cluster already has Istio, cert-manager, Tekton, or Keycloak, disable them:
 > ```bash
-> helm install kagenti-deps kagenti/kagenti-deps \
+> helm install kagenti-deps oci://ghcr.io/kagenti/kagenti/kagenti-deps \
 >   -n kagenti-system --create-namespace \
->   --set openshift=true \
 >   --set components.istio.enabled=false \
 >   --set components.certManager.enabled=false \
->   --set components.tekton.enabled=false
+>   --set components.tekton.enabled=false \
+>   --set components.keycloak.enabled=false \
+>   --set components.spire.enabled=false
 > ```
 
 ### Step 4: Configure Istio for OPA Body Forwarding
 
-This is **required** for OPA to inspect tool call arguments:
+**Required** for OPA to inspect tool call arguments:
 
 ```bash
 oc patch istio default -n istio-system --type=merge -p '
@@ -149,32 +184,25 @@ oc patch istio default -n istio-system --type=merge -p '
 ### Step 5: Verify Installation
 
 ```bash
-# Kagenti controller running
-oc get pods -n kagenti-system
+# Kagenti controller
+oc get pods -n kagenti-system | grep kagenti-controller
 
-# MCP Gateway running
-oc get pods -n gateway-system
+# MCP Gateway
+oc get pods -n gateway-system | grep mcp-gateway
 
-# Kuadrant/Authorino running
-oc get pods -n kuadrant-system
+# Kuadrant/Authorino
+oc get pods -n kuadrant-system | grep authorino
 
-# Kata RuntimeClass available
+# Kata RuntimeClass
 oc get runtimeclass kata
 ```
 
-Expected output:
+Expected:
 ```
-NAME                                          READY   STATUS
-kagenti-controller-manager-xxx                1/1     Running
-
-NAME                                 READY   STATUS
-mcp-gateway-istio-xxx                1/1     Running
-
-NAME                                 READY   STATUS
-authorino-xxx                        1/1     Running
-
-NAME   HANDLER   AGE
-kata   kata      10m
+kagenti-controller-manager-xxx   1/1   Running
+mcp-gateway-istio-xxx            1/1   Running
+authorino-xxx                    1/1   Running
+kata                             kata
 ```
 
 ---
