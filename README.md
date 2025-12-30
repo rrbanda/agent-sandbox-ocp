@@ -88,28 +88,36 @@ flowchart TB
 ```mermaid
 sequenceDiagram
     participant User
-    participant Kagenti as Kagenti Operator
+    participant CRD as Agent CR (Kagenti)
+    participant Operator as Kagenti Operator
     participant Kata as Kata Runtime
     participant Agent as Agent (in Kata VM)
     participant Gateway as MCP Gateway
-    participant OPA as Authorino + OPA
+    participant OPA as Authorino/OPA
+    participant Broker as MCP Broker
+    participant MCP as fetch-server
 
-    Note over User,OPA: Agent Deployment
-    User->>Kagenti: oc apply -f agent.yaml<br/>(runtimeClassName: kata)
-    Kagenti->>Kata: Create pod in Kata VM
+    Note over User,MCP: 1. Deploy Agent via Kagenti CRD
+    User->>CRD: oc apply -f agent.yaml<br/>(runtimeClassName: kata)
+    CRD->>Operator: Reconcile
+    Operator->>Kata: Create pod with Kata runtime
     Kata->>Agent: Agent running in micro-VM
 
-    Note over User,OPA: Tool Call - BLOCKED
+    Note over User,MCP: 2. Tool Call - BLOCKED
     Agent->>Gateway: fetch_url("malicious.com")
     Gateway->>OPA: Check policy
-    OPA-->>Gateway: DENY
+    OPA-->>Gateway: DENY (url not approved)
     Gateway-->>Agent: HTTP 403
 
-    Note over User,OPA: Tool Call - ALLOWED
+    Note over User,MCP: 3. Tool Call - ALLOWED
     Agent->>Gateway: fetch_url("httpbin.org")
     Gateway->>OPA: Check policy
     OPA-->>Gateway: ALLOW
-    Gateway-->>Agent: HTTP 200
+    Gateway->>Broker: Route request
+    Broker->>MCP: Dispatch to fetch-server
+    MCP-->>Broker: Response
+    Broker-->>Gateway: Response
+    Gateway-->>Agent: HTTP 200 + data
 ```
 
 ---

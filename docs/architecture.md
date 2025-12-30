@@ -4,14 +4,18 @@
 
 ```mermaid
 flowchart TB
+    subgraph User["User/DevOps"]
+        Apply["oc apply -f agent.yaml"]
+    end
+
     subgraph Kagenti["Kagenti Platform"]
+        AgentCRD["Agent CR<br/>(spec.runtimeClassName: kata)"]
         Operator["Kagenti Operator"]
-        AgentCRD["Agent CRD"]
         MCPGateway["MCP Gateway"]
         Broker["MCP Broker"]
     end
 
-    subgraph KataVM["Kata VM (Isolated)"]
+    subgraph KataVM["Kata VM (Isolated Execution)"]
         AgentPod["Agent Pod<br/>(Google ADK)"]
         IstioSidecar["Istio Sidecar"]
     end
@@ -22,8 +26,7 @@ flowchart TB
     end
 
     subgraph MCPBackend["MCP Servers"]
-        MCPServer1["fetch-server"]
-        MCPServer2["weather-server"]
+        FetchServer["fetch-server"]
     end
 
     subgraph External["External APIs"]
@@ -31,28 +34,26 @@ flowchart TB
         Blocked["❌ malicious.com"]
     end
 
-    %% Kagenti creates agent
-    Operator -->|"creates"| AgentPod
-    AgentCRD -->|"spec.runtimeClassName: kata"| Operator
-    
-    %% Agent calls tools via MCP Gateway
-    AgentPod -->|"tools/call"| MCPGateway
-    MCPGateway -->|"authorize"| Authorino
+    %% Deployment flow
+    Apply -->|"1. apply"| AgentCRD
+    AgentCRD -->|"2. reconcile"| Operator
+    Operator -->|"3. create pod<br/>(runtimeClassName: kata)"| AgentPod
+
+    %% Tool call flow
+    AgentPod -->|"4. tools/call"| MCPGateway
+    MCPGateway -->|"5. authorize"| Authorino
     Authorino --> OPA
     OPA -->|"allow/deny"| Authorino
-    Authorino --> MCPGateway
-    MCPGateway --> Broker
-    Broker --> MCPServer1
-    Broker --> MCPServer2
+    Authorino -->|"6. decision"| MCPGateway
+    MCPGateway -->|"7. route"| Broker
+    Broker -->|"8. dispatch"| FetchServer
+    FetchServer -->|"9. fetch"| Approved
 
-    %% MCP servers access external APIs
-    MCPServer1 --> Approved
-    MCPServer1 -.->|"blocked by OPA"| Blocked
-
-    %% Istio blocks direct access
+    %% Blocked paths
+    FetchServer -.->|"blocked by OPA"| Blocked
     IstioSidecar -.->|"REGISTRY_ONLY blocks"| Blocked
 
-    style KataVM fill:#e3f2fd,stroke:#1976d2
+    style KataVM fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
     style Kagenti fill:#fff3e0,stroke:#ff9800
     style Policy fill:#fce4ec,stroke:#e91e63
     style Blocked fill:#ffebee,stroke:#f44336
@@ -64,31 +65,43 @@ flowchart TB
 ```mermaid
 sequenceDiagram
     participant User
-    participant Kagenti as Kagenti Operator
+    participant CRD as Agent CR
+    participant Operator as Kagenti Operator
     participant Kata as Kata Runtime
-    participant Agent as Agent Pod (in Kata VM)
+    participant Agent as Agent (Kata VM)
     participant Gateway as MCP Gateway
-    participant OPA as Authorino + OPA
-    participant MCP as MCP Server
+    participant Authorino
+    participant OPA
+    participant Broker as MCP Broker
+    participant MCP as fetch-server
 
     Note over User,MCP: 1. Agent Deployment via Kagenti CRD
-    User->>Kagenti: Apply Agent CR<br/>(runtimeClassName: kata)
-    Kagenti->>Kata: Create pod with Kata runtime
+    User->>CRD: oc apply -f agent.yaml
+    CRD->>Operator: Watch/Reconcile
+    Operator->>Kata: Create Pod with<br/>runtimeClassName: kata
     Kata->>Agent: Start agent in micro-VM
 
-    Note over User,MCP: 2. Tool Call with Policy Enforcement
-    Agent->>Gateway: tools/call("fetch_url", {"url": "https://malicious.com"})
-    Gateway->>OPA: Check authorization
-    OPA->>OPA: Evaluate policy
-    OPA-->>Gateway: DENY (URL not approved)
-    Gateway-->>Agent: HTTP 403 Forbidden
+    Note over User,MCP: 2. Tool Call - BLOCKED by OPA
+    Agent->>Gateway: tools/call("fetch_url",<br/>{"url": "https://malicious.com"})
+    Gateway->>Authorino: Check authorization
+    Authorino->>OPA: Evaluate Rego policy
+    OPA->>OPA: url not in approved_url()
+    OPA-->>Authorino: DENY
+    Authorino-->>Gateway: 403 Forbidden
+    Gateway-->>Agent: HTTP 403
 
-    Note over User,MCP: 3. Approved Tool Call
-    Agent->>Gateway: tools/call("fetch_url", {"url": "https://httpbin.org"})
-    Gateway->>OPA: Check authorization
-    OPA-->>Gateway: ALLOW
-    Gateway->>MCP: Route to fetch-server
-    MCP-->>Agent: HTTP 200 + data
+    Note over User,MCP: 3. Tool Call - ALLOWED
+    Agent->>Gateway: tools/call("fetch_url",<br/>{"url": "https://httpbin.org/get"})
+    Gateway->>Authorino: Check authorization
+    Authorino->>OPA: Evaluate Rego policy
+    OPA-->>Authorino: ALLOW
+    Authorino-->>Gateway: 200 OK
+    Gateway->>Broker: Route to fetch-server
+    Broker->>MCP: Forward request
+    MCP->>MCP: Fetch https://httpbin.org/get
+    MCP-->>Broker: Response
+    Broker-->>Gateway: Response
+    Gateway-->>Agent: HTTP 200 + data
 ```
 
 ## What Each Layer Provides
@@ -100,6 +113,7 @@ flowchart LR
         L1A["Tool-level policy"]
         L1B["Argument inspection"]
         L1C["URL pattern matching"]
+        L1D["IMDS protection"]
     end
 
     subgraph Layer2["Layer 2: Istio"]
@@ -107,6 +121,7 @@ flowchart LR
         L2A["Network egress control"]
         L2B["REGISTRY_ONLY mode"]
         L2C["mTLS between pods"]
+        L2D["ServiceEntry allowlist"]
     end
 
     subgraph Layer3["Layer 3: Kata"]
@@ -114,6 +129,7 @@ flowchart LR
         L3A["VM isolation"]
         L3B["Separate kernel"]
         L3C["Host not visible"]
+        L3D["Unix sockets isolated"]
     end
 
     Layer1 --> Layer2 --> Layer3
@@ -122,3 +138,29 @@ flowchart LR
     style Layer2 fill:#e3f2fd
     style Layer3 fill:#e8f5e9
 ```
+
+## Kagenti Agent CRD with Kata
+
+```yaml
+apiVersion: agent.kagenti.dev/v1alpha1
+kind: Agent
+metadata:
+  name: adk-kata-agent
+  namespace: agent-sandbox
+spec:
+  server:
+    name: simple-adk-agent
+    endpoint: /mcp
+  image: quay.io/rbrhssa/simple-adk-agent:latest
+  podTemplateSpec:
+    spec:
+      runtimeClassName: kata    # ← VM isolation
+      containers:
+        - name: agent
+          resources:
+            limits:
+              memory: "2Gi"     # ← Required for QEMU
+              cpu: "1"
+```
+
+The `runtimeClassName: kata` in the `podTemplateSpec.spec` tells Kubernetes to schedule this pod using the Kata runtime, which runs the container inside a micro-VM instead of a regular container.
