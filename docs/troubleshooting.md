@@ -2,9 +2,9 @@
 
 ## 1. Controller CrashLoopBackOff
 
-**Symptom:** `kagenti-controller-manager` repeatedly crashes with "connection refused" to Kubernetes API
+**Symptom:** `kagenti-controller-manager` repeatedly crashes with "connection refused"
 
-**Cause:** Namespace has `istio.io/dataplane-mode: ambient` label which intercepts API traffic
+**Cause:** Namespace has `istio.io/dataplane-mode: ambient` label
 
 **Fix:**
 ```bash
@@ -14,16 +14,16 @@ oc delete pod -n kagenti-system -l control-plane=controller-manager
 
 ## 2. OPA Policy Not Blocking Requests
 
-**Symptom:** All MCP tool calls succeed even for unauthorized URLs
+**Symptom:** All tool calls succeed even for BTC/ETH
 
-**Cause:** Request body not being forwarded to Authorino
+**Cause:** Request body not forwarded to Authorino
 
-**Fix:** Ensure Istio mesh config has `includeRequestBodyInCheck`:
+**Check:**
 ```bash
 oc get istio default -n istio-system -o yaml | grep -A5 includeRequestBodyInCheck
 ```
 
-If missing, apply:
+**Fix:**
 ```bash
 oc patch istio default -n istio-system --type=merge -p '
 {
@@ -50,34 +50,65 @@ oc patch istio default -n istio-system --type=merge -p '
 }'
 ```
 
-## 3. Kata Pods Stuck in Pending
+## 3. 502 Bad Gateway
+
+**Symptom:** Gateway returns 502 when testing
+
+**Cause:** Test pod has Istio sidecar injected
+
+**Fix:** Recreate pod with sidecar disabled:
+```bash
+oc delete pod test-curl -n mcp-test
+cat <<EOF | oc apply -f -
+apiVersion: v1
+kind: Pod
+metadata:
+  name: test-curl
+  namespace: mcp-test
+  annotations:
+    sidecar.istio.io/inject: "false"
+spec:
+  containers:
+  - name: curl
+    image: curlimages/curl
+    command: ["sleep", "3600"]
+EOF
+```
+
+## 4. MCP Server SSL Errors
+
+**Symptom:** `SSL: UNEXPECTED_EOF_WHILE_READING` in MCP server logs
+
+**Cause:** Istio sidecar intercepting HTTPS traffic
+
+**Fix:** Ensure `02-currency-mcp-server.yaml` has:
+```yaml
+metadata:
+  annotations:
+    sidecar.istio.io/inject: "false"
+```
+
+## 5. Kata Pods Stuck in Pending
 
 **Symptom:** Pods with `runtimeClassName: kata` never schedule
 
-**Causes:**
-1. No nodes have the required label
-2. RuntimeClass nodeSelector doesn't match node labels
-3. KataConfig not ready
-
 **Fix:**
 ```bash
-# Check RuntimeClass nodeSelector
-oc get runtimeclass kata -o jsonpath='{.scheduling.nodeSelector}'
-
-# Check which nodes have the label
+# Check which nodes have the Kata label
 oc get nodes -l node-role.kubernetes.io/kata-oc
 
-# If no nodes, label one:
+# If none, label a node:
 oc label node <NODE_NAME> node-role.kubernetes.io/kata-oc=""
+
+# Verify RuntimeClass exists
+oc get runtimeclass kata
 ```
 
-## 4. Kata Pods OOM Killed
+## 6. Kata Pods OOM Killed
 
 **Symptom:** Kata pods crash with OOMKilled
 
-**Cause:** Insufficient memory for QEMU micro-VM
-
-**Fix:** Set at least 2Gi memory:
+**Fix:** Set at least 2Gi memory in `05-currency-agent.yaml`:
 ```yaml
 resources:
   limits:
@@ -86,46 +117,32 @@ resources:
     memory: "2Gi"
 ```
 
-## 5. Direct Internet Access Still Working
+## 7. HTTPRoute Not Working (404)
 
-**Symptom:** Pods can still `curl` external URLs directly
+**Symptom:** Gateway returns 404
 
-**Cause:** `outboundTrafficPolicy` not set to `REGISTRY_ONLY`
+**Cause:** Host header doesn't match HTTPRoute
+
+**Fix:** Use correct Host header:
+```bash
+curl -H "Host: currency-mcp.mcp.local" \
+  http://mcp-gateway-istio.gateway-system.svc.cluster.local:8080/mcp
+```
+
+## 8. Agent Can't Connect to MCP Server
+
+**Symptom:** Agent logs show connection errors
 
 **Check:**
 ```bash
-oc get istio default -n istio-system -o jsonpath='{.spec.values.meshConfig.outboundTrafficPolicy.mode}'
-```
+# MCP server running?
+oc get pods -n mcp-test -l app=currency-mcp-server
 
-**Fix:**
-```bash
-oc patch istio default -n istio-system --type=merge -p '
-{
-  "spec": {
-    "values": {
-      "meshConfig": {
-        "outboundTrafficPolicy": {
-          "mode": "REGISTRY_ONLY"
-        }
-      }
-    }
-  }
-}'
-```
+# HTTPRoute configured?
+oc get httproute -n mcp-test
 
-## 6. "RBAC: access denied" for All Requests
-
-**Symptom:** All MCP requests return 403
-
-**Cause:** Istio can't reach Authorino
-
-**Fix:**
-```bash
-# Ensure kuadrant-system has Istio labels
-oc label namespace kuadrant-system istio-discovery=enabled --overwrite
-
-# Restart Authorino
-oc rollout restart deployment/authorino -n kuadrant-system
+# Agent env correct?
+oc get agent -n agent-sandbox currency-agent -o yaml | grep MCP_SERVER_URL
 ```
 
 ## Verification Commands
@@ -133,19 +150,17 @@ oc rollout restart deployment/authorino -n kuadrant-system
 ```bash
 # All components running?
 oc get pods -n kagenti-system
-oc get pods -n mcp-system
 oc get pods -n gateway-system
 oc get pods -n kuadrant-system
+oc get pods -n mcp-test
+oc get pods -n agent-sandbox
 
-# AuthPolicy enforced?
-oc get authpolicy -A
+# AuthPolicy applied?
+oc get authpolicy -n gateway-system
 
-# Istio mode?
-oc get istio default -n istio-system -o jsonpath='{.spec.values.meshConfig.outboundTrafficPolicy.mode}'
-
-# Kata RuntimeClass?
+# Kata RuntimeClass exists?
 oc get runtimeclass kata
 
-# ServiceEntry for external APIs?
-oc get serviceentry -n istio-system
+# Agent status?
+oc get agent -n agent-sandbox
 ```

@@ -2,24 +2,27 @@
 
 ## Overview
 
-The demo uses Kagenti's Agent CRD to deploy a Google ADK agent that runs inside a Kata micro-VM. The agent has built-in HTTP fetch capabilities that are subject to OPA policy enforcement.
+The demo uses Kagenti's Agent CRD to deploy a Currency Agent that runs inside a Kata micro-VM. The agent uses an MCP server to get exchange rates, with OPA policy enforcement blocking cryptocurrency conversions.
 
 ```mermaid
 flowchart TB
     subgraph User["User/DevOps"]
-        Apply["oc apply -f agent.yaml"]
+        Apply["oc apply -f 05-currency-agent.yaml"]
     end
 
     subgraph Kagenti["Kagenti Platform"]
         AgentCRD["Agent CR<br/>(spec.runtimeClassName: kata)"]
         Operator["Kagenti Operator"]
         MCPGateway["MCP Gateway"]
-        Broker["MCP Broker"]
     end
 
     subgraph KataVM["Kata VM (Isolated Execution)"]
-        AgentPod["Agent Pod<br/>(Google ADK with fetch_url tool)"]
+        AgentPod["Currency Agent<br/>(Google ADK)"]
         IstioSidecar["Istio Sidecar"]
+    end
+
+    subgraph MCPServer["MCP Server"]
+        CurrencyMCP["currency-mcp-server<br/>(get_exchange_rate tool)"]
     end
 
     subgraph Policy["Policy Enforcement"]
@@ -28,8 +31,8 @@ flowchart TB
     end
 
     subgraph External["External APIs"]
-        Approved["✅ httpbin.org<br/>✅ api.weather.gov"]
-        Blocked["❌ malicious.com"]
+        Approved["✅ api.frankfurter.app<br/>✅ USD, EUR, GBP, JPY"]
+        Blocked["❌ BTC, ETH, DOGE"]
     end
 
     %% Deployment flow
@@ -38,17 +41,16 @@ flowchart TB
     Operator -->|"3. create pod<br/>(runtimeClassName: kata)"| AgentPod
 
     %% Tool call flow
-    AgentPod -->|"4. tools/call(fetch_url)"| MCPGateway
+    AgentPod -->|"4. tools/call(get_exchange_rate)"| MCPGateway
     MCPGateway -->|"5. authorize"| Authorino
     Authorino --> OPA
     OPA -->|"allow/deny"| Authorino
     Authorino -->|"6. decision"| MCPGateway
-    MCPGateway -->|"7. if allowed"| Broker
-    Broker -->|"8. execute"| AgentPod
-    AgentPod -->|"9. fetch"| Approved
+    MCPGateway -->|"7. if allowed"| CurrencyMCP
+    CurrencyMCP -->|"8. get rate"| Approved
 
     %% Blocked paths
-    AgentPod -.->|"blocked by OPA"| Blocked
+    MCPGateway -.->|"blocked by OPA"| Blocked
     IstioSidecar -.->|"REGISTRY_ONLY blocks"| Blocked
 
     style KataVM fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
@@ -66,34 +68,36 @@ sequenceDiagram
     participant CRD as Agent CR
     participant Operator as Kagenti Operator
     participant Kata as Kata Runtime
-    participant Agent as Agent (Kata VM)
+    participant Agent as Currency Agent (Kata VM)
     participant Gateway as MCP Gateway
     participant Authorino
     participant OPA
+    participant MCP as Currency MCP Server
 
-    Note over User,OPA: 1. Agent Deployment via Kagenti CRD
-    User->>CRD: oc apply -f agent.yaml
+    Note over User,MCP: 1. Agent Deployment via Kagenti CRD
+    User->>CRD: oc apply -f 05-currency-agent.yaml
     CRD->>Operator: Watch/Reconcile
     Operator->>Kata: Create Pod with<br/>runtimeClassName: kata
     Kata->>Agent: Start agent in micro-VM
 
-    Note over User,OPA: 2. Tool Call - BLOCKED by OPA
-    Agent->>Gateway: tools/call("fetch_url",<br/>{"url": "https://malicious.com"})
+    Note over User,MCP: 2. Tool Call - BLOCKED by OPA (Crypto)
+    Agent->>Gateway: tools/call("get_exchange_rate",<br/>{"currency_from": "USD", "currency_to": "BTC"})
     Gateway->>Authorino: Check authorization
     Authorino->>OPA: Evaluate Rego policy
-    OPA->>OPA: url not in approved_url()
+    OPA->>OPA: BTC not in approved currencies
     OPA-->>Authorino: DENY
     Authorino-->>Gateway: 403 Forbidden
     Gateway-->>Agent: HTTP 403
 
-    Note over User,OPA: 3. Tool Call - ALLOWED
-    Agent->>Gateway: tools/call("fetch_url",<br/>{"url": "https://httpbin.org/get"})
+    Note over User,MCP: 3. Tool Call - ALLOWED (Fiat)
+    Agent->>Gateway: tools/call("get_exchange_rate",<br/>{"currency_from": "USD", "currency_to": "EUR"})
     Gateway->>Authorino: Check authorization
     Authorino->>OPA: Evaluate Rego policy
     OPA-->>Authorino: ALLOW
     Authorino-->>Gateway: 200 OK
-    Gateway-->>Agent: HTTP 200 (proceed to execute)
-    Agent->>Agent: Execute fetch to httpbin.org
+    Gateway->>MCP: Forward to currency-mcp-server
+    MCP-->>Gateway: Exchange rate: 0.92
+    Gateway-->>Agent: HTTP 200 + result
 ```
 
 ## What Each Layer Provides
@@ -104,8 +108,8 @@ flowchart LR
         direction TB
         L1A["Tool-level policy"]
         L1B["Argument inspection"]
-        L1C["URL pattern matching"]
-        L1D["IMDS protection"]
+        L1C["Currency blocking"]
+        L1D["Audit logging"]
     end
 
     subgraph Layer2["Layer 2: Istio"]
@@ -137,22 +141,51 @@ flowchart LR
 apiVersion: agent.kagenti.dev/v1alpha1
 kind: Agent
 metadata:
-  name: adk-kata-agent
+  name: currency-agent
   namespace: agent-sandbox
 spec:
-  server:
-    name: simple-adk-agent
-    endpoint: /mcp
-  image: quay.io/rbrhssa/simple-adk-agent:latest
+  imageSource:
+    image: quay.io/rbrhssa/currency-agent:latest
   podTemplateSpec:
     spec:
       runtimeClassName: kata    # ← VM isolation
       containers:
         - name: agent
+          env:
+            - name: GOOGLE_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: gemini-api-key
+                  key: GOOGLE_API_KEY
+            - name: MCP_SERVER_URL
+              value: "http://mcp-gateway-istio.gateway-system.svc.cluster.local:8080/mcp"
           resources:
             limits:
               memory: "2Gi"     # ← Required for QEMU
               cpu: "1"
 ```
 
-The `runtimeClassName: kata` in `podTemplateSpec.spec` tells Kubernetes to run this pod using the Kata runtime, which creates a micro-VM for the container.
+The `runtimeClassName: kata` tells Kubernetes to run this pod using the Kata runtime, which creates a micro-VM for the container.
+
+## OPA Policy Example
+
+```rego
+# Block cryptocurrency conversions
+deny {
+  body := json.unmarshal(input.context.request.http.body)
+  body.method == "tools/call"
+  body.params.name == "get_exchange_rate"
+  currency := body.params.arguments.currency_to
+  currency == "BTC"
+}
+
+deny {
+  body := json.unmarshal(input.context.request.http.body)
+  body.method == "tools/call"
+  body.params.name == "get_exchange_rate"
+  currency := body.params.arguments.currency_to
+  currency == "ETH"
+}
+
+allow { not deny }
+```

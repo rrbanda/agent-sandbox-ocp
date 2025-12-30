@@ -1,0 +1,54 @@
+# Currency Demo - Step 4: AuthPolicy (OPA)
+# WHAT: OPA policy blocking crypto and unapproved URLs
+# WHY:  Demonstrates policy enforcement at MCP Gateway level
+# HOW:  oc apply -f 04-authpolicy.yaml
+#
+# This is the EXACT working policy from the cluster.
+
+---
+apiVersion: kuadrant.io/v1beta2
+kind: AuthPolicy
+metadata:
+  name: mcp-tools-auth
+  namespace: gateway-system
+spec:
+  targetRef:
+    group: gateway.networking.k8s.io
+    kind: Gateway
+    name: mcp-gateway
+  rules:
+    authentication:
+      anonymous:
+        anonymous: {}
+    authorization:
+      tool-policy:
+        opa:
+          allValues: true
+          rego: |
+            deny {
+              input.context.request.http.body != ""
+              body := json.unmarshal(input.context.request.http.body)
+              body.method == "tools/call"
+              body.params.name == "fetch_url"
+              url := body.params.arguments.url
+              not startswith(url, "https://httpbin.org")
+              not startswith(url, "https://api.weather.gov")
+              not startswith(url, "https://api.frankfurter.app")
+            }
+            deny {
+              input.context.request.http.body != ""
+              body := json.unmarshal(input.context.request.http.body)
+              body.method == "tools/call"
+              body.params.name == "get_exchange_rate"
+              currency := body.params.arguments.currency_to
+              currency == "BTC"
+            }
+            deny {
+              input.context.request.http.body != ""
+              body := json.unmarshal(input.context.request.http.body)
+              body.method == "tools/call"
+              body.params.name == "get_exchange_rate"
+              currency := body.params.arguments.currency_to
+              currency == "ETH"
+            }
+            allow { not deny }

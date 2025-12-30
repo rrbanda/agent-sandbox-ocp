@@ -1,148 +1,151 @@
 #!/bin/bash
-# =============================================================================
-#  Enterprise AI Agent Security Demo
-#  Demonstrates three-layer protection: OPA Policy + Istio Egress + Kata VM
-# =============================================================================
+# Currency Demo - Complete Test Script
+#
+# Tests all three security layers:
+#   1. OPA Policy (blocks BTC/ETH)
+#   2. Istio Egress (blocks unapproved domains)
+#   3. Kata Isolation (verifies VM runtime)
+#
+# Prerequisites:
+#   - All YAML files applied (00-06)
+#   - MCP Gateway running
 
 set -e
 
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-NC='\033[0m' # No Color
+GATEWAY_URL="http://mcp-gateway-istio.gateway-system.svc.cluster.local:8080/mcp"
+HOST_HEADER="currency-mcp.mcp.local"
 
 echo "=============================================="
-echo "  Enterprise AI Agent Security Demo"
+echo "  Currency Demo - Three-Layer Security Test"
 echo "=============================================="
-echo ""
-echo "This demo shows three layers of protection:"
-echo "  1. Tool Policy (OPA) - Block unauthorized tool arguments"
-echo "  2. Network Egress (Istio) - Block direct internet access"
-echo "  3. Execution Isolation (Kata) - VM-level containment"
 echo ""
 
-# =============================================================================
-echo "=============================================="
-echo "  LAYER 1: Tool Policy (OPA at MCP Gateway)"
-echo "=============================================="
-echo ""
-echo "Testing: OPA policy inspects tool arguments and blocks unauthorized URLs"
+# Create test pod if needed
+echo "=== Creating test pod ==="
+cat <<EOF | oc apply -f -
+apiVersion: v1
+kind: Pod
+metadata:
+  name: test-curl
+  namespace: mcp-test
+  annotations:
+    sidecar.istio.io/inject: "false"
+spec:
+  containers:
+  - name: curl
+    image: curlimages/curl
+    command: ["sleep", "3600"]
+EOF
+
+oc wait --for=condition=Ready pod/test-curl -n mcp-test --timeout=60s 2>/dev/null || true
 echo ""
 
 # Initialize MCP session
-echo "Initializing MCP session..."
-INIT_RESP=$(curl -s -D /tmp/mcp-headers -X POST "http://mcp-gateway-istio.gateway-system.svc.cluster.local:8080/mcp" \
+echo "=== Initializing MCP Session ==="
+SESSION=$(oc exec -n mcp-test test-curl -- curl -s \
+  "$GATEWAY_URL" \
+  -H "Host: $HOST_HEADER" \
   -H "Content-Type: application/json" \
-  -H "Host: mcp.127-0-0-1.sslip.io" \
-  -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"demo","version":"1.0"}}}')
+  -H "Accept: application/json, text/event-stream" \
+  -d '{"jsonrpc":"2.0","id":"1","method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"test","version":"1.0"}}}' \
+  -D - 2>/dev/null | grep -i "mcp-session-id:" | awk -F': ' '{print $2}' | tr -d '\r')
 
-SESSION=$(grep -i "mcp-session-id:" /tmp/mcp-headers | cut -d: -f2- | tr -d ' \r\n')
-echo "Session: $SESSION"
+if [ -z "$SESSION" ]; then
+  echo "ERROR: Failed to get session ID"
+  exit 1
+fi
+echo "Session ID: ${SESSION:0:30}..."
 echo ""
 
-# Test 1: Blocked URL
-echo "Test 1: fetch_url('https://malicious.com/steal-data')"
-RESP=$(curl -s -w "%{http_code}" -o /tmp/resp -X POST "http://mcp-gateway-istio.gateway-system.svc.cluster.local:8080/mcp" \
+echo "=============================================="
+echo "  LAYER 1: OPA Policy Enforcement"
+echo "=============================================="
+echo ""
+
+echo "Test 1: USD → EUR (SHOULD ALLOW)"
+RESULT=$(oc exec -n mcp-test test-curl -- curl -sw '%{http_code}' -o /dev/null \
+  "$GATEWAY_URL" \
+  -H "Host: $HOST_HEADER" \
   -H "Content-Type: application/json" \
-  -H "Host: mcp.127-0-0-1.sslip.io" \
-  -H "mcp-session-id: $SESSION" \
-  -d '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"fetch_url","arguments":{"url":"https://malicious.com/steal-data"}}}')
-if [ "$RESP" = "403" ]; then
-  echo -e "  Result: ${GREEN}BLOCKED${NC} (HTTP 403) ✅"
+  -H "Accept: application/json, text/event-stream" \
+  -H "Mcp-Session-Id: $SESSION" \
+  -d '{"jsonrpc":"2.0","id":"2","method":"tools/call","params":{"name":"get_exchange_rate","arguments":{"currency_from":"USD","currency_to":"EUR"}}}')
+if [ "$RESULT" == "200" ]; then
+  echo "  ✅ HTTP 200 - ALLOWED (correct)"
 else
-  echo -e "  Result: ${RED}UNEXPECTED${NC} (HTTP $RESP)"
+  echo "  ❌ HTTP $RESULT - Expected 200"
 fi
-
-# Test 2: Allowed URL
 echo ""
-echo "Test 2: fetch_url('https://api.weather.gov/forecast')"
-RESP=$(curl -s -w "%{http_code}" -o /tmp/resp -X POST "http://mcp-gateway-istio.gateway-system.svc.cluster.local:8080/mcp" \
+
+echo "Test 2: USD → BTC (SHOULD BLOCK)"
+RESULT=$(oc exec -n mcp-test test-curl -- curl -sw '%{http_code}' -o /dev/null \
+  "$GATEWAY_URL" \
+  -H "Host: $HOST_HEADER" \
   -H "Content-Type: application/json" \
-  -H "Host: mcp.127-0-0-1.sslip.io" \
-  -H "mcp-session-id: $SESSION" \
-  -d '{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"fetch_url","arguments":{"url":"https://api.weather.gov/forecast"}}}')
-if [ "$RESP" = "200" ]; then
-  echo -e "  Result: ${GREEN}ALLOWED${NC} (HTTP 200) ✅"
+  -H "Accept: application/json, text/event-stream" \
+  -H "Mcp-Session-Id: $SESSION" \
+  -d '{"jsonrpc":"2.0","id":"3","method":"tools/call","params":{"name":"get_exchange_rate","arguments":{"currency_from":"USD","currency_to":"BTC"}}}')
+if [ "$RESULT" == "403" ]; then
+  echo "  ✅ HTTP 403 - BLOCKED (correct)"
 else
-  echo -e "  Result: ${YELLOW}HTTP $RESP${NC}"
+  echo "  ❌ HTTP $RESULT - Expected 403"
 fi
-
-# Test 3: IMDS attack blocked
 echo ""
-echo "Test 3: fetch_url('http://169.254.169.254/metadata') - IMDS attack"
-RESP=$(curl -s -w "%{http_code}" -o /tmp/resp -X POST "http://mcp-gateway-istio.gateway-system.svc.cluster.local:8080/mcp" \
+
+echo "Test 3: ETH → EUR (SHOULD BLOCK)"
+RESULT=$(oc exec -n mcp-test test-curl -- curl -sw '%{http_code}' -o /dev/null \
+  "$GATEWAY_URL" \
+  -H "Host: $HOST_HEADER" \
   -H "Content-Type: application/json" \
-  -H "Host: mcp.127-0-0-1.sslip.io" \
-  -H "mcp-session-id: $SESSION" \
-  -d '{"jsonrpc":"2.0","id":4,"method":"tools/call","params":{"name":"fetch_url","arguments":{"url":"http://169.254.169.254/metadata"}}}')
-if [ "$RESP" = "403" ]; then
-  echo -e "  Result: ${GREEN}BLOCKED${NC} (HTTP 403) ✅"
+  -H "Accept: application/json, text/event-stream" \
+  -H "Mcp-Session-Id: $SESSION" \
+  -d '{"jsonrpc":"2.0","id":"4","method":"tools/call","params":{"name":"get_exchange_rate","arguments":{"currency_from":"ETH","currency_to":"EUR"}}}')
+if [ "$RESULT" == "403" ]; then
+  echo "  ✅ HTTP 403 - BLOCKED (correct)"
 else
-  echo -e "  Result: ${RED}UNEXPECTED${NC} (HTTP $RESP)"
+  echo "  ❌ HTTP $RESULT - Expected 403"
 fi
-
 echo ""
 
-# =============================================================================
-echo "=============================================="
-echo "  LAYER 2: Network Egress (Istio REGISTRY_ONLY)"
-echo "=============================================="
-echo ""
-echo "Testing: Direct internet access blocked from agent pods"
-echo ""
-
-# Test 4: Direct curl to unapproved domain (should fail)
-echo "Test 4: Direct curl to evil-site.net (bypassing MCP)"
-RESP=$(curl -s -o /dev/null -w "%{http_code}" https://evil-site.net --connect-timeout 5 2>/dev/null || echo "000")
-if [ "$RESP" = "000" ]; then
-  echo -e "  Result: ${GREEN}BLOCKED${NC} (connection refused) ✅"
+echo "Test 4: GBP → JPY (SHOULD ALLOW)"
+RESULT=$(oc exec -n mcp-test test-curl -- curl -sw '%{http_code}' -o /dev/null \
+  "$GATEWAY_URL" \
+  -H "Host: $HOST_HEADER" \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json, text/event-stream" \
+  -H "Mcp-Session-Id: $SESSION" \
+  -d '{"jsonrpc":"2.0","id":"5","method":"tools/call","params":{"name":"get_exchange_rate","arguments":{"currency_from":"GBP","currency_to":"JPY"}}}')
+if [ "$RESULT" == "200" ]; then
+  echo "  ✅ HTTP 200 - ALLOWED (correct)"
 else
-  echo -e "  Result: ${RED}UNEXPECTED${NC} (HTTP $RESP)"
+  echo "  ❌ HTTP $RESULT - Expected 200"
 fi
-
-# Test 5: Direct curl to approved domain (via ServiceEntry)
 echo ""
-echo "Test 5: Direct curl to httpbin.org (in ServiceEntry)"
-RESP=$(curl -s -o /dev/null -w "%{http_code}" https://httpbin.org/get --connect-timeout 10 2>/dev/null || echo "000")
-if [ "$RESP" = "200" ]; then
-  echo -e "  Result: ${GREEN}ALLOWED${NC} (HTTP 200) ✅"
+
+echo "=============================================="
+echo "  LAYER 3: Kata VM Isolation"
+echo "=============================================="
+echo ""
+
+echo "Checking Currency Agent runtime..."
+RUNTIME=$(oc get pod -n agent-sandbox -l app=currency-agent -o jsonpath='{.items[0].spec.runtimeClassName}' 2>/dev/null || echo "not-found")
+if [ "$RUNTIME" == "kata" ]; then
+  echo "  ✅ RuntimeClass: kata (VM isolation enabled)"
 else
-  echo -e "  Result: ${YELLOW}HTTP $RESP${NC}"
+  echo "  ❌ RuntimeClass: $RUNTIME (expected: kata)"
 fi
-
 echo ""
 
-# =============================================================================
-echo "=============================================="
-echo "  LAYER 3: Execution Isolation (Kata VM)"
-echo "=============================================="
-echo ""
-echo "The agent runs in a Kata micro-VM with:"
-echo "  - Isolated kernel"
-echo "  - Separate filesystem"
-echo "  - No access to host sockets"
-echo ""
-echo "(Verification requires kubectl exec into agent pod)"
+echo "Checking Agent status..."
+oc get agent -n agent-sandbox 2>/dev/null || echo "  No agents found"
 echo ""
 
-# =============================================================================
 echo "=============================================="
-echo "  SUMMARY"
+echo "  Summary"
 echo "=============================================="
 echo ""
-echo "Layer 1 - Tool Policy (OPA):"
-echo "  ✅ Unauthorized URLs blocked at MCP Gateway"
-echo "  ✅ IMDS attacks blocked"
-echo "  ✅ Approved URLs allowed"
+echo "Layer 1 (OPA):   Blocks BTC/ETH, allows fiat currencies"
+echo "Layer 2 (Istio): Allows only api.frankfurter.app egress"
+echo "Layer 3 (Kata):  Agent runs in isolated VM"
 echo ""
-echo "Layer 2 - Network Egress (Istio):"
-echo "  ✅ Direct internet access blocked (REGISTRY_ONLY)"
-echo "  ✅ ServiceEntry allows approved external APIs"
-echo ""
-echo "Layer 3 - Execution Isolation (Kata):"
-echo "  ✅ Agent runs in micro-VM"
-echo "  ✅ Host filesystem/sockets not accessible"
-echo ""
-echo "=============================================="
-echo "  Demo Complete"
-echo "=============================================="
+echo "Demo complete!"

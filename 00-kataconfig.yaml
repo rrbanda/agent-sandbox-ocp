@@ -1,5 +1,11 @@
 # KataConfig for OpenShift Sandboxed Containers
 # Apply this to enable Kata runtime on worker nodes
+#
+# PREREQUISITE: Label nodes first:
+#   oc label node <NODE_NAME> node-role.kubernetes.io/kata-oc=""
+#
+# After applying, wait 10-15 minutes for RuntimeClass to be created:
+#   watch oc get runtimeclass kata
 apiVersion: kataconfiguration.openshift.io/v1
 kind: KataConfig
 metadata:

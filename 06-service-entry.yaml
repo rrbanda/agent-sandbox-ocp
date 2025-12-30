@@ -1,0 +1,22 @@
+# Currency Demo - Step 7: ServiceEntry (Istio Egress)
+# WHAT: Allows egress to currency API and Gemini LLM
+# WHY:  Istio blocks external traffic by default
+# HOW:  oc apply -f 07-service-entry.yaml
+
+---
+apiVersion: networking.istio.io/v1beta1
+kind: ServiceEntry
+metadata:
+  name: currency-demo-external
+  namespace: istio-system
+spec:
+  hosts:
+    - api.frankfurter.app
+    - generativelanguage.googleapis.com
+  location: MESH_EXTERNAL
+  ports:
+    - name: https
+      number: 443
+      protocol: HTTPS
+  resolution: DNS
+

