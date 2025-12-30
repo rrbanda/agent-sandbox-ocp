@@ -1,0 +1,80 @@
+site_name: AI Agent Sandbox on OpenShift
+site_description: A hands-on workshop for securing AI agents with VM isolation, network control, and policy enforcement
+site_url: https://rrbanda.github.io/agent-sandbox-ocp
+repo_url: https://github.com/rrbanda/agent-sandbox-ocp
+repo_name: rrbanda/agent-sandbox-ocp
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: red
+      accent: red
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - toc.integrate
+    - content.code.copy
+
+nav:
+  - Home: index.md
+  - Workshop:
+    - Overview: workshop/index.md
+    - "00 - Introduction":
+      - Overview: workshop/00-introduction/index.md
+    - "01 - Platform Admin":
+      - Overview: workshop/01-platform-admin/index.md
+      - Install OSC: workshop/01-platform-admin/01-install-osc.md
+      - Configure Kata: workshop/01-platform-admin/02-configure-kata.md
+      - Create Namespace: workshop/01-platform-admin/03-create-namespace.md
+      - Configure Egress: workshop/01-platform-admin/04-configure-egress.md
+      - Configure Policy: workshop/01-platform-admin/05-configure-policy.md
+    - "02 - Agent Developer":
+      - Overview: workshop/02-agent-developer/index.md
+      - Understand Agent: workshop/02-agent-developer/01-understand-agent.md
+      - Run Locally: workshop/02-agent-developer/02-run-locally.md
+      - Test in ADK UI: workshop/02-agent-developer/03-test-in-adk-ui.md
+      - Containerize: workshop/02-agent-developer/04-containerize.md
+    - "03 - Deploy & Test":
+      - Overview: workshop/03-deploy-and-test/index.md
+      - Deploy Agent: workshop/03-deploy-and-test/01-deploy-agent.md
+      - Verify Kata: workshop/03-deploy-and-test/02-verify-kata.md
+      - Test Allowed: workshop/03-deploy-and-test/03-test-allowed.md
+      - Test Blocked: workshop/03-deploy-and-test/04-test-blocked.md
+      - Observe Traces: workshop/03-deploy-and-test/05-observe-traces.md
+    - "04 - Appendix":
+      - Overview: workshop/04-appendix/index.md
+      - Troubleshooting: workshop/04-appendix/troubleshooting.md
+      - Cleanup: workshop/04-appendix/cleanup.md
+      - Next Steps: workshop/04-appendix/next-steps.md
+  - Concepts:
+    - Threat Model: concepts/threat-model.md
+    - Defense in Depth: concepts/defense-in-depth.md
+    - Inner & Outer Loop: concepts/inner-outer-loop.md
+  - Reference:
+    - Architecture: architecture.md
+    - Troubleshooting: troubleshooting.md
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - admonition
+  - pymdownx.details
+  - attr_list
+  - md_in_html
+  - tables
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/rrbanda/agent-sandbox-ocp
+
