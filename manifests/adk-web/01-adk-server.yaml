@@ -1,0 +1,190 @@
+# ADK Web - Google Agent Development Kit Web UI
+# WHAT: Deploys ADK Web server with combined API + Web UI for agent development
+# WHY:  Visual interface to test and demo the Currency Agent before showing security layers
+# HOW:  oc apply -f manifests/adk-web/01-adk-server.yaml
+#
+# PREREQUISITES:
+#   1. Create the namespace first: oc apply -f manifests/adk-web/00-namespace.yaml
+#   2. Create Gemini API key secret:
+#      oc create secret generic gemini-api-key \
+#        --from-literal=GOOGLE_API_KEY='your-gemini-api-key' -n adk-web
+#
+# ACCESS URL: https://<cluster-apps-domain>/dev-ui/
+#
+# Reference: https://google.github.io/adk-docs/
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: currency-agent-code
+  namespace: adk-web
+data:
+  # Currency Agent - Google ADK based agent for currency conversions
+  # Uses the Frankfurter API to fetch live exchange rates
+  agent.py: |
+    """Currency Agent for ADK Web UI Demo
+    
+    This agent converts currencies using the Frankfurter API.
+    It demonstrates Google ADK capabilities in a visual web interface.
+    """
+    from google.adk.agents import Agent
+    import urllib.request
+    import json
+
+    def get_exchange_rate(currency_from: str, currency_to: str) -> dict:
+        """Get the exchange rate between two currencies.
+        
+        Args:
+            currency_from: Source currency code (e.g., USD, EUR, GBP)
+            currency_to: Target currency code (e.g., EUR, JPY, GBP)
+        
+        Returns:
+            Dictionary with the exchange rate and date
+        """
+        url = f"https://api.frankfurter.app/latest?from={currency_from}&to={currency_to}"
+        try:
+            with urllib.request.urlopen(url, timeout=10) as response:
+                data = json.loads(response.read().decode())
+                rate = data.get("rates", {}).get(currency_to, "N/A")
+                return {
+                    "from": currency_from,
+                    "to": currency_to, 
+                    "rate": rate,
+                    "date": data.get("date", "unknown"),
+                    "message": f"1 {currency_from} = {rate} {currency_to}"
+                }
+        except Exception as e:
+            return {"error": str(e)}
+
+    # Define the Currency Agent
+    root_agent = Agent(
+        name="currency_agent",
+        model="gemini-2.0-flash-exp",
+        description="A helpful currency conversion agent that provides live exchange rates",
+        instruction="""You are a friendly currency conversion assistant. 
+        
+    When users ask about currency conversions:
+    1. Use the get_exchange_rate tool to fetch live rates
+    2. Present the results clearly with the current rate
+    3. Offer to help with more conversions
+    
+    Supported currencies include: USD, EUR, GBP, JPY, CAD, AUD, CHF, CNY, and more.
+    
+    Example: "What is 100 USD in EUR?" -> Use get_exchange_rate(USD, EUR) and calculate.""",
+        tools=[get_exchange_rate]
+    )
+  
+  __init__.py: |
+    from .agent import root_agent
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: adk-server
+  namespace: adk-web
+  labels:
+    app: adk-server
+    app.kubernetes.io/name: adk-server
+    app.kubernetes.io/part-of: agent-development-kit
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: adk-server
+  template:
+    metadata:
+      labels:
+        app: adk-server
+    spec:
+      containers:
+        - name: adk-server
+          image: python:3.11-slim
+          workingDir: /workspace
+          command:
+            - /bin/bash
+            - -c
+            - |
+              set -e
+              # Setup workspace
+              mkdir -p /workspace/currency_agent /workspace/.adk /workspace/packages
+              cp /agents/* /workspace/currency_agent/
+              
+              # Install Google ADK
+              echo "Installing google-adk..."
+              pip install --no-cache-dir --target=/workspace/packages google-adk
+              export PYTHONPATH=/workspace/packages:$PYTHONPATH
+              export PATH=/workspace/packages/bin:$PATH
+              
+              # Start ADK Web server (combined API + Web UI)
+              echo "Starting ADK Web server..."
+              python -m google.adk.cli web \
+                --host=0.0.0.0 \
+                --port=8000 \
+                --allow_origins=*
+          ports:
+            - containerPort: 8000
+              name: http
+          env:
+            - name: GOOGLE_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: gemini-api-key
+                  key: GOOGLE_API_KEY
+            - name: HOME
+              value: /workspace
+          volumeMounts:
+            - name: agent-code
+              mountPath: /agents
+            - name: workspace
+              mountPath: /workspace
+          resources:
+            requests:
+              cpu: 200m
+              memory: 512Mi
+            limits:
+              cpu: "1"
+              memory: 2Gi
+      volumes:
+        - name: agent-code
+          configMap:
+            name: currency-agent-code
+        - name: workspace
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: adk-server
+  namespace: adk-web
+  labels:
+    app: adk-server
+spec:
+  ports:
+    - name: http
+      port: 8000
+      targetPort: 8000
+  selector:
+    app: adk-server
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: adk-server
+  namespace: adk-web
+  labels:
+    app: adk-server
+  annotations:
+    # Long timeout for streaming responses
+    haproxy.router.openshift.io/timeout: 3600s
+spec:
+  # Update this host to match your cluster's apps domain
+  host: adk.apps.cluster-nngf2.dynamic.redhatworkshops.io
+  port:
+    targetPort: http
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+  to:
+    kind: Service
+    name: adk-server

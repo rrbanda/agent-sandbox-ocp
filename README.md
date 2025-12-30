@@ -12,6 +12,47 @@ A step-by-step demo showing how to secure AI agents with three layers of protect
 
 ---
 
+## Quick Start: ADK Web UI Demo
+
+For a visual demo experience, deploy the [Google ADK Web UI](https://github.com/google/adk-web) first:
+
+```bash
+# 1. Create namespace
+oc apply -f manifests/adk-web/00-namespace.yaml
+
+# 2. Create Gemini API key secret
+oc create secret generic gemini-api-key \
+  --from-literal=GOOGLE_API_KEY='<your-gemini-api-key>' \
+  -n adk-web
+
+# 3. Deploy ADK Web server
+oc apply -f manifests/adk-web/01-adk-server.yaml
+
+# 4. Wait for pod to be ready (~60 seconds for pip install)
+oc get pods -n adk-web -w
+
+# 5. Access the Web UI
+echo "https://$(oc get route adk-server -n adk-web -o jsonpath='{.spec.host}')/dev-ui/"
+```
+
+**Try it:** Open the URL, select `currency_agent`, and ask: *"What is 100 USD in EUR?"*
+
+### ADK Web UI Screenshots
+
+**Initial View** - Select the `currency_agent` from the dropdown:
+
+![ADK Web UI - Initial View](docs/images/adk-web-ui-initial.png)
+
+**Currency Conversion in Action** - Ask the agent to convert currencies:
+
+![ADK Web UI - Currency Conversion](docs/images/adk-web-ui-conversion.png)
+
+**Trace View** - See the full invocation trace with tool execution:
+
+![ADK Web UI - Trace View](docs/images/adk-web-ui-trace.png)
+
+---
+
 ## Prerequisites
 
 Before starting, ensure you have:
@@ -21,6 +62,7 @@ Before starting, ensure you have:
 - ✅ **Kagenti installed** ([Installation Guide](https://github.com/kagenti/kagenti/blob/main/docs/install.md))
 - ✅ **Kuadrant operator installed** (from OperatorHub)
 - ✅ **OpenShift Sandboxed Containers operator installed** (from OperatorHub)
+- ✅ **Gemini API Key** ([Get one here](https://aistudio.google.com/app/apikey))
 
 ### Verify Kagenti is Running
 
@@ -30,6 +72,30 @@ oc get pods -n gateway-system | grep mcp-gateway
 ```
 
 Expected: Both should show `Running`.
+
+---
+
+## Demo Flow
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│  DEMO PHASE 1: Visual Demo with ADK Web UI                              │
+│  ─────────────────────────────────────────                              │
+│  Show the Currency Agent working in a beautiful web interface           │
+│  URL: https://<cluster>/dev-ui/                                         │
+│  Try: "Convert 100 USD to EUR" ✅                                       │
+└─────────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│  DEMO PHASE 2: Security Layers                                          │
+│  ─────────────────────────────────                                       │
+│  Show how we protect the agent with 3 layers:                           │
+│  • Layer 1: OPA blocks crypto (BTC/ETH) ❌ HTTP 403                     │
+│  • Layer 2: Istio blocks unauthorized URLs ❌                           │
+│  • Layer 3: Kata VM isolates the agent 🔒                               │
+└─────────────────────────────────────────────────────────────────────────┘
+```
 
 ---
 
@@ -48,7 +114,7 @@ If an AI agent is compromised, it cannot escape to the host system because it's 
 oc label node <NODE_NAME> node-role.kubernetes.io/kata-oc=""
 
 # Apply KataConfig
-oc apply -f manifests/00-kataconfig.yaml
+oc apply -f manifests/currency-demo/00-kataconfig.yaml
 ```
 
 ### Test
@@ -75,7 +141,7 @@ Separating agents from tools allows different security policies for each.
 ### Do
 
 ```bash
-oc apply -f manifests/01-namespaces.yaml
+oc apply -f manifests/currency-demo/01-namespaces.yaml
 ```
 
 ### Test
@@ -144,7 +210,7 @@ MCP (Model Context Protocol) servers provide tools that agents can call. The MCP
 ### Do
 
 ```bash
-oc apply -f manifests/02-currency-mcp-server.yaml
+oc apply -f manifests/currency-demo/02-currency-mcp-server.yaml
 ```
 
 ### Test
@@ -172,7 +238,7 @@ The MCP Gateway uses host-based routing. Requests with `Host: currency-mcp.mcp.l
 ### Do
 
 ```bash
-oc apply -f manifests/03-currency-httproute.yaml
+oc apply -f manifests/currency-demo/03-currency-httproute.yaml
 ```
 
 ### Test
@@ -198,7 +264,7 @@ This is **Layer 1** of our security. The policy blocks:
 ### Do
 
 ```bash
-oc apply -f manifests/04-authpolicy.yaml
+oc apply -f manifests/currency-demo/04-authpolicy.yaml
 ```
 
 ### Test
@@ -222,7 +288,7 @@ This is **Layer 2** of our security. Even if an agent or tool tries to call an u
 ### Do
 
 ```bash
-oc apply -f manifests/06-service-entry.yaml
+oc apply -f manifests/currency-demo/06-service-entry.yaml
 ```
 
 ### Test
@@ -246,7 +312,7 @@ This is **Layer 3** of our security. The agent runs in an isolated VM, so even i
 ### Do
 
 ```bash
-oc apply -f manifests/05-currency-agent.yaml
+oc apply -f manifests/currency-demo/05-currency-agent.yaml
 ```
 
 ### Test
@@ -391,16 +457,61 @@ oc exec -n mcp-test test-curl -- curl -sw '\nHTTP Code: %{http_code}\n' \
 
 ---
 
+## ADK Web UI (Optional Visual Demo)
+
+The [Google ADK Web UI](https://github.com/google/adk-web) provides a beautiful interface for testing agents before diving into the security layers.
+
+### Deploy ADK Web UI
+
+```bash
+# Deploy using the script
+./scripts/deploy-adk-web.sh <your-gemini-api-key>
+
+# Or manually:
+oc apply -f manifests/adk-web/00-namespace.yaml
+oc create secret generic gemini-api-key \
+  --from-literal=GOOGLE_API_KEY='<key>' -n adk-web
+oc apply -f manifests/adk-web/01-adk-server.yaml
+```
+
+### Access
+
+```bash
+# Get the URL
+echo "https://$(oc get route adk-server -n adk-web -o jsonpath='{.spec.host}')/dev-ui/"
+```
+
+### Features
+
+| Feature | Description |
+|---------|-------------|
+| **Chat Interface** | Interactive chat with the Currency Agent |
+| **Trace View** | See detailed execution traces |
+| **Events** | Real-time event streaming |
+| **Sessions** | Manage conversation sessions |
+
+### Clean Up ADK Web UI
+
+```bash
+oc delete -f manifests/adk-web/
+```
+
+---
+
 ## Cleanup
 
 ```bash
+# Remove ADK Web UI
+oc delete -f manifests/adk-web/
+
+# Remove security demo components
 oc delete agent currency-agent -n agent-sandbox
-oc delete -f manifests/04-authpolicy.yaml
-oc delete -f manifests/03-currency-httproute.yaml
-oc delete -f manifests/02-currency-mcp-server.yaml
-oc delete -f manifests/06-service-entry.yaml
+oc delete -f manifests/currency-demo/04-authpolicy.yaml
+oc delete -f manifests/currency-demo/03-currency-httproute.yaml
+oc delete -f manifests/currency-demo/02-currency-mcp-server.yaml
+oc delete -f manifests/currency-demo/06-service-entry.yaml
 oc delete pod test-curl -n mcp-test
-oc delete -f manifests/01-namespaces.yaml
+oc delete -f manifests/currency-demo/01-namespaces.yaml
 ```
 
 ---
@@ -411,11 +522,45 @@ See [docs/troubleshooting.md](docs/troubleshooting.md) for common issues:
 - 502 Bad Gateway → Disable sidecar on test pod
 - OPA not blocking → Check Istio body forwarding config
 - Kata pods pending → Check node labels and RuntimeClass
+- ADK Web API key error → Verify secret has correct key
+
+---
+
+## Project Structure
+
+```
+agent-sandbox-ocp/
+├── manifests/
+│   ├── currency-demo/              # Currency conversion security demo
+│   │   ├── 00-kataconfig.yaml      # Kata VM runtime config
+│   │   ├── 01-namespaces.yaml      # mcp-test & agent-sandbox namespaces
+│   │   ├── 02-currency-mcp-server.yaml # MCP server with get_exchange_rate
+│   │   ├── 03-currency-httproute.yaml  # Gateway routing
+│   │   ├── 04-authpolicy.yaml      # OPA policy blocking crypto
+│   │   ├── 05-currency-agent.yaml  # Kagenti Agent CR with Kata
+│   │   └── 06-service-entry.yaml   # Istio egress allowlist
+│   └── adk-web/                    # ADK Web UI deployment
+│       ├── 00-namespace.yaml       # adk-web namespace
+│       └── 01-adk-server.yaml      # Combined API + Web UI server
+├── scripts/
+│   ├── demo-complete.sh            # Full security test script
+│   └── deploy-adk-web.sh           # ADK Web UI deployment script
+└── docs/
+    ├── images/                     # Screenshots for documentation
+    │   ├── adk-web-ui-initial.png
+    │   ├── adk-web-ui-conversion.png
+    │   └── adk-web-ui-trace.png
+    ├── architecture.md             # Architecture diagrams
+    └── troubleshooting.md          # Common issues & fixes
+```
 
 ---
 
 ## References
 
+- [Google ADK](https://github.com/google/adk-python) - Agent Development Kit
+- [ADK Web UI](https://github.com/google/adk-web) - Visual development interface
+- [ADK Documentation](https://google.github.io/adk-docs/) - Official docs
 - [Kagenti](https://github.com/kagenti/kagenti) - MCP Gateway platform
 - [OpenShift Sandboxed Containers](https://docs.openshift.com/container-platform/latest/sandboxed_containers/index.html)
 - [Kuadrant/Authorino](https://github.com/Kuadrant/authorino) - OPA policy engine

@@ -1,0 +1,15 @@
+# ADK Web UI - Namespace
+# WHAT: Creates namespace for Google ADK Web UI deployment
+# WHY:  Isolated environment for ADK development and demo tools
+# HOW:  oc apply -f manifests/adk-web/00-namespace.yaml
+#
+# Reference: https://github.com/google/adk-web
+
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: adk-web
+  labels:
+    app.kubernetes.io/name: adk-web
+    app.kubernetes.io/part-of: agent-development-kit
