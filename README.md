@@ -54,11 +54,128 @@ Inspired by [Anthropic's SRT](https://github.com/anthropic-experimental/sandbox-
 
 ## Prerequisites
 
+### Required Tools
 - OpenShift 4.14+ cluster with admin access
 - `oc` CLI configured and logged in
-- OpenShift Sandboxed Containers operator installed
-- Kuadrant operator installed
-- **Kagenti installed** ([OpenShift Installation Guide](https://github.com/kagenti/kagenti/blob/main/docs/ocp/openshift-install.md))
+- `helm` CLI (v3.10+)
+
+### Step 1: Install OpenShift Sandboxed Containers Operator
+
+From OperatorHub, install **"OpenShift sandboxed containers Operator"** in `openshift-sandboxed-containers-operator` namespace.
+
+After installation, label worker nodes for Kata:
+```bash
+oc label node <NODE_NAME> node-role.kubernetes.io/kata-oc=""
+```
+
+### Step 2: Install Kuadrant Operator
+
+From OperatorHub, install **"Kuadrant Operator"** in `kuadrant-system` namespace.
+
+Create Kuadrant instance:
+```bash
+oc apply -f - <<EOF
+apiVersion: kuadrant.io/v1beta1
+kind: Kuadrant
+metadata:
+  name: kuadrant
+  namespace: kuadrant-system
+spec: {}
+EOF
+```
+
+### Step 3: Install Kagenti
+
+```bash
+# Add Kagenti Helm repo
+helm repo add kagenti https://kagenti.github.io/kagenti
+helm repo update
+
+# Install dependencies (includes Istio if not present)
+helm install kagenti-deps kagenti/kagenti-deps \
+  -n kagenti-system --create-namespace \
+  --set openshift=true
+
+# Install Kagenti
+helm install kagenti kagenti/kagenti \
+  -n kagenti-system \
+  --set secrets.quayUser=<your-quay-user> \
+  --set secrets.quayToken=<your-quay-token>
+```
+
+> **Note:** If your cluster already has Istio, cert-manager, or other components, disable them:
+> ```bash
+> helm install kagenti-deps kagenti/kagenti-deps \
+>   -n kagenti-system --create-namespace \
+>   --set openshift=true \
+>   --set components.istio.enabled=false \
+>   --set components.certManager.enabled=false \
+>   --set components.tekton.enabled=false
+> ```
+
+### Step 4: Configure Istio for OPA Body Forwarding
+
+This is **required** for OPA to inspect tool call arguments:
+
+```bash
+oc patch istio default -n istio-system --type=merge -p '
+{
+  "spec": {
+    "values": {
+      "meshConfig": {
+        "extensionProviders": [
+          {
+            "name": "kuadrant-authorization",
+            "envoyExtAuthzGrpc": {
+              "service": "authorino-authorino-authorization.kuadrant-system.svc.cluster.local",
+              "port": 50051,
+              "timeout": "5s",
+              "includeRequestBodyInCheck": {
+                "maxRequestBytes": 8192,
+                "allowPartialMessage": true
+              }
+            }
+          }
+        ],
+        "outboundTrafficPolicy": {
+          "mode": "REGISTRY_ONLY"
+        }
+      }
+    }
+  }
+}'
+```
+
+### Step 5: Verify Installation
+
+```bash
+# Kagenti controller running
+oc get pods -n kagenti-system
+
+# MCP Gateway running
+oc get pods -n gateway-system
+
+# Kuadrant/Authorino running
+oc get pods -n kuadrant-system
+
+# Kata RuntimeClass available
+oc get runtimeclass kata
+```
+
+Expected output:
+```
+NAME                                          READY   STATUS
+kagenti-controller-manager-xxx                1/1     Running
+
+NAME                                 READY   STATUS
+mcp-gateway-istio-xxx                1/1     Running
+
+NAME                                 READY   STATUS
+authorino-xxx                        1/1     Running
+
+NAME   HANDLER   AGE
+kata   kata      10m
+```
 
 ---
 
