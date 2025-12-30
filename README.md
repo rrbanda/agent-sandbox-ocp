@@ -221,16 +221,37 @@ spec:
 
 ## Verified Demo Results
 
-| Test | Expected | Result |
-|------|----------|--------|
-| `fetch_url("https://malicious.com")` | BLOCKED | HTTP 403 ✅ |
-| `fetch_url("https://api.weather.gov")` | ALLOWED | HTTP 200 ✅ |
-| `fetch_url("http://169.254.169.254/metadata")` | BLOCKED | HTTP 403 ✅ |
-| Direct `curl https://evil-site.net` from pod | BLOCKED | Connection refused ✅ |
-| Direct `curl https://httpbin.org` from pod | ALLOWED | HTTP 200 ✅ |
-| Agent pod runtimeClass | kata | ✅ |
-| Host socket access from Kata pod | NOT ACCESSIBLE | ✅ |
+Tested on: 2024-12-30 (OpenShift 4.14 cluster)
 
+### Layer 1: MCP Gateway + OPA Policy
+
+| Test | Tool Name | URL | Expected | Actual |
+|------|-----------|-----|----------|--------|
+| Blocked URL | `fetch_url` | `https://malicious.com` | 403 | **HTTP 403 ✅** |
+| Allowed URL | `fetch_url` | `https://httpbin.org/get` | 200 | **HTTP 200 ✅** |
+| IMDS blocked | `fetch_url` | `http://169.254.169.254` | 403 | **HTTP 403 ✅** |
+
+**Note:** OPA policy uses exact tool name matching. Ensure the policy `deny` rule matches the registered tool name.
+
+### Layer 3: Execution Isolation (Kata)
+
+| Check | Expected | Actual |
+|-------|----------|--------|
+| Agent pod `runtimeClassName` | `kata` | **`kata` ✅** |
+| Pod on Kata-enabled node | Has `node-role.kubernetes.io/kata-oc` label | **✅ Yes** |
+| Agent deployed via Kagenti CRD | Uses `Agent` CR | **✅ Yes** |
+
+**Command verification:**
+```bash
+$ oc get pod -n agent-sandbox -o jsonpath='{.items[0].spec.runtimeClassName}'
+kata
+
+$ oc get agent -n agent-sandbox
+NAME             READY
+adk-kata-agent   True
+```
+
+---
 ---
 
 ## Prerequisites
