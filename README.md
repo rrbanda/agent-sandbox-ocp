@@ -23,37 +23,78 @@ This is inspired by [Anthropic's SRT](https://github.com/anthropic-experimental/
 
 ## Architecture
 
+```mermaid
+flowchart TB
+    subgraph AgentPod["Agent Pod (Kata VM)"]
+        Agent["Agent App<br/>(ADK / LangChain)"]
+        MCP_Client["MCP Client"]
+        Sidecar["Istio Sidecar<br/>REGISTRY_ONLY"]
+    end
+
+    subgraph Gateway["MCP Gateway Layer"]
+        MCPGateway["MCP Gateway<br/>(Envoy)"]
+        Authorino["Authorino"]
+        OPA["OPA Policy"]
+    end
+
+    subgraph Backend["MCP Backend"]
+        Broker["MCP Broker"]
+        MCPServer["MCP Servers"]
+    end
+
+    subgraph External["External Services"]
+        ServiceEntry["ServiceEntry"]
+        ApprovedAPIs["✅ api.weather.gov<br/>✅ httpbin.org"]
+        BlockedAPIs["❌ malicious.com<br/>❌ evil-site.net"]
+    end
+
+    Agent --> MCP_Client
+    MCP_Client -->|"tools/call()"| MCPGateway
+    MCPGateway -->|"check"| Authorino
+    Authorino --> OPA
+    OPA -->|"allow/deny"| Authorino
+    Authorino --> MCPGateway
+    MCPGateway -->|"route"| Broker
+    Broker --> MCPServer
+    MCPServer --> ServiceEntry
+    ServiceEntry --> ApprovedAPIs
+
+    Sidecar -.->|"blocked"| BlockedAPIs
+
+    style AgentPod fill:#e1f5fe
+    style Gateway fill:#fff3e0
+    style Backend fill:#e8f5e9
+    style BlockedAPIs fill:#ffebee
+    style ApprovedAPIs fill:#c8e6c9
 ```
-┌─────────────────────────────────────────────────────────────────────────┐
-│  Agent Pod (Kata VM)                                                    │
-│  ┌───────────────────────────────────────────────────────────────────┐  │
-│  │  Agent Code                                                       │  │
-│  │  - Can only reach MCP Gateway (Istio blocks direct internet)     │  │
-│  │  - Runs in isolated VM (Kata)                                    │  │
-│  └───────────────────────────────────────────────────────────────────┘  │
-│                              │                                          │
-│                              ▼                                          │
-│  ┌───────────────────────────────────────────────────────────────────┐  │
-│  │  Istio Sidecar (REGISTRY_ONLY mode)                               │  │
-│  │  - Blocks: curl https://evil.com (not in registry)               │  │
-│  │  - Allows: MCP Gateway (in mesh)                                 │  │
-│  └───────────────────────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────────────────┘
-                               │
-                               ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│  MCP Gateway + Authorino (OPA Policy)                                   │
-│                                                                         │
-│  fetch_url("https://malicious.com") → OPA: URL not approved → 403      │
-│  fetch_url("https://api.weather.gov") → OPA: URL approved → 200        │
-│                                                                         │
-└─────────────────────────────────────────────────────────────────────────┘
-                               │
-                               ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│  MCP Servers + ServiceEntry                                             │
-│  - Approved external APIs: api.weather.gov, httpbin.org, etc.          │
-└─────────────────────────────────────────────────────────────────────────┘
+
+### Request Flow
+
+```mermaid
+sequenceDiagram
+    participant Agent as Agent (Kata VM)
+    participant Gateway as MCP Gateway
+    participant OPA as Authorino + OPA
+    participant MCP as MCP Server
+    participant API as External API
+
+    Note over Agent,API: ✅ Allowed: Tool call to approved URL
+    Agent->>Gateway: fetch_url("api.weather.gov")
+    Gateway->>OPA: Check policy
+    OPA-->>Gateway: ALLOW
+    Gateway->>MCP: Route request
+    MCP->>API: GET api.weather.gov
+    API-->>Agent: HTTP 200 + data
+
+    Note over Agent,API: ❌ Blocked: Tool call to unauthorized URL
+    Agent->>Gateway: fetch_url("malicious.com")
+    Gateway->>OPA: Check policy
+    OPA-->>Gateway: DENY
+    Gateway-->>Agent: HTTP 403 Forbidden
+
+    Note over Agent,API: ❌ Blocked: Direct internet access
+    Agent-xAgent: curl evil-site.net
+    Note right of Agent: Istio REGISTRY_ONLY<br/>Connection refused
 ```
 
 ---
