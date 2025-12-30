@@ -1,56 +1,29 @@
 # Troubleshooting Guide
 
-## Common Issues
+## 1. Controller CrashLoopBackOff
 
-### 1. "RBAC: access denied" for all requests
+**Symptom:** `kagenti-controller-manager` repeatedly crashes with "connection refused" to Kubernetes API
 
-**Symptom**: All MCP requests return 403 with "RBAC: access denied"
+**Cause:** Namespace has `istio.io/dataplane-mode: ambient` label which intercepts API traffic
 
-**Cause**: Istio can't reach Authorino ext_authz service
+**Fix:**
+```bash
+oc label namespace kagenti-system istio.io/dataplane-mode-
+oc delete pod -n kagenti-system -l control-plane=controller-manager
+```
 
-**Solutions**:
-1. Ensure `kuadrant-system` namespace has Istio labels:
-   ```bash
-   oc label namespace kuadrant-system istio-discovery=enabled istio-injection=enabled --overwrite
-   ```
+## 2. OPA Policy Not Blocking Requests
 
-2. Restart Authorino to get sidecar:
-   ```bash
-   oc rollout restart deployment/authorino -n kuadrant-system
-   ```
+**Symptom:** All MCP tool calls succeed even for unauthorized URLs
 
-3. Check that Authorino cluster is healthy:
-   ```bash
-   oc port-forward -n gateway-system deployment/mcp-gateway-istio 15000:15000 &
-   curl -s localhost:15000/clusters | grep "authorino.*health"
-   ```
+**Cause:** Request body not being forwarded to Authorino
 
-### 2. "no healthy upstream" (HTTP 503)
+**Fix:** Ensure Istio mesh config has `includeRequestBodyInCheck`:
+```bash
+oc get istio default -n istio-system -o yaml | grep -A5 includeRequestBodyInCheck
+```
 
-**Symptom**: Requests return 503 "no healthy upstream"
-
-**Cause**: MCP broker or Authorino pods not ready
-
-**Solutions**:
-1. Check MCP broker status:
-   ```bash
-   oc get pods -n mcp-system
-   oc get endpoints mcp-gateway-broker -n mcp-system
-   ```
-
-2. Ensure mcp-system has sidecar injection:
-   ```bash
-   oc label namespace mcp-system istio-discovery=enabled istio-injection=enabled --overwrite
-   oc delete pods -n mcp-system --all
-   ```
-
-### 3. OPA policy not blocking requests
-
-**Symptom**: All requests pass through even when they should be blocked
-
-**Cause**: Request body not being forwarded to Authorino
-
-**Solution**: Enable body forwarding in Istio mesh config:
+If missing, apply:
 ```bash
 oc patch istio default -n istio-system --type=merge -p '
 {
@@ -77,35 +50,34 @@ oc patch istio default -n istio-system --type=merge -p '
 }'
 ```
 
-### 4. Kata pods stuck in "Pending"
+## 3. Kata Pods Stuck in Pending
 
-**Symptom**: Pods with `runtimeClassName: kata` stay in Pending
+**Symptom:** Pods with `runtimeClassName: kata` never schedule
 
-**Cause**: Node selector mismatch or KataConfig not ready
+**Causes:**
+1. No nodes have the required label
+2. RuntimeClass nodeSelector doesn't match node labels
+3. KataConfig not ready
 
-**Solutions**:
-1. Check KataConfig status:
-   ```bash
-   oc get kataconfig -o yaml | grep -A20 "status:"
-   ```
+**Fix:**
+```bash
+# Check RuntimeClass nodeSelector
+oc get runtimeclass kata -o jsonpath='{.scheduling.nodeSelector}'
 
-2. Check RuntimeClass node selector:
-   ```bash
-   oc get runtimeclass kata -o yaml
-   ```
+# Check which nodes have the label
+oc get nodes -l node-role.kubernetes.io/kata-oc
 
-3. Ensure nodes have the correct label:
-   ```bash
-   oc get nodes -l node-role.kubernetes.io/kata-oc
-   ```
+# If no nodes, label one:
+oc label node <NODE_NAME> node-role.kubernetes.io/kata-oc=""
+```
 
-### 5. Kata pods OOM killed
+## 4. Kata Pods OOM Killed
 
-**Symptom**: Pods crash with "OOMKilled" or kernel logs show `qemu-kvm` killed
+**Symptom:** Kata pods crash with OOMKilled
 
-**Cause**: Insufficient memory for Kata micro-VM
+**Cause:** Insufficient memory for QEMU micro-VM
 
-**Solution**: Set at least 2Gi memory for Kata pods:
+**Fix:** Set at least 2Gi memory:
 ```yaml
 resources:
   limits:
@@ -114,41 +86,66 @@ resources:
     memory: "2Gi"
 ```
 
-### 6. Istio ambient mode limitations
+## 5. Direct Internet Access Still Working
 
-**Symptom**: AuthPolicy shows "Enforced: True" but ext_authz doesn't work
+**Symptom:** Pods can still `curl` external URLs directly
 
-**Cause**: Istio in ambient mode has limited ext_authz support for ingress gateways
+**Cause:** `outboundTrafficPolicy` not set to `REGISTRY_ONLY`
 
-**Solution**: Switch to sidecar mode:
+**Check:**
 ```bash
-oc patch istio default -n istio-system --type=json -p='[
-  {"op": "remove", "path": "/spec/values/profile"},
-  {"op": "remove", "path": "/spec/values/pilot/trustedZtunnelNamespace"}
-]'
+oc get istio default -n istio-system -o jsonpath='{.spec.values.meshConfig.outboundTrafficPolicy.mode}'
+```
 
-# Create istio-cni namespace if missing
-oc create namespace istio-cni
+**Fix:**
+```bash
+oc patch istio default -n istio-system --type=merge -p '
+{
+  "spec": {
+    "values": {
+      "meshConfig": {
+        "outboundTrafficPolicy": {
+          "mode": "REGISTRY_ONLY"
+        }
+      }
+    }
+  }
+}'
+```
+
+## 6. "RBAC: access denied" for All Requests
+
+**Symptom:** All MCP requests return 403
+
+**Cause:** Istio can't reach Authorino
+
+**Fix:**
+```bash
+# Ensure kuadrant-system has Istio labels
+oc label namespace kuadrant-system istio-discovery=enabled --overwrite
+
+# Restart Authorino
+oc rollout restart deployment/authorino -n kuadrant-system
 ```
 
 ## Verification Commands
 
-### Check Authorino is receiving requests
 ```bash
-oc logs deployment/authorino -n kuadrant-system --tail=20 | grep "incoming authorization"
-```
+# All components running?
+oc get pods -n kagenti-system
+oc get pods -n mcp-system
+oc get pods -n gateway-system
+oc get pods -n kuadrant-system
 
-### Check AuthPolicy status
-```bash
-oc get authpolicy -n gateway-system -o wide
-```
+# AuthPolicy enforced?
+oc get authpolicy -A
 
-### Check AuthConfig status
-```bash
-oc get authconfig -n gateway-system
-```
+# Istio mode?
+oc get istio default -n istio-system -o jsonpath='{.spec.values.meshConfig.outboundTrafficPolicy.mode}'
 
-### Check gateway logs for errors
-```bash
-oc logs deployment/mcp-gateway-istio -n gateway-system --tail=20
+# Kata RuntimeClass?
+oc get runtimeclass kata
+
+# ServiceEntry for external APIs?
+oc get serviceentry -n istio-system
 ```

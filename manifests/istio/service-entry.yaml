@@ -1,0 +1,22 @@
+# ServiceEntry for approved external APIs
+# Apply with: oc apply -f manifests/istio/service-entry.yaml
+apiVersion: networking.istio.io/v1beta1
+kind: ServiceEntry
+metadata:
+  name: approved-external-apis
+  namespace: istio-system
+spec:
+  hosts:
+    - httpbin.org
+    - api.weather.gov
+    - api.github.com
+    - example.com
+  ports:
+    - number: 443
+      name: https
+      protocol: HTTPS
+    - number: 80
+      name: http
+      protocol: HTTP
+  location: MESH_EXTERNAL
+  resolution: DNS
