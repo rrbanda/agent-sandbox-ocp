@@ -1,319 +1,281 @@
 # Agent Sandbox on OpenShift
 
-A demo showing three-layer security for AI agents using the **Currency Agent** example:
+A step-by-step demo showing how to secure AI agents with three layers of protection:
 
-| Layer | Technology | What It Blocks |
-|-------|------------|----------------|
-| **1. Tool Policy** | MCP Gateway + Authorino/OPA | Unauthorized tool arguments (e.g., crypto) |
-| **2. Network Egress** | Istio REGISTRY_ONLY | Direct internet access from pods |
-| **3. Execution Isolation** | OpenShift Sandboxed Containers (Kata) | Host access if agent is compromised |
+| Layer | Technology | Protection |
+|-------|------------|------------|
+| **1. Tool Policy** | OPA via MCP Gateway | Blocks unauthorized tool arguments |
+| **2. Network Egress** | Istio | Blocks direct internet access |
+| **3. VM Isolation** | Kata Containers | Isolates agent in hardware VM |
 
-Inspired by [Anthropic's SRT](https://github.com/anthropic-experimental/sandbox-runtime), adapted for Kubernetes/OpenShift.
-
----
-
-## Architecture
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│              LAYER 3: Kata VM Isolation                     │
-│  ┌───────────────────────────────────────────────────────┐  │
-│  │             Currency Agent (Kata Pod)                 │  │
-│  │  "Convert USD to EUR" ──► MCP Gateway                 │  │
-│  └───────────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────┐
-│              LAYER 1: MCP Gateway + OPA                     │
-│  ┌───────────────────────────────────────────────────────┐  │
-│  │     Host: currency-mcp.mcp.local                      │  │
-│  │              │                                        │  │
-│  │       ┌──────▼──────┐                                 │  │
-│  │       │  Authorino  │   ✅ USD → EUR (allowed)        │  │
-│  │       │   (OPA)     │   ❌ USD → BTC (blocked)        │  │
-│  │       └──────┬──────┘                                 │  │
-│  │              │                                        │  │
-│  │       Currency MCP Server                             │  │
-│  └───────────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────┐
-│              LAYER 2: Istio Egress Control                  │
-│  ┌───────────────────────────────────────────────────────┐  │
-│  │  ServiceEntry (Allowed):                              │  │
-│  │    ✅ api.frankfurter.app                              │  │
-│  │    ✅ generativelanguage.googleapis.com                │  │
-│  │    ❌ All other external hosts                         │  │
-│  └───────────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────┘
-```
+**Demo scenario:** A Currency Agent that converts currencies. We'll block cryptocurrency conversions (BTC, ETH) while allowing fiat currencies (USD, EUR).
 
 ---
 
 ## Prerequisites
 
-### Required Tools
+Before starting, ensure you have:
 
-| Tool | Version | Purpose |
-|------|---------|---------|
-| `oc` | ≥4.16 | OpenShift CLI |
-| `helm` | ≥3.18 | Kubernetes package manager |
-| `git` | Latest | Clone repositories |
+- ✅ OpenShift 4.14+ cluster with admin access
+- ✅ `oc` CLI configured and logged in
+- ✅ **Kagenti installed** ([Installation Guide](https://github.com/kagenti/kagenti/blob/main/docs/install.md))
+- ✅ **Kuadrant operator installed** (from OperatorHub)
+- ✅ **OpenShift Sandboxed Containers operator installed** (from OperatorHub)
 
-### Step 1: Install OpenShift Sandboxed Containers Operator
-
-From OperatorHub, install **"OpenShift sandboxed containers Operator"**.
-
-After installation, label worker nodes for Kata:
-```bash
-oc label node <NODE_NAME> node-role.kubernetes.io/kata-oc=""
-```
-
-### Step 2: Install Kuadrant Operator
-
-From OperatorHub, install **"Kuadrant Operator"** in `kuadrant-system` namespace.
-
-Create Kuadrant instance:
-```bash
-oc apply -f - <<EOF
-apiVersion: kuadrant.io/v1beta1
-kind: Kuadrant
-metadata:
-  name: kuadrant
-  namespace: kuadrant-system
-spec: {}
-EOF
-```
-
-### Step 3: Install Kagenti
-
-See the [Kagenti OpenShift Installation Guide](https://github.com/kagenti/kagenti/blob/main/docs/install.md#openshift-installation) for full details.
-
-#### Option A: Ansible-Based Installer (Recommended)
+### Verify Kagenti is Running
 
 ```bash
-# Clone repository
-git clone https://github.com/kagenti/kagenti.git
-cd kagenti
-
-# Configure secrets
-cp deployments/envs/secret_values.yaml.example deployments/envs/.secret_values.yaml
-# Edit .secret_values.yaml with your values (quay credentials, API keys)
-
-# Run installer for OpenShift
-deployments/ansible/run-install.sh --env ocp
-```
-
-#### Option B: Helm Install from OCI Charts
-
-```bash
-# Get domain
-export DOMAIN=apps.$(oc get dns cluster -o jsonpath='{ .spec.baseDomain }')
-
-# Get latest version
-LATEST_TAG=$(git ls-remote --tags --sort="v:refname" https://github.com/kagenti/kagenti.git | tail -n1 | sed 's|.*refs/tags/v||; s/\^{}//')
-
-# Install dependencies
-helm install kagenti-deps oci://ghcr.io/kagenti/kagenti/kagenti-deps \
-  -n kagenti-system --create-namespace \
-  --version $LATEST_TAG \
-  --set spire.trustDomain=${DOMAIN}
-
-# Install MCP Gateway
-LATEST_GATEWAY_TAG=$(skopeo list-tags docker://ghcr.io/kagenti/charts/mcp-gateway | jq -r '.Tags[-1]')
-helm install mcp-gateway oci://ghcr.io/kagenti/charts/mcp-gateway \
-  -n mcp-system --create-namespace \
-  --version $LATEST_GATEWAY_TAG
-
-# Prepare secrets file (.secrets.yaml) then install Kagenti
-helm install kagenti oci://ghcr.io/kagenti/kagenti/kagenti \
-  -n kagenti-system \
-  -f .secrets.yaml \
-  --version $LATEST_TAG \
-  --set agentOAuthSecret.spiffePrefix=spiffe://${DOMAIN}/sa \
-  --set uiOAuthSecret.useServiceAccountCA=false \
-  --set agentOAuthSecret.useServiceAccountCA=false
-```
-
-> **Note:** If your cluster already has Istio, cert-manager, Tekton, or Keycloak, disable them:
-> ```bash
-> helm install kagenti-deps oci://ghcr.io/kagenti/kagenti/kagenti-deps \
->   -n kagenti-system --create-namespace \
->   --set components.istio.enabled=false \
->   --set components.certManager.enabled=false \
->   --set components.tekton.enabled=false \
->   --set components.keycloak.enabled=false \
->   --set components.spire.enabled=false
-> ```
-
-### Step 4: Post-Install Fixes
-
-#### Fix 1: Remove Ambient Mode from kagenti-system
-
-The Kagenti controller needs direct Kubernetes API access. If ambient mode is enabled, remove it:
-
-```bash
-# Check if ambient label exists
-oc get namespace kagenti-system -o jsonpath='{.metadata.labels.istio\.io/dataplane-mode}'
-
-# If it shows "ambient", remove it:
-oc label namespace kagenti-system istio.io/dataplane-mode-
-
-# Restart controller
-oc delete pod -n kagenti-system -l control-plane=controller-manager
-```
-
-#### Fix 2: Add `*.mcp.local` Listener to MCP Gateway
-
-The default MCP Gateway only listens on `mcp.127-0-0-1.sslip.io`. Add a listener for custom hostnames:
-
-```bash
-oc patch gateway mcp-gateway -n gateway-system --type=json -p='[
-  {
-    "op": "add",
-    "path": "/spec/listeners/-",
-    "value": {
-      "name": "mcps",
-      "hostname": "*.mcp.local",
-      "port": 8080,
-      "protocol": "HTTP",
-      "allowedRoutes": {
-        "namespaces": {
-          "from": "All"
-        }
-      }
-    }
-  }
-]'
-```
-
-#### Fix 3: Configure Istio for OPA Body Forwarding
-
-**Required** for OPA to inspect tool call arguments:
-
-```bash
-oc patch istio default -n istio-system --type=merge -p '
-{
-  "spec": {
-    "values": {
-      "meshConfig": {
-        "extensionProviders": [
-          {
-            "name": "kuadrant-authorization",
-            "envoyExtAuthzGrpc": {
-              "service": "authorino-authorino-authorization.kuadrant-system.svc.cluster.local",
-              "port": 50051,
-              "timeout": "5s",
-              "includeRequestBodyInCheck": {
-                "maxRequestBytes": 8192,
-                "allowPartialMessage": true
-              }
-            }
-          }
-        ],
-        "outboundTrafficPolicy": {
-          "mode": "REGISTRY_ONLY"
-        }
-      }
-    }
-  }
-}'
-```
-
-### Step 5: Verify Installation
-
-```bash
-# Kagenti controller
 oc get pods -n kagenti-system | grep kagenti-controller
-
-# MCP Gateway
 oc get pods -n gateway-system | grep mcp-gateway
-
-# Kuadrant/Authorino
-oc get pods -n kuadrant-system | grep authorino
-
-# Kata RuntimeClass
-oc get runtimeclass kata
 ```
 
-Expected:
-```
-kagenti-controller-manager-xxx   1/1   Running
-mcp-gateway-istio-xxx            1/1   Running
-authorino-xxx                    1/1   Running
-kata                             kata
-```
+Expected: Both should show `Running`.
 
 ---
 
-## Manifests
+## Step 1: Enable Kata VM Isolation
 
-| File | What | Why |
-|------|------|-----|
-| `manifests/00-kataconfig.yaml` | Kata runtime config | Enables VM isolation on nodes |
-| `manifests/01-namespaces.yaml` | Create namespaces | `mcp-test`, `agent-sandbox` |
-| `manifests/02-currency-mcp-server.yaml` | Currency MCP Server | Provides `get_exchange_rate` tool |
-| `manifests/03-currency-httproute.yaml` | HTTPRoute | Routes to MCP server via gateway |
-| `manifests/04-authpolicy.yaml` | OPA policy | Blocks BTC/ETH, allows fiat currencies |
-| `manifests/05-currency-agent.yaml` | Kagenti Agent | Runs in Kata VM |
-| `manifests/06-service-entry.yaml` | Istio egress rules | Allows `api.frankfurter.app` |
+### What
+Kata Containers run each pod inside a lightweight VM instead of a regular container. This provides hardware-level isolation.
 
----
+### Why
+If an AI agent is compromised, it cannot escape to the host system because it's trapped inside a VM with its own kernel.
 
-## Quick Start
+### Do
 
 ```bash
-# 0. Enable Kata runtime (PREREQUISITE - wait 10-15 min)
+# Label a worker node for Kata
 oc label node <NODE_NAME> node-role.kubernetes.io/kata-oc=""
+
+# Apply KataConfig
 oc apply -f manifests/00-kataconfig.yaml
-watch oc get runtimeclass kata  # Wait for this to appear
+```
 
-# 1. Create namespaces
+### Test
+
+```bash
+# Wait for RuntimeClass to be created (10-15 minutes)
+watch oc get runtimeclass kata
+```
+
+Expected: `kata` RuntimeClass appears with handler `kata`.
+
+---
+
+## Step 2: Create Namespaces
+
+### What
+Create two namespaces:
+- `mcp-test` - For MCP servers (tools)
+- `agent-sandbox` - For AI agents
+
+### Why
+Separating agents from tools allows different security policies for each.
+
+### Do
+
+```bash
 oc apply -f manifests/01-namespaces.yaml
+```
 
-# 2. Create secrets
+### Test
+
+```bash
+oc get namespace mcp-test agent-sandbox
+```
+
+Expected: Both namespaces exist.
+
+---
+
+## Step 3: Create Secrets
+
+### What
+Create secrets for:
+- Gemini API key (for the LLM)
+- Quay pull secret (for private container images)
+
+### Why
+The agent needs API access to Gemini, and Kubernetes needs credentials to pull private images.
+
+### Do
+
+```bash
+# Gemini API key for the agent
 oc create secret generic gemini-api-key \
-  --from-literal=GOOGLE_API_KEY='your-key' -n agent-sandbox
-
-oc create secret docker-registry quay-pull-secret \
-  --docker-server=quay.io \
-  --docker-username=<user> \
-  --docker-password=<token> \
-  -n mcp-test
-
-oc create secret docker-registry quay-pull-secret \
-  --docker-server=quay.io \
-  --docker-username=<user> \
-  --docker-password=<token> \
+  --from-literal=GOOGLE_API_KEY='<your-gemini-api-key>' \
   -n agent-sandbox
 
-# 3. Deploy MCP Server
-oc apply -f manifests/02-currency-mcp-server.yaml
+# Quay pull secret for mcp-test namespace
+oc create secret docker-registry quay-pull-secret \
+  --docker-server=quay.io \
+  --docker-username=<your-quay-user> \
+  --docker-password=<your-quay-token> \
+  -n mcp-test
 
-# 4. Create HTTPRoute
-oc apply -f manifests/03-currency-httproute.yaml
-
-# 5. Apply OPA AuthPolicy
-oc apply -f manifests/04-authpolicy.yaml
-
-# 6. Configure Istio egress
-oc apply -f manifests/06-service-entry.yaml
-
-# 7. Deploy Agent in Kata VM
-oc apply -f manifests/05-currency-agent.yaml
-
-# 8. Run tests
-./scripts/demo-complete.sh
+# Quay pull secret for agent-sandbox namespace
+oc create secret docker-registry quay-pull-secret \
+  --docker-server=quay.io \
+  --docker-username=<your-quay-user> \
+  --docker-password=<your-quay-token> \
+  -n agent-sandbox
 ```
+
+### Test
+
+```bash
+oc get secret gemini-api-key -n agent-sandbox
+oc get secret quay-pull-secret -n mcp-test
+oc get secret quay-pull-secret -n agent-sandbox
+```
+
+Expected: All three secrets exist.
 
 ---
 
-## Test OPA Policy
+## Step 4: Deploy the Currency MCP Server
+
+### What
+Deploy an MCP server that provides a `get_exchange_rate` tool. This tool fetches live exchange rates from the Frankfurter API.
+
+### Why
+MCP (Model Context Protocol) servers provide tools that agents can call. The MCP Gateway routes these calls and enforces policies.
+
+### Do
 
 ```bash
-# Create test pod (without Istio sidecar)
+oc apply -f manifests/02-currency-mcp-server.yaml
+```
+
+### Test
+
+```bash
+# Check pod is running
+oc get pods -n mcp-test -l app=currency-mcp-server
+
+# Check service exists
+oc get svc currency-mcp-server -n mcp-test
+```
+
+Expected: Pod is `Running`, service exists on port 8080.
+
+---
+
+## Step 5: Create HTTPRoute for Gateway Routing
+
+### What
+Create an HTTPRoute that tells the MCP Gateway how to route requests to the currency MCP server based on the `Host` header.
+
+### Why
+The MCP Gateway uses host-based routing. Requests with `Host: currency-mcp.mcp.local` will be routed to our currency MCP server.
+
+### Do
+
+```bash
+oc apply -f manifests/03-currency-httproute.yaml
+```
+
+### Test
+
+```bash
+oc get httproute -n mcp-test currency-mcp-route
+```
+
+Expected: HTTPRoute exists with hostname `currency-mcp.mcp.local`.
+
+---
+
+## Step 6: Apply OPA Policy (Tool Authorization)
+
+### What
+Create an AuthPolicy that uses OPA (Open Policy Agent) to inspect tool call arguments and block unauthorized requests.
+
+### Why
+This is **Layer 1** of our security. The policy blocks:
+- `get_exchange_rate` calls with `BTC` or `ETH` (cryptocurrencies)
+- Allows `USD`, `EUR`, `GBP`, etc. (fiat currencies)
+
+### Do
+
+```bash
+oc apply -f manifests/04-authpolicy.yaml
+```
+
+### Test
+
+```bash
+oc get authpolicy -n gateway-system mcp-tools-auth
+```
+
+Expected: AuthPolicy exists and shows `Accepted`.
+
+---
+
+## Step 7: Configure Istio Egress (Network Control)
+
+### What
+Create a ServiceEntry that allows the MCP server to call the Frankfurter API. All other external traffic is blocked.
+
+### Why
+This is **Layer 2** of our security. Even if an agent or tool tries to call an unauthorized URL directly, Istio blocks it at the network level.
+
+### Do
+
+```bash
+oc apply -f manifests/06-service-entry.yaml
+```
+
+### Test
+
+```bash
+oc get serviceentry -n istio-system approved-external-apis
+```
+
+Expected: ServiceEntry exists with hosts including `api.frankfurter.app`.
+
+---
+
+## Step 8: Deploy the Currency Agent
+
+### What
+Deploy the Currency Agent using Kagenti's Agent CRD. The agent runs inside a Kata VM and uses Gemini as its LLM.
+
+### Why
+This is **Layer 3** of our security. The agent runs in an isolated VM, so even if compromised, it cannot access the host system.
+
+### Do
+
+```bash
+oc apply -f manifests/05-currency-agent.yaml
+```
+
+### Test
+
+```bash
+# Check agent CR
+oc get agent -n agent-sandbox currency-agent
+
+# Check pod is running with Kata runtime
+oc get pods -n agent-sandbox -l app=currency-agent
+
+# Verify it's using Kata
+oc get pod -n agent-sandbox -l app=currency-agent -o jsonpath='{.items[0].spec.runtimeClassName}'
+```
+
+Expected: Agent shows `Ready`, pod is `Running`, runtimeClassName is `kata`.
+
+---
+
+## Step 9: Test the Security Layers
+
+### What
+Test that our three security layers are working:
+1. OPA blocks BTC/ETH conversions
+2. Fiat conversions work normally
+
+### Create a Test Pod
+
+```bash
 cat <<EOF | oc apply -f -
 apiVersion: v1
 kind: Pod
@@ -330,8 +292,11 @@ spec:
 EOF
 
 oc wait --for=condition=Ready pod/test-curl -n mcp-test --timeout=60s
+```
 
-# Initialize session
+### Initialize MCP Session
+
+```bash
 SESSION=$(oc exec -n mcp-test test-curl -- curl -s \
   http://mcp-gateway-istio.gateway-system.svc.cluster.local:8080/mcp \
   -H "Host: currency-mcp.mcp.local" \
@@ -340,17 +305,27 @@ SESSION=$(oc exec -n mcp-test test-curl -- curl -s \
   -d '{"jsonrpc":"2.0","id":"1","method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"test","version":"1.0"}}}' \
   -D - 2>/dev/null | grep -i "mcp-session-id:" | awk -F': ' '{print $2}' | tr -d '\r')
 
-# ALLOWED: USD → EUR (HTTP 200)
-oc exec -n mcp-test test-curl -- curl -sw '%{http_code}' -o /dev/null \
+echo "Session: $SESSION"
+```
+
+### Test 1: Allowed - USD to EUR
+
+```bash
+oc exec -n mcp-test test-curl -- curl -s \
   http://mcp-gateway-istio.gateway-system.svc.cluster.local:8080/mcp \
   -H "Host: currency-mcp.mcp.local" \
   -H "Content-Type: application/json" \
   -H "Accept: application/json, text/event-stream" \
   -H "Mcp-Session-Id: $SESSION" \
   -d '{"jsonrpc":"2.0","id":"2","method":"tools/call","params":{"name":"get_exchange_rate","arguments":{"currency_from":"USD","currency_to":"EUR"}}}'
+```
 
-# BLOCKED: USD → BTC (HTTP 403)
-oc exec -n mcp-test test-curl -- curl -sw '%{http_code}' -o /dev/null \
+**Expected:** HTTP 200 with exchange rate result.
+
+### Test 2: Blocked - USD to BTC
+
+```bash
+oc exec -n mcp-test test-curl -- curl -sw '\nHTTP Code: %{http_code}\n' \
   http://mcp-gateway-istio.gateway-system.svc.cluster.local:8080/mcp \
   -H "Host: currency-mcp.mcp.local" \
   -H "Content-Type: application/json" \
@@ -359,98 +334,83 @@ oc exec -n mcp-test test-curl -- curl -sw '%{http_code}' -o /dev/null \
   -d '{"jsonrpc":"2.0","id":"3","method":"tools/call","params":{"name":"get_exchange_rate","arguments":{"currency_from":"USD","currency_to":"BTC"}}}'
 ```
 
----
+**Expected:** HTTP 403 Forbidden (blocked by OPA policy).
 
-## Expected Results
-
-| Test | Currency | Expected |
-|------|----------|----------|
-| ✅ Allowed | USD → EUR | HTTP 200 OK |
-| ✅ Allowed | GBP → JPY | HTTP 200 OK |
-| ❌ Blocked | USD → BTC | HTTP 403 Forbidden |
-| ❌ Blocked | ETH → EUR | HTTP 403 Forbidden |
-
----
-
-## Verify Kata VM Isolation
+### Run Full Test Script
 
 ```bash
-# Check agent is using Kata runtime
-oc get pod -n agent-sandbox -l app=currency-agent \
-  -o jsonpath='{.items[0].spec.runtimeClassName}'
-# Expected: kata
-
-# Check agent status
-oc get agent -n agent-sandbox
-# Expected: currency-agent  True
+./scripts/demo-complete.sh
 ```
 
 ---
 
-## Project Structure
+## Summary
 
-```
-.
-├── manifests/
-│   ├── 00-kataconfig.yaml       # Kata runtime (prerequisite)
-│   ├── 01-namespaces.yaml       # mcp-test, agent-sandbox
-│   ├── 02-currency-mcp-server.yaml  # MCP server deployment
-│   ├── 03-currency-httproute.yaml   # Gateway routing
-│   ├── 04-authpolicy.yaml       # OPA policy (blocks BTC/ETH)
-│   ├── 05-currency-agent.yaml   # Kagenti Agent in Kata VM
-│   └── 06-service-entry.yaml    # Istio egress allowlist
-├── scripts/
-│   └── demo-complete.sh         # Test all security layers
-├── docs/
-│   ├── architecture.md          # Detailed diagrams
-│   └── troubleshooting.md       # Common issues
-└── README.md
-```
-
----
-
-## Key Technical Details
-
-### 1. MCP Server Must Have Istio Sidecar Disabled
-
-```yaml
-metadata:
-  annotations:
-    sidecar.istio.io/inject: "false"
-```
-
-### 2. Kata Pods Require 2Gi Memory
-
-```yaml
-resources:
-  limits:
-    memory: "2Gi"
-  requests:
-    memory: "2Gi"
-```
-
-### 3. Test Pods Need Sidecar Disabled
-
-Otherwise you get 502 Bad Gateway errors.
-
-### 4. Host Header Required for Gateway Routing
-
-```bash
-curl -H "Host: currency-mcp.mcp.local" http://mcp-gateway-istio.gateway-system.svc.cluster.local:8080/mcp
-```
+| Test | What | Expected Result |
+|------|------|-----------------|
+| USD → EUR | Fiat currency conversion | ✅ HTTP 200 |
+| GBP → JPY | Fiat currency conversion | ✅ HTTP 200 |
+| USD → BTC | Cryptocurrency (blocked) | ❌ HTTP 403 |
+| ETH → EUR | Cryptocurrency (blocked) | ❌ HTTP 403 |
+| Agent runtime | Kata VM isolation | `runtimeClassName: kata` |
 
 ---
 
 ## How the Layers Work Together
 
-| Attack | Layer 1 (OPA) | Layer 2 (Istio) | Layer 3 (Kata) |
-|--------|---------------|-----------------|----------------|
-| `get_exchange_rate("USD", "BTC")` | ✅ BLOCKED | - | - |
-| `requests.get("https://evil.com")` | Bypassed | ✅ BLOCKED | - |
-| Kernel exploit → host escape | Bypassed | Bypassed | ✅ CONTAINED |
-| Read `/etc/shadow` on host | Bypassed | Bypassed | ✅ ISOLATED |
+```
+┌─────────────────────────────────────────────────────────────┐
+│  LAYER 3: Kata VM Isolation                                 │
+│  Agent runs in isolated micro-VM with separate kernel       │
+│  ┌───────────────────────────────────────────────────────┐  │
+│  │  Currency Agent                                       │  │
+│  │  "Convert 100 USD to BTC"                             │  │
+│  └───────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│  LAYER 1: OPA Policy at MCP Gateway                         │
+│  Inspects tool arguments, blocks BTC/ETH                    │
+│  ┌───────────────────────────────────────────────────────┐  │
+│  │  get_exchange_rate(USD, BTC) → ❌ BLOCKED (403)       │  │
+│  │  get_exchange_rate(USD, EUR) → ✅ ALLOWED             │  │
+│  └───────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│  LAYER 2: Istio Egress Control                              │
+│  Only allows api.frankfurter.app, blocks all other URLs     │
+│  ┌───────────────────────────────────────────────────────┐  │
+│  │  curl https://api.frankfurter.app → ✅ ALLOWED        │  │
+│  │  curl https://evil.com → ❌ BLOCKED                   │  │
+│  └───────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────┘
+```
 
-**Defense in depth:** If one layer is bypassed, the next layer catches the attack.
+---
+
+## Cleanup
+
+```bash
+oc delete agent currency-agent -n agent-sandbox
+oc delete -f manifests/04-authpolicy.yaml
+oc delete -f manifests/03-currency-httproute.yaml
+oc delete -f manifests/02-currency-mcp-server.yaml
+oc delete -f manifests/06-service-entry.yaml
+oc delete pod test-curl -n mcp-test
+oc delete -f manifests/01-namespaces.yaml
+```
+
+---
+
+## Troubleshooting
+
+See [docs/troubleshooting.md](docs/troubleshooting.md) for common issues:
+- 502 Bad Gateway → Disable sidecar on test pod
+- OPA not blocking → Check Istio body forwarding config
+- Kata pods pending → Check node labels and RuntimeClass
 
 ---
 
@@ -458,8 +418,7 @@ curl -H "Host: currency-mcp.mcp.local" http://mcp-gateway-istio.gateway-system.s
 
 - [Kagenti](https://github.com/kagenti/kagenti) - MCP Gateway platform
 - [OpenShift Sandboxed Containers](https://docs.openshift.com/container-platform/latest/sandboxed_containers/index.html)
-- [Kuadrant/Authorino](https://github.com/Kuadrant/authorino) - Policy engine
-- [Anthropic SRT](https://github.com/anthropic-experimental/sandbox-runtime) - Inspiration
+- [Kuadrant/Authorino](https://github.com/Kuadrant/authorino) - OPA policy engine
 - [Frankfurter API](https://www.frankfurter.app/) - Currency exchange rates
 
 ## License
