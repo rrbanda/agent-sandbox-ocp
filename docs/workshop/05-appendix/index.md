@@ -1,4 +1,4 @@
-# Module 04: Appendix
+# Module 05: Appendix
 
 Reference materials for troubleshooting, cleanup, and next steps.
 

@@ -157,6 +157,6 @@ The platform is ready for developers to deploy agents.
 
 ## Next Steps
 
-- **Continue the workshop**: [Module 02: Agent Development](../02-agent-developer/index.md)
-- **Skip to deployment**: [Module 03: Deploy & Test](../03-deploy-and-test/index.md)
+- **Continue the workshop**: [Module 02: Agent Development](../03-agent-developer/index.md)
+- **Skip to deployment**: [Module 03: Deploy & Test](../04-deploy-and-test/index.md)
 

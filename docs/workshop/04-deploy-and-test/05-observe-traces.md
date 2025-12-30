@@ -146,9 +146,9 @@ You've completed the Deploy & Test module:
 
 ## What's Next?
 
-- [Appendix: Troubleshooting](../04-appendix/troubleshooting.md) - Common issues and fixes
-- [Appendix: Cleanup](../04-appendix/cleanup.md) - Remove demo resources
-- [Appendix: Next Steps](../04-appendix/next-steps.md) - Where to go from here
+- [Appendix: Troubleshooting](../05-appendix/troubleshooting.md) - Common issues and fixes
+- [Appendix: Cleanup](../05-appendix/cleanup.md) - Remove demo resources
+- [Appendix: Next Steps](../05-appendix/next-steps.md) - Where to go from here
 
 ## Workshop Complete! 🏆
 

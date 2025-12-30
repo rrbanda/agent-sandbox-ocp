@@ -1,4 +1,4 @@
-# Module 02: Agent Development
+# Module 03: Agent Development
 
 **Duration**: 30 minutes  
 **Persona**: 👩‍💻 Agent Developer

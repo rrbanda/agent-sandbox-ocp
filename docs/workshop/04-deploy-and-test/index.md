@@ -1,4 +1,4 @@
-# Module 03: Deploy & Test
+# Module 04: Deploy & Test
 
 **Duration**: 30 minutes  
 **Persona**: 🚀 Both (Platform Admin + Agent Developer)

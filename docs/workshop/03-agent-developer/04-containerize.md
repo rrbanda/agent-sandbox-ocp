@@ -136,5 +136,5 @@ You've completed the Agent Developer module:
 
 Now it's time to deploy to OpenShift and see the security layers in action!
 
-👉 [Module 03: Deploy & Test](../03-deploy-and-test/index.md)
+👉 [Module 03: Deploy & Test](../04-deploy-and-test/index.md)
 

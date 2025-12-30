@@ -1,4 +1,4 @@
-# Module 01: Platform Setup
+# Module 02: Platform Setup
 
 **Duration**: 30 minutes  
 **Persona**: 👷 Platform Admin

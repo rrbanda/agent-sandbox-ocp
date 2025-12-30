@@ -22,33 +22,40 @@ nav:
   - Home: index.md
   - Workshop:
     - Overview: workshop/index.md
-    - "00 - Introduction":
-      - Overview: workshop/00-introduction/index.md
-    - "01 - Platform Admin":
-      - Overview: workshop/01-platform-admin/index.md
-      - Install OSC: workshop/01-platform-admin/01-install-osc.md
-      - Configure Kata: workshop/01-platform-admin/02-configure-kata.md
-      - Create Namespace: workshop/01-platform-admin/03-create-namespace.md
-      - Configure Egress: workshop/01-platform-admin/04-configure-egress.md
-      - Configure Policy: workshop/01-platform-admin/05-configure-policy.md
-    - "02 - Agent Developer":
-      - Overview: workshop/02-agent-developer/index.md
-      - Understand Agent: workshop/02-agent-developer/01-understand-agent.md
-      - Run Locally: workshop/02-agent-developer/02-run-locally.md
-      - Test in ADK UI: workshop/02-agent-developer/03-test-in-adk-ui.md
-      - Containerize: workshop/02-agent-developer/04-containerize.md
-    - "03 - Deploy & Test":
-      - Overview: workshop/03-deploy-and-test/index.md
-      - Deploy Agent: workshop/03-deploy-and-test/01-deploy-agent.md
-      - Verify Kata: workshop/03-deploy-and-test/02-verify-kata.md
-      - Test Allowed: workshop/03-deploy-and-test/03-test-allowed.md
-      - Test Blocked: workshop/03-deploy-and-test/04-test-blocked.md
-      - Observe Traces: workshop/03-deploy-and-test/05-observe-traces.md
-    - "04 - Appendix":
-      - Overview: workshop/04-appendix/index.md
-      - Troubleshooting: workshop/04-appendix/troubleshooting.md
-      - Cleanup: workshop/04-appendix/cleanup.md
-      - Next Steps: workshop/04-appendix/next-steps.md
+    - "00 - Prerequisites":
+      - Overview: workshop/00-prerequisites/index.md
+      - Install OSC: workshop/00-prerequisites/01-install-osc.md
+      - Install Istio: workshop/00-prerequisites/02-install-istio.md
+      - Install Kuadrant: workshop/00-prerequisites/03-install-kuadrant.md
+      - Deploy Kagenti: workshop/00-prerequisites/04-deploy-kagenti.md
+      - Verify Setup: workshop/00-prerequisites/05-verify-setup.md
+    - "01 - Introduction":
+      - Overview: workshop/01-introduction/index.md
+    - "02 - Platform Setup":
+      - Overview: workshop/02-platform-setup/index.md
+      - Install OSC: workshop/02-platform-setup/01-install-osc.md
+      - Configure Kata: workshop/02-platform-setup/02-configure-kata.md
+      - Create Namespace: workshop/02-platform-setup/03-create-namespace.md
+      - Configure Egress: workshop/02-platform-setup/04-configure-egress.md
+      - Configure Policy: workshop/02-platform-setup/05-configure-policy.md
+    - "03 - Agent Developer":
+      - Overview: workshop/03-agent-developer/index.md
+      - Understand Agent: workshop/03-agent-developer/01-understand-agent.md
+      - Run Locally: workshop/03-agent-developer/02-run-locally.md
+      - Test in ADK UI: workshop/03-agent-developer/03-test-in-adk-ui.md
+      - Containerize: workshop/03-agent-developer/04-containerize.md
+    - "04 - Deploy & Test":
+      - Overview: workshop/04-deploy-and-test/index.md
+      - Deploy Agent: workshop/04-deploy-and-test/01-deploy-agent.md
+      - Verify Kata: workshop/04-deploy-and-test/02-verify-kata.md
+      - Test Allowed: workshop/04-deploy-and-test/03-test-allowed.md
+      - Test Blocked: workshop/04-deploy-and-test/04-test-blocked.md
+      - Observe Traces: workshop/04-deploy-and-test/05-observe-traces.md
+    - "05 - Appendix":
+      - Overview: workshop/05-appendix/index.md
+      - Troubleshooting: workshop/05-appendix/troubleshooting.md
+      - Cleanup: workshop/05-appendix/cleanup.md
+      - Next Steps: workshop/05-appendix/next-steps.md
   - Concepts:
     - Threat Model: concepts/threat-model.md
     - Defense in Depth: concepts/defense-in-depth.md
@@ -77,4 +84,3 @@ extra:
   social:
     - icon: fontawesome/brands/github
       link: https://github.com/rrbanda/agent-sandbox-ocp
-

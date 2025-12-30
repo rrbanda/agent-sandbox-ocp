@@ -1,7 +1,7 @@
-# Module 00: Introduction
+# Module 01: Introduction
 
 **Duration**: 15 minutes  
-**Persona**: Everyone
+**Persona**: 👥 Everyone
 
 ## Learning Objectives
 
@@ -94,26 +94,16 @@ You'll demonstrate each layer of protection:
 
 ## Prerequisites
 
-### For Platform Admins (Module 01)
+> 📋 **Platform prerequisites** (OSC, Istio, Kuadrant, Kagenti) should already be installed.  
+> If not, complete [Module 00: Prerequisites](../00-prerequisites/index.md) first.
 
-- [ ] OpenShift 4.14+ cluster with admin access
+### For This Workshop
+
+- [ ] OpenShift 4.14+ cluster with prerequisites installed
 - [ ] `oc` CLI installed and logged in
-- [ ] Operators installed:
-  - OpenShift Sandboxed Containers
-  - Kuadrant
-  - Kagenti
-
-### For Agent Developers (Module 02)
-
-- [ ] Python 3.11+
+- [ ] Python 3.11+ (for local agent development)
 - [ ] Google ADK installed (`pip install google-adk`)
 - [ ] Gemini API key ([Get one here](https://aistudio.google.com/app/apikey))
-- [ ] Container registry access (Quay.io, GHCR, etc.)
-
-### For Everyone (Module 03)
-
-- [ ] Access to the configured OpenShift namespace
-- [ ] `oc` CLI installed
 
 ## Architecture Overview
 
@@ -146,10 +136,7 @@ flowchart TB
     Agent -->|"Egress (via Istio)"| API
 ```
 
-## Next Steps
+## Next Step
 
-Choose your path:
-
-- **Platform Admin?** → [Module 01: Platform Setup](../01-platform-admin/index.md)
-- **Developer (platform already configured)?** → [Module 02: Agent Development](../02-agent-developer/index.md)
+👉 [Continue to Module 02: Platform Setup](../02-platform-setup/index.md)
 

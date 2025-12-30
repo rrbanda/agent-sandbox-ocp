@@ -2,7 +2,7 @@
 
 A hands-on workshop for securing AI agents with VM isolation, network control, and policy enforcement.
 
-**Duration**: ~2 hours  
+**Duration**: ~2.5 hours  
 **Level**: Intermediate
 
 ## What You'll Build
@@ -41,47 +41,60 @@ flowchart LR
 
 ## Workshop Flow
 
-This workshop follows a logical order. **Everyone reads all modules** to understand the full picture, but each module indicates who performs the hands-on steps.
-
 ```mermaid
 flowchart LR
-    A["00<br/>Introduction"] --> B["01<br/>Platform Setup"]
-    B --> C["02<br/>Agent Development"]
-    C --> D["03<br/>Deploy & Test"]
-    D --> E["04<br/>Appendix"]
+    A["00<br/>Prerequisites"] --> B["01<br/>Introduction"]
+    B --> C["02<br/>Platform Setup"]
+    C --> D["03<br/>Agent Dev"]
+    D --> E["04<br/>Deploy & Test"]
+    E --> F["05<br/>Appendix"]
 ```
 
 ---
 
 ## Modules
 
-### [Module 00: Introduction](00-introduction/index.md)
+### [Module 00: Prerequisites](00-prerequisites/index.md)
+**👷 Platform Admin** • 45-60 minutes (one-time)
+
+Install the required platform components:
+
+- OpenShift Sandboxed Containers Operator
+- Istio Service Mesh
+- Kuadrant Operator
+- Kagenti Platform (via Helm)
+
+> ⏭️ **Skip if already installed** - Run the verification script to check.
+
+---
+
+### [Module 01: Introduction](01-introduction/index.md)
 **👥 Everyone** • 15 minutes
 
 Understand the security challenges with AI agents and the three-layer defense model.
 
 - Why AI agents need special security
 - The Currency Agent demo scenario
-- Prerequisites for the workshop
+- Workshop overview
 
 ---
 
-### [Module 01: Platform Setup](01-platform-admin/index.md)
+### [Module 02: Platform Setup](02-platform-setup/index.md)
 **👷 Platform Admin performs** • 30 minutes  
 **👩‍💻 Developer reads** (to understand the security context)
 
-Configure OpenShift for secure agent deployment:
+Configure the agent namespace:
 
-- Install OpenShift Sandboxed Containers
-- Enable Kata VM runtime
-- Create secure namespace with Istio
-- Configure egress controls and OPA policies
+- Apply KataConfig to enable VM runtime
+- Create secure namespace with Istio labels
+- Configure egress controls (ServiceEntry)
+- Deploy OPA policies (AuthPolicy)
 
-> 💡 **Developers**: Even if you don't perform these steps, read through to understand what policies protect your agent.
+> 💡 **Developers**: Read through to understand what policies protect your agent.
 
 ---
 
-### [Module 02: Agent Development](02-agent-developer/index.md)
+### [Module 03: Agent Development](03-agent-developer/index.md)
 **👩‍💻 Developer performs** • 30 minutes  
 **👷 Platform Admin reads** (to understand developer needs)
 
@@ -96,7 +109,7 @@ Build and test the Currency Agent locally:
 
 ---
 
-### [Module 03: Deploy & Test](03-deploy-and-test/index.md)
+### [Module 04: Deploy & Test](04-deploy-and-test/index.md)
 **👥 Both personas** • 30 minutes
 
 Deploy the agent to OpenShift and verify all security layers:
@@ -109,7 +122,7 @@ Deploy the agent to OpenShift and verify all security layers:
 
 ---
 
-### [Module 04: Appendix](04-appendix/index.md)
+### [Module 05: Appendix](05-appendix/index.md)
 **📚 Reference**
 
 - Troubleshooting common issues
@@ -120,15 +133,18 @@ Deploy the agent to OpenShift and verify all security layers:
 
 ## Who Should Do What?
 
-| Your Role | Module 00 | Module 01 | Module 02 | Module 03 | Module 04 |
-|-----------|-----------|-----------|-----------|-----------|-----------|
-| **Solo Learner** | ✅ Do | ✅ Do | ✅ Do | ✅ Do | Reference |
-| **Platform Admin** | ✅ Do | ✅ Do | 📖 Read | ✅ Do | Reference |
-| **Agent Developer** | ✅ Do | 📖 Read | ✅ Do | ✅ Do | Reference |
+| Your Role | Mod 00 | Mod 01 | Mod 02 | Mod 03 | Mod 04 | Mod 05 |
+|-----------|--------|--------|--------|--------|--------|--------|
+| **Solo Learner** | ✅ Do | ✅ Do | ✅ Do | ✅ Do | ✅ Do | Ref |
+| **Platform Admin** | ✅ Do | ✅ Do | ✅ Do | 📖 Read | ✅ Do | Ref |
+| **Agent Developer** | ⏭️ Skip | ✅ Do | 📖 Read | ✅ Do | ✅ Do | Ref |
 
 ---
 
 ## Let's Get Started
 
-👉 [Start with Module 00: Introduction](00-introduction/index.md)
+👉 [Start with Module 00: Prerequisites](00-prerequisites/index.md)
 
+Or if prerequisites are already installed:
+
+👉 [Start with Module 01: Introduction](01-introduction/index.md)
