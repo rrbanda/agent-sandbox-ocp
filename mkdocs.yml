@@ -57,10 +57,19 @@ nav:
       - Cleanup: workshop/05-appendix/cleanup.md
       - Next Steps: workshop/05-appendix/next-steps.md
   - Concepts:
-    - Threat Model: concepts/threat-model.md
-    - Defense in Depth: concepts/defense-in-depth.md
-    - Inner & Outer Loop: concepts/inner-outer-loop.md
-    - OSC Explained: concepts/osc-explained.md
+    - Overview: concepts/index.md
+    - "1. Problem & Solution":
+      - Threat Model: concepts/threat-model.md
+      - Defense in Depth: concepts/defense-in-depth.md
+    - "2. Building Agents":
+      - Google ADK: concepts/google-adk.md
+      - Inner & Outer Loop: concepts/inner-outer-loop.md
+    - "3. Deploying Agents":
+      - Kagenti Platform: concepts/kagenti-platform.md
+    - "4. Security Layers":
+      - "Layer 1: OSC & Kata": concepts/osc-explained.md
+      - "Layer 2: Istio Egress": concepts/istio-egress.md
+      - "Layer 3: Kuadrant & OPA": concepts/kuadrant-opa.md
   - Reference:
     - Architecture: architecture.md
     - Troubleshooting: troubleshooting.md
