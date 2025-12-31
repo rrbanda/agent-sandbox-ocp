@@ -202,9 +202,9 @@ cat manifests/currency-demo/05-currency-agent.yaml
 
 | Layer | Technology | What It Does |
 |-------|------------|--------------|
-| **1. Tool Policy** | Kuadrant + OPA | Blocks unauthorized tool arguments |
+| **1. VM Isolation** | Kata Containers | Prevents container escapes |
 | **2. Network Egress** | Istio | Controls which APIs agents can call |
-| **3. VM Isolation** | Kata Containers | Prevents container escapes |
+| **3. Tool Policy** | Kuadrant + OPA | Blocks unauthorized tool arguments |
 
 **Narrative**: "Each layer is independent. If one is bypassed, the others still protect. This is defense in depth for AI agents on OpenShift."
 

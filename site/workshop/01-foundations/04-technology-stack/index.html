@@ -274,6 +274,26 @@
     
     
       <li class="md-tabs__item">
+        <a href="../../../guides/developer-guide/" class="md-tabs__link">
+          
+  
+  
+  Guides
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
         <a href="../../../architecture/" class="md-tabs__link">
           
   
@@ -681,6 +701,28 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#the-complete-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Complete Architecture
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#technology-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Technology Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#google-agent-development-kit-adk" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -763,6 +805,17 @@
   
     <nav class="md-nav" aria-label="Platform: Kagenti">
       <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#mcp-gateway" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MCP Gateway
+      
+    </span>
+  </a>
+  
+</li>
         
           <li class="md-nav__item">
   <a href="#key-features" class="md-nav__link">
@@ -1429,6 +1482,34 @@
     
   
     Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference Architecture
   
 
     
@@ -2162,7 +2243,7 @@
   <span class="md-ellipsis">
     
   
-    Reference
+    Guides
   
 
     
@@ -2175,6 +2256,151 @@
         
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../guides/developer-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Developer Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../guides/platform-admin-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Platform Admin Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../guides/demo-walkthrough/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Demo Walkthrough
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -2198,7 +2424,7 @@
   <span class="md-ellipsis">
     
   
-    Architecture
+    Reference Architecture
   
 
     
@@ -2270,6 +2496,61 @@
 <h1 id="technology-stack">Technology Stack</h1>
 <p><strong>Duration</strong>: 5 minutes</p>
 <p>This workshop uses several technologies that work together to provide a secure agent development and deployment platform.</p>
+<h2 id="the-complete-architecture">The Complete Architecture</h2>
+<p>Before diving into each component, here's how everything fits together:</p>
+<pre class="mermaid"><code>flowchart TB
+    subgraph User["User/DevOps"]
+        Apply["oc apply -f currency-agent.yaml"]
+    end
+
+    subgraph Kagenti["Kagenti Platform"]
+        AgentCRD["Agent CR&lt;br/&gt;(spec.runtimeClassName: kata)"]
+        Operator["Kagenti Operator"]
+        MCPGateway["MCP Gateway"]
+    end
+
+    subgraph KataVM["Kata VM (Layer 1: Isolated Execution)"]
+        AgentPod["Currency Agent&lt;br/&gt;(Google ADK)"]
+        IstioSidecar["Istio Sidecar&lt;br/&gt;(Layer 2)"]
+    end
+
+    subgraph MCPServer["MCP Server"]
+        CurrencyMCP["currency-mcp-server&lt;br/&gt;(get_exchange_rate tool)"]
+    end
+
+    subgraph Policy["Policy Enforcement (Layer 3)"]
+        Authorino["Authorino"]
+        OPA["OPA Policy"]
+    end
+
+    subgraph External["External APIs"]
+        Approved["api.frankfurter.app"]
+        Blocked["BTC, ETH, DOGE"]
+    end
+
+    Apply --&gt;|"1. apply"| AgentCRD
+    AgentCRD --&gt;|"2. reconcile"| Operator
+    Operator --&gt;|"3. create pod&lt;br/&gt;(runtimeClassName: kata)"| AgentPod
+
+    AgentPod --&gt;|"4. tools/call"| MCPGateway
+    MCPGateway --&gt;|"5. authorize"| Authorino
+    Authorino --&gt; OPA
+    OPA --&gt;|"allow/deny"| Authorino
+    Authorino --&gt;|"6. decision"| MCPGateway
+    MCPGateway --&gt;|"7. if allowed"| CurrencyMCP
+    CurrencyMCP --&gt;|"8. get rate"| Approved
+
+    MCPGateway -.-&gt;|"blocked by OPA"| Blocked
+    IstioSidecar -.-&gt;|"blocked by Istio"| Blocked</code></pre>
+<p><strong>The flow:</strong></p>
+<ol>
+<li><strong>Deploy</strong>: You apply an Agent CR → Kagenti creates a pod in a Kata VM</li>
+<li><strong>Tool Call</strong>: Agent calls MCP Gateway → Authorino/OPA checks policy</li>
+<li><strong>Execute</strong>: If allowed, MCP Server executes the tool → Istio controls egress</li>
+</ol>
+<p>Each security layer is visible in this diagram. Now let's understand each component.</p>
+<hr />
+<h2 id="technology-overview">Technology Overview</h2>
 <pre class="mermaid"><code>flowchart TB
     subgraph Development["Development"]
         ADK["Google ADK&lt;br/&gt;(Agent Framework)"]
@@ -2290,7 +2571,8 @@
     Kagenti --&gt; OCP
     OCP --&gt; OSC
     OCP --&gt; Istio
-    Istio --&gt; Kuadrant</code></pre>
+    OCP --&gt; Kuadrant</code></pre>
+<hr />
 <h2 id="google-agent-development-kit-adk">Google Agent Development Kit (ADK)</h2>
 <p>The <strong>Agent Development Kit (ADK)</strong> is an open-source framework from Google designed to simplify the full-stack, end-to-end development of agents and multi-agent systems. ADK is the same framework powering agents within Google products like Agentspace and the Google Customer Engagement Suite.</p>
 <h3 id="core-pillars-of-adk">Core Pillars of ADK</h3>
@@ -2453,33 +2735,46 @@
 </tr>
 </tbody>
 </table>
+<h3 id="mcp-gateway">MCP Gateway</h3>
+<p>The <strong>MCP Gateway</strong> is the central routing point for all tool calls. When an agent needs to use a tool:</p>
+<ol>
+<li>Agent sends <code>tools/call</code> request to MCP Gateway</li>
+<li>Gateway routes to Authorino for policy check (OPA)</li>
+<li>If allowed, Gateway forwards to the appropriate MCP Server</li>
+<li>MCP Server executes the tool and returns results</li>
+</ol>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>Agent ──▶ MCP Gateway ──▶ Authorino (OPA) ──▶ MCP Server ──▶ External API
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>                              │
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>                              └── DENY if policy violated
+</code></pre></div>
+<p>This is where <strong>Layer 3 (Tool Policy)</strong> is enforced.</p>
 <h3 id="key-features">Key Features</h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>┌─────────────────────────────────────────────────────────────────────────┐
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>│                         Kagenti Platform                                 │
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>├─────────────────────────────────────────────────────────────────────────┤
-<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>│                                                                         │
-<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>│  ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐     │
-<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>│  │   AgentBuild    │    │      Agent      │    │   MCPServer     │     │
-<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>│  │                 │    │                 │    │                 │     │
-<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>│  │ • Git clone     │───▶│ • Deploy pod    │◀───│ • Tool registry │     │
-<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>│  │ • Build image   │    │ • Kata runtime  │    │ • MCP Gateway   │     │
-<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>│  │ • Push registry │    │ • A2A endpoint  │    │                 │     │
-<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>│  └─────────────────┘    └─────────────────┘    └─────────────────┘     │
-<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>│                                                                         │
-<a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a>└─────────────────────────────────────────────────────────────────────────┘
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>┌─────────────────────────────────────────────────────────────────────────┐
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>│                         Kagenti Platform                                 │
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>├─────────────────────────────────────────────────────────────────────────┤
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>│                                                                         │
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>│  ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐     │
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>│  │   AgentBuild    │    │      Agent      │    │   MCP Gateway   │     │
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>│  │                 │    │                 │    │                 │     │
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>│  │ • Git clone     │───▶│ • Deploy pod    │───▶│ • Route tools   │     │
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>│  │ • Build image   │    │ • Kata runtime  │    │ • Policy check  │     │
+<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>│  │ • Push registry │    │ • A2A endpoint  │    │ • Forward calls │     │
+<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>│  └─────────────────┘    └─────────────────┘    └─────────────────┘     │
+<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a>│                                                                         │
+<a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a>└─────────────────────────────────────────────────────────────────────────┘
 </code></pre></div>
 <h3 id="example-agent-cr">Example Agent CR</h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">agent.kagenti.dev/v1alpha1</span>
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Agent</span>
-<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="nt">metadata</span><span class="p">:</span>
-<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">currency-agent</span>
-<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="nt">spec</span><span class="p">:</span>
-<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">  </span><span class="nt">imageSource</span><span class="p">:</span>
-<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="w">    </span><span class="nt">buildRef</span><span class="p">:</span>
-<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="w">      </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">currency-agent-build</span><span class="w">  </span><span class="c1"># Reference to AgentBuild</span>
-<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="w">  </span><span class="nt">podTemplateSpec</span><span class="p">:</span>
-<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="w">    </span><span class="nt">spec</span><span class="p">:</span>
-<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="w">      </span><span class="nt">runtimeClassName</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">kata</span><span class="w">      </span><span class="c1"># Kata VM isolation</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">agent.kagenti.dev/v1alpha1</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Agent</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="nt">metadata</span><span class="p">:</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">currency-agent</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="nt">spec</span><span class="p">:</span>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="w">  </span><span class="nt">imageSource</span><span class="p">:</span>
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="w">    </span><span class="nt">buildRef</span><span class="p">:</span>
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="w">      </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">currency-agent-build</span><span class="w">  </span><span class="c1"># Reference to AgentBuild</span>
+<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="w">  </span><span class="nt">podTemplateSpec</span><span class="p">:</span>
+<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="w">    </span><span class="nt">spec</span><span class="p">:</span>
+<a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a><span class="w">      </span><span class="nt">runtimeClassName</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">kata</span><span class="w">      </span><span class="c1"># Kata VM isolation</span>
 </code></pre></div>
 <h2 id="security-layer-1-openshift-sandboxed-containers-osc">Security Layer 1: OpenShift Sandboxed Containers (OSC)</h2>
 <p><strong>VM-based container isolation</strong> using Kata Containers.</p>
@@ -2506,17 +2801,17 @@
 </tbody>
 </table>
 <h3 id="how-it-works">How It Works</h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>Regular Container:                  Kata Container:
-<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>┌─────────────────────┐            ┌─────────────────────┐
-<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>│ Container Process   │            │   Kata VM           │
-<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>│         │           │            │   ┌─────────────┐   │
-<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>│         ▼           │            │   │ Container   │   │
-<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>│   Host Kernel       │            │   └─────────────┘   │
-<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>└─────────────────────┘            │   Guest Kernel      │
-<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>                                   └─────────────────────┘
-<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>                                            │
-<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>                                            ▼
-<a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a>                                      Host Kernel
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>Regular Container:                  Kata Container:
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>┌─────────────────────┐            ┌─────────────────────┐
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>│ Container Process   │            │   Kata VM           │
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>│         │           │            │   ┌─────────────┐   │
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>│         ▼           │            │   │ Container   │   │
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>│   Host Kernel       │            │   └─────────────┘   │
+<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>└─────────────────────┘            │   Guest Kernel      │
+<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>                                   └─────────────────────┘
+<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>                                            │
+<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>                                            ▼
+<a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a>                                      Host Kernel
 </code></pre></div>
 <h2 id="security-layer-2-istio-service-mesh">Security Layer 2: Istio Service Mesh</h2>
 <p><strong>Network traffic control</strong> for service-to-service communication.</p>
@@ -2543,18 +2838,18 @@
 </tbody>
 </table>
 <h3 id="example-serviceentry">Example ServiceEntry</h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">networking.istio.io/v1beta1</span>
-<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ServiceEntry</span>
-<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="nt">metadata</span><span class="p">:</span>
-<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">allowed-external-apis</span>
-<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="nt">spec</span><span class="p">:</span>
-<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="w">  </span><span class="nt">hosts</span><span class="p">:</span>
-<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">api.frankfurter.app</span>
-<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">generativelanguage.googleapis.com</span>
-<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="w">  </span><span class="nt">ports</span><span class="p">:</span>
-<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">number</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">443</span>
-<a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a><span class="w">      </span><span class="nt">protocol</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">HTTPS</span>
-<a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a><span class="w">  </span><span class="nt">location</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">MESH_EXTERNAL</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">networking.istio.io/v1beta1</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ServiceEntry</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="nt">metadata</span><span class="p">:</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">allowed-external-apis</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="nt">spec</span><span class="p">:</span>
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="w">  </span><span class="nt">hosts</span><span class="p">:</span>
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">api.frankfurter.app</span>
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">generativelanguage.googleapis.com</span>
+<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="w">  </span><span class="nt">ports</span><span class="p">:</span>
+<a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">number</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">443</span>
+<a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a><span class="w">      </span><span class="nt">protocol</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">HTTPS</span>
+<a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a><span class="w">  </span><span class="nt">location</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">MESH_EXTERNAL</span>
 </code></pre></div>
 <h2 id="security-layer-3-kuadrant-opa">Security Layer 3: Kuadrant + OPA</h2>
 <p><strong>API policy enforcement</strong> using Open Policy Agent.</p>
@@ -2581,15 +2876,15 @@
 </tbody>
 </table>
 <h3 id="example-policy">Example Policy</h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="k">package</span><span class="w"> </span><span class="n">currency_policy</span>
-<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>
-<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="n">blocked_currencies</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;BTC&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;ETH&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;DOGE&quot;</span><span class="p">]</span>
-<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>
-<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="n">deny</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="w">  </span><span class="nb">input</span><span class="p">.</span><span class="n">params</span><span class="p">.</span><span class="n">arguments</span><span class="p">.</span><span class="n">currency_to</span><span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="n">blocked_currencies</span>
-<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="p">}</span>
-<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>
-<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="n">allow</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">not</span><span class="w"> </span><span class="n">deny</span><span class="w"> </span><span class="p">}</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="k">package</span><span class="w"> </span><span class="n">currency_policy</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="n">blocked_currencies</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;BTC&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;ETH&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;DOGE&quot;</span><span class="p">]</span>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="n">deny</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="w">  </span><span class="nb">input</span><span class="p">.</span><span class="n">params</span><span class="p">.</span><span class="n">arguments</span><span class="p">.</span><span class="n">currency_to</span><span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="n">blocked_currencies</span>
+<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="p">}</span>
+<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>
+<a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="n">allow</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">not</span><span class="w"> </span><span class="n">deny</span><span class="w"> </span><span class="p">}</span>
 </code></pre></div>
 <h2 id="how-components-connect">How Components Connect</h2>
 <pre class="mermaid"><code>flowchart TB
@@ -2632,25 +2927,25 @@
     Egress --&gt; Gemini</code></pre>
 <h2 id="adk-lifecycle-build-interact-evaluate-deploy">ADK Lifecycle: Build, Interact, Evaluate, Deploy</h2>
 <p>The complete agent development lifecycle with ADK:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>┌─────────────────────────────────────────────────────────────────────────┐
-<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>│                    ADK Development Lifecycle                             │
-<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>├─────────────────────────────────────────────────────────────────────────┤
-<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>│                                                                         │
-<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>│   BUILD                    INTERACT                 EVALUATE            │
-<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>│   ─────                    ────────                 ────────            │
-<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>│   • Define agents          • CLI testing            • Test cases        │
-<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>│   • Create tools           • Web UI (adk web)       • Trajectory eval   │
-<a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a>│   • Configure models       • API Server             • Response quality  │
-<a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a>│   • Multi-agent setup      • Streaming              • AgentEvaluator    │
-<a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a>│                                                                         │
-<a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a>│                           DEPLOY                                        │
-<a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a>│                           ──────                                        │
-<a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a>│                           • Containerize (AgentBuild)                   │
-<a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a>│                           • Deploy to OpenShift (Agent CR)              │
-<a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a>│                           • Kata VM isolation                           │
-<a id="__codelineno-7-17" name="__codelineno-7-17" href="#__codelineno-7-17"></a>│                           • Security hardening                          │
-<a id="__codelineno-7-18" name="__codelineno-7-18" href="#__codelineno-7-18"></a>│                                                                         │
-<a id="__codelineno-7-19" name="__codelineno-7-19" href="#__codelineno-7-19"></a>└─────────────────────────────────────────────────────────────────────────┘
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>┌─────────────────────────────────────────────────────────────────────────┐
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>│                    ADK Development Lifecycle                             │
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>├─────────────────────────────────────────────────────────────────────────┤
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>│                                                                         │
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>│   BUILD                    INTERACT                 EVALUATE            │
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>│   ─────                    ────────                 ────────            │
+<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a>│   • Define agents          • CLI testing            • Test cases        │
+<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a>│   • Create tools           • Web UI (adk web)       • Trajectory eval   │
+<a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a>│   • Configure models       • API Server             • Response quality  │
+<a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a>│   • Multi-agent setup      • Streaming              • AgentEvaluator    │
+<a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a>│                                                                         │
+<a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a>│                           DEPLOY                                        │
+<a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a>│                           ──────                                        │
+<a id="__codelineno-8-14" name="__codelineno-8-14" href="#__codelineno-8-14"></a>│                           • Containerize (AgentBuild)                   │
+<a id="__codelineno-8-15" name="__codelineno-8-15" href="#__codelineno-8-15"></a>│                           • Deploy to OpenShift (Agent CR)              │
+<a id="__codelineno-8-16" name="__codelineno-8-16" href="#__codelineno-8-16"></a>│                           • Kata VM isolation                           │
+<a id="__codelineno-8-17" name="__codelineno-8-17" href="#__codelineno-8-17"></a>│                           • Security hardening                          │
+<a id="__codelineno-8-18" name="__codelineno-8-18" href="#__codelineno-8-18"></a>│                                                                         │
+<a id="__codelineno-8-19" name="__codelineno-8-19" href="#__codelineno-8-19"></a>└─────────────────────────────────────────────────────────────────────────┘
 </code></pre></div>
 <h2 id="summary">Summary</h2>
 <table>
@@ -2702,6 +2997,10 @@
 <li><strong>ADK Samples</strong>: <a href="https://github.com/google/adk-samples">github.com/google/adk-samples</a></li>
 <li><strong>Kagenti</strong>: <a href="https://github.com/kagenti/kagenti">github.com/kagenti/kagenti</a></li>
 </ul>
+<div class="admonition info">
+<p class="admonition-title">Want everything on one page?</p>
+<p>See the <a href="../../../architecture/">Reference Architecture</a> for all diagrams and flows consolidated in one place.</p>
+</div>
 <h2 id="youre-ready">You're Ready!</h2>
 <p>You now understand:
 -  Why agents need special security

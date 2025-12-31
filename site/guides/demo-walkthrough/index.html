@@ -13,6 +13,10 @@
         <link rel="canonical" href="https://rrbanda.github.io/agent-sandbox-ocp/guides/demo-walkthrough/">
       
       
+        <link rel="prev" href="../platform-admin-guide/">
+      
+      
+        <link rel="next" href="../../architecture/">
       
       
         
@@ -23,7 +27,7 @@
     
     
       
-        <title>Demo Walkthrough: Currency Agent Security - Securing Code First Agents on OpenShift</title>
+        <title>Demo Walkthrough - Securing Code First Agents on OpenShift</title>
       
     
     
@@ -110,7 +114,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Demo Walkthrough: Currency Agent Security
+              Demo Walkthrough
             
           </span>
         </div>
@@ -253,6 +257,28 @@
   
   
   Concepts
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../developer-guide/" class="md-tabs__link">
+          
+  
+  
+  Guides
 
         </a>
       </li>
@@ -1131,6 +1157,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../workshop/04-reference/manifest-reference/" class="md-nav__link">
         
   
@@ -1816,6 +1870,529 @@
       
   
   
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guides
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../developer-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Developer Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../platform-admin-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Platform Admin Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Demo Walkthrough
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Demo Walkthrough
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prerequisites
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#demo-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Demo Flow
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Demo Flow">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#scene-1-introduction-2-minutes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scene 1: Introduction (2 minutes)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scene-2-the-agent-works-3-minutes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scene 2: The Agent Works (3 minutes)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Scene 2: The Agent Works (3 minutes)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-open-adk-web-ui" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Open ADK Web UI
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-select-the-agent" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: Select the Agent
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-test-normal-operation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Test Normal Operation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scene-3-layer-3-tool-policy-protection-3-minutes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scene 3: Layer 3 - Tool Policy Protection (3 minutes)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Scene 3: Layer 3 - Tool Policy Protection (3 minutes)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-test-blocked-request" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Test Blocked Request
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-show-the-policy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: Show the Policy
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-emphasize-the-benefit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Emphasize the Benefit
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scene-4-layer-2-egress-control-2-minutes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scene 4: Layer 2 - Egress Control (2 minutes)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Scene 4: Layer 2 - Egress Control (2 minutes)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-show-the-serviceentry" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Show the ServiceEntry
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-show-in-kiali-optional" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: Show in Kiali (Optional)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scene-5-layer-1-vm-isolation-2-minutes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scene 5: Layer 1 - VM Isolation (2 minutes)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Scene 5: Layer 1 - VM Isolation (2 minutes)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-show-the-runtimeclass" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Show the RuntimeClass
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-explain-kata" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: Explain Kata
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scene-6-developer-experience-2-minutes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scene 6: Developer Experience (2 minutes)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Scene 6: Developer Experience (2 minutes)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-show-the-agent-cr" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Show the Agent CR
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-emphasize-separation-of-concerns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: Emphasize Separation of Concerns
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scene-7-recap-1-minute" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scene 7: Recap (1 minute)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#optional-deep-dives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Optional Deep Dives
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Optional Deep Dives">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#show-opa-policy-evaluation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Show OPA Policy Evaluation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#show-istio-mesh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Show Istio Mesh
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#show-phoenix-traces" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Show Phoenix Traces
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cleanup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cleanup
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
   
   
     
@@ -1834,10 +2411,10 @@
         
           
         
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
         
           
-          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
             
   
   
@@ -1855,8 +2432,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_4">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -1880,7 +2457,7 @@
   <span class="md-ellipsis">
     
   
-    Architecture
+    Reference Architecture
   
 
     
@@ -2086,9 +2663,9 @@
 </thead>
 <tbody>
 <tr>
-<td><strong>1. Tool Policy</strong></td>
-<td>Kuadrant + OPA</td>
-<td>Blocks unauthorized tool arguments</td>
+<td><strong>1. VM Isolation</strong></td>
+<td>Kata Containers</td>
+<td>Prevents container escapes</td>
 </tr>
 <tr>
 <td><strong>2. Network Egress</strong></td>
@@ -2096,9 +2673,9 @@
 <td>Controls which APIs agents can call</td>
 </tr>
 <tr>
-<td><strong>3. VM Isolation</strong></td>
-<td>Kata Containers</td>
-<td>Prevents container escapes</td>
+<td><strong>3. Tool Policy</strong></td>
+<td>Kuadrant + OPA</td>
+<td>Blocks unauthorized tool arguments</td>
 </tr>
 </tbody>
 </table>

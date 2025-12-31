@@ -226,21 +226,26 @@ curl -X POST "$GATEWAY_URL/mcp" \
 ```mermaid
 sequenceDiagram
     participant User
-    participant Agent
-    participant L3 as Layer 3 (OPA)
-    participant L2 as Layer 2 (Istio)
+    participant Agent as Agent (Kata VM)
+    participant Gateway as MCP Gateway
+    participant Authorino as Authorino (OPA)
+    participant MCP as MCP Server
     participant API as frankfurter.app
 
-    Note over Agent: Running in Kata VM (Layer 1)
+    Note over Agent: Layer 1: Running in Kata VM
     
     User->>Agent: "Convert 100 USD to EUR"
-    Agent->>L3: tools/call(get_exchange_rate, USD, EUR)
-    L3->>L3: EUR not in blocked list
-    L3-->>Agent: ✓ ALLOWED
-    Agent->>L2: HTTPS to api.frankfurter.app
-    L2->>L2: frankfurter.app in ServiceEntry
-    L2-->>API: Forward request
-    API-->>Agent: Rate: 0.92
+    Agent->>Gateway: tools/call(get_exchange_rate, USD, EUR)
+    Gateway->>Authorino: Check authorization
+    Note over Authorino: Layer 3: Tool Policy
+    Authorino->>Authorino: EUR not in blocked list
+    Authorino-->>Gateway: ALLOWED
+    Gateway->>MCP: Forward to MCP Server
+    Note over MCP: Layer 2: Egress via Istio
+    MCP->>API: GET /latest?from=USD&to=EUR
+    API-->>MCP: Rate: 0.92
+    MCP-->>Gateway: Result
+    Gateway-->>Agent: Rate: 0.92
     Agent-->>User: "100 USD = 92 EUR"
 ```
 
@@ -249,15 +254,19 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     participant User
-    participant Agent
-    participant L3 as Layer 3 (OPA)
+    participant Agent as Agent (Kata VM)
+    participant Gateway as MCP Gateway
+    participant Authorino as Authorino (OPA)
 
-    Note over Agent: Running in Kata VM (Layer 1)
+    Note over Agent: Layer 1: Running in Kata VM
     
     User->>Agent: "Convert 100 USD to BTC"
-    Agent->>L3: tools/call(get_exchange_rate, USD, BTC)
-    L3->>L3: BTC in blocked_currencies
-    L3-->>Agent: ✗ HTTP 403 DENIED
+    Agent->>Gateway: tools/call(get_exchange_rate, USD, BTC)
+    Gateway->>Authorino: Check authorization
+    Note over Authorino: Layer 3: Tool Policy
+    Authorino->>Authorino: BTC in blocked_currencies
+    Authorino-->>Gateway: DENIED (403)
+    Gateway-->>Agent: HTTP 403 Forbidden
     Agent-->>User: "I can't convert to cryptocurrency"
 ```
 

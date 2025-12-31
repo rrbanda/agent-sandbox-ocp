@@ -42,6 +42,7 @@ nav:
       - "5. Monitor & Tune": workshop/03-outer-loop/05-monitor-and-tune/index.md
     - "Part 4: Reference":
       - Overview: workshop/04-reference/index.md
+      - Reference Architecture: architecture.md
       - Manifest Reference: workshop/04-reference/manifest-reference.md
       - Troubleshooting: workshop/04-reference/troubleshooting.md
       - Cleanup: workshop/04-reference/cleanup.md
@@ -60,8 +61,12 @@ nav:
       - "Layer 1: OSC & Kata": concepts/osc-explained.md
       - "Layer 2: Istio Egress": concepts/istio-egress.md
       - "Layer 3: Kuadrant & OPA": concepts/kuadrant-opa.md
+  - Guides:
+    - Developer Guide: guides/developer-guide.md
+    - Platform Admin Guide: guides/platform-admin-guide.md
+    - Demo Walkthrough: guides/demo-walkthrough.md
   - Reference:
-    - Architecture: architecture.md
+    - Reference Architecture: architecture.md
     - Troubleshooting: troubleshooting.md
 
 markdown_extensions:

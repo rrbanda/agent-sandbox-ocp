@@ -157,9 +157,9 @@ spec:
 
 | Layer | Technology | Question Answered |
 |-------|------------|-------------------|
-| 1 | Kuadrant + OPA | Is this tool call allowed? |
+| 1 | Kata Containers | If compromised, can it escape? |
 | 2 | Istio ServiceEntry | Can this agent reach this API? |
-| 3 | Kata Containers | If compromised, can it escape? |
+| 3 | Kuadrant + OPA | Is this tool call allowed? |
 
 Each layer is independent. Configure them based on your security requirements.
 

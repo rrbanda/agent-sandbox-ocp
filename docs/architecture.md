@@ -1,8 +1,20 @@
-# Architecture
+# Reference Architecture
 
-## Overview
+This page provides a consolidated view of the complete architecture. If you're working through the workshop, you'll see these diagrams in context throughout the lessons.
 
-The demo uses Kagenti's Agent CRD to deploy a Currency Agent that runs inside a Kata micro-VM. The agent uses an MCP server to get exchange rates, with OPA policy enforcement blocking cryptocurrency conversions.
+!!! tip "Workshop Path"
+    This architecture is explained step-by-step in:
+    
+    - [Defense in Depth](workshop/01-foundations/02-defense-in-depth.md) - How the three security layers work
+    - [Technology Stack](workshop/01-foundations/04-technology-stack.md) - Each component explained
+    - [Deploy Agent](workshop/03-outer-loop/03-deploy-agent/index.md) - Agent CRD in action
+    - [Security Hardening](workshop/03-outer-loop/04-security-hardening/index.md) - OPA policy configuration
+
+---
+
+## System Overview
+
+The Currency Agent runs inside a Kata micro-VM and uses an MCP server to get exchange rates. OPA policy enforcement blocks cryptocurrency conversions, and Istio controls network egress.
 
 ```mermaid
 flowchart TB

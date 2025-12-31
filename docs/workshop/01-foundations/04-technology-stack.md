@@ -4,6 +4,69 @@
 
 This workshop uses several technologies that work together to provide a secure agent development and deployment platform.
 
+## The Complete Architecture
+
+Before diving into each component, here's how everything fits together:
+
+```mermaid
+flowchart TB
+    subgraph User["User/DevOps"]
+        Apply["oc apply -f currency-agent.yaml"]
+    end
+
+    subgraph Kagenti["Kagenti Platform"]
+        AgentCRD["Agent CR<br/>(spec.runtimeClassName: kata)"]
+        Operator["Kagenti Operator"]
+        MCPGateway["MCP Gateway"]
+    end
+
+    subgraph KataVM["Kata VM (Layer 1: Isolated Execution)"]
+        AgentPod["Currency Agent<br/>(Google ADK)"]
+        IstioSidecar["Istio Sidecar<br/>(Layer 2)"]
+    end
+
+    subgraph MCPServer["MCP Server"]
+        CurrencyMCP["currency-mcp-server<br/>(get_exchange_rate tool)"]
+    end
+
+    subgraph Policy["Policy Enforcement (Layer 3)"]
+        Authorino["Authorino"]
+        OPA["OPA Policy"]
+    end
+
+    subgraph External["External APIs"]
+        Approved["api.frankfurter.app"]
+        Blocked["BTC, ETH, DOGE"]
+    end
+
+    Apply -->|"1. apply"| AgentCRD
+    AgentCRD -->|"2. reconcile"| Operator
+    Operator -->|"3. create pod<br/>(runtimeClassName: kata)"| AgentPod
+
+    AgentPod -->|"4. tools/call"| MCPGateway
+    MCPGateway -->|"5. authorize"| Authorino
+    Authorino --> OPA
+    OPA -->|"allow/deny"| Authorino
+    Authorino -->|"6. decision"| MCPGateway
+    MCPGateway -->|"7. if allowed"| CurrencyMCP
+    CurrencyMCP -->|"8. get rate"| Approved
+
+    MCPGateway -.->|"blocked by OPA"| Blocked
+    IstioSidecar -.->|"blocked by Istio"| Blocked
+```
+
+**The flow:**
+
+1. **Deploy**: You apply an Agent CR → Kagenti creates a pod in a Kata VM
+2. **Tool Call**: Agent calls MCP Gateway → Authorino/OPA checks policy
+3. **Execute**: If allowed, MCP Server executes the tool → Istio controls egress
+
+Each security layer is visible in this diagram. Now let's understand each component.
+
+---
+
+## Technology Overview
+
 ```mermaid
 flowchart TB
     subgraph Development["Development"]
@@ -25,8 +88,10 @@ flowchart TB
     Kagenti --> OCP
     OCP --> OSC
     OCP --> Istio
-    Istio --> Kuadrant
+    OCP --> Kuadrant
 ```
+
+---
 
 ## Google Agent Development Kit (ADK)
 
@@ -137,6 +202,23 @@ In this workshop, you'll use the **Web UI** deployed on the cluster for inner lo
 | **AgentBuild** | Build agent image from Git source |
 | **MCPServer** | Register MCP tool servers |
 
+### MCP Gateway
+
+The **MCP Gateway** is the central routing point for all tool calls. When an agent needs to use a tool:
+
+1. Agent sends `tools/call` request to MCP Gateway
+2. Gateway routes to Authorino for policy check (OPA)
+3. If allowed, Gateway forwards to the appropriate MCP Server
+4. MCP Server executes the tool and returns results
+
+```
+Agent ──▶ MCP Gateway ──▶ Authorino (OPA) ──▶ MCP Server ──▶ External API
+                              │
+                              └── DENY if policy violated
+```
+
+This is where **Layer 3 (Tool Policy)** is enforced.
+
 ### Key Features
 
 ```
@@ -145,11 +227,11 @@ In this workshop, you'll use the **Web UI** deployed on the cluster for inner lo
 ├─────────────────────────────────────────────────────────────────────────┤
 │                                                                         │
 │  ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐     │
-│  │   AgentBuild    │    │      Agent      │    │   MCPServer     │     │
+│  │   AgentBuild    │    │      Agent      │    │   MCP Gateway   │     │
 │  │                 │    │                 │    │                 │     │
-│  │ • Git clone     │───▶│ • Deploy pod    │◀───│ • Tool registry │     │
-│  │ • Build image   │    │ • Kata runtime  │    │ • MCP Gateway   │     │
-│  │ • Push registry │    │ • A2A endpoint  │    │                 │     │
+│  │ • Git clone     │───▶│ • Deploy pod    │───▶│ • Route tools   │     │
+│  │ • Build image   │    │ • Kata runtime  │    │ • Policy check  │     │
+│  │ • Push registry │    │ • A2A endpoint  │    │ • Forward calls │     │
 │  └─────────────────┘    └─────────────────┘    └─────────────────┘     │
 │                                                                         │
 └─────────────────────────────────────────────────────────────────────────┘
@@ -335,6 +417,9 @@ The complete agent development lifecycle with ADK:
 - **ADK GitHub (TypeScript)**: [github.com/google/adk-js](https://github.com/google/adk-js)
 - **ADK Samples**: [github.com/google/adk-samples](https://github.com/google/adk-samples)
 - **Kagenti**: [github.com/kagenti/kagenti](https://github.com/kagenti/kagenti)
+
+!!! info "Want everything on one page?"
+    See the [Reference Architecture](../../architecture.md) for all diagrams and flows consolidated in one place.
 
 ## You're Ready!
 

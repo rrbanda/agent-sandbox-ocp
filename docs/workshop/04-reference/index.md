@@ -10,6 +10,7 @@ Stuck? Need details? This section has you covered.
 
 | Need | Go To |
 |------|-------|
+| Complete system diagrams | [Reference Architecture](../../architecture.md) |
 | All YAML manifests explained | [Manifest Reference](manifest-reference.md) |
 | Something not working? | [Troubleshooting](troubleshooting.md) |
 | Done and cleaning up? | [Cleanup](cleanup.md) |
@@ -20,6 +21,7 @@ Stuck? Need details? This section has you covered.
 
 | Document | Description |
 |----------|-------------|
+| [Reference Architecture](../../architecture.md) | Complete architecture diagrams and request flows—all in one place |
 | [Manifest Reference](manifest-reference.md) | Complete guide to all YAML files—what they do, when to apply, in what order |
 | [Troubleshooting](troubleshooting.md) | Common issues and how to fix them |
 | [Cleanup](cleanup.md) | Remove all workshop resources from your cluster |

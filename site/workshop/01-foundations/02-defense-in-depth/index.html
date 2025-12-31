@@ -274,6 +274,26 @@
     
     
       <li class="md-tabs__item">
+        <a href="../../../guides/developer-guide/" class="md-tabs__link">
+          
+  
+  
+  Guides
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
         <a href="../../../architecture/" class="md-tabs__link">
           
   
@@ -1432,6 +1452,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../04-reference/manifest-reference/" class="md-nav__link">
         
   
@@ -2145,7 +2193,7 @@
   <span class="md-ellipsis">
     
   
-    Reference
+    Guides
   
 
     
@@ -2158,6 +2206,151 @@
         
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../guides/developer-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Developer Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../guides/platform-admin-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Platform Admin Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../guides/demo-walkthrough/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Demo Walkthrough
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -2181,7 +2374,7 @@
   <span class="md-ellipsis">
     
   
-    Architecture
+    Reference Architecture
   
 
     
@@ -2487,34 +2680,43 @@
 <h3 id="allowed-request-100-usd-to-eur">Allowed Request: "100 USD to EUR"</h3>
 <pre class="mermaid"><code>sequenceDiagram
     participant User
-    participant Agent
-    participant L3 as Layer 3 (OPA)
-    participant L2 as Layer 2 (Istio)
+    participant Agent as Agent (Kata VM)
+    participant Gateway as MCP Gateway
+    participant Authorino as Authorino (OPA)
+    participant MCP as MCP Server
     participant API as frankfurter.app
 
-    Note over Agent: Running in Kata VM (Layer 1)
+    Note over Agent: Layer 1: Running in Kata VM
 
     User-&gt;&gt;Agent: "Convert 100 USD to EUR"
-    Agent-&gt;&gt;L3: tools/call(get_exchange_rate, USD, EUR)
-    L3-&gt;&gt;L3: EUR not in blocked list
-    L3--&gt;&gt;Agent: ✓ ALLOWED
-    Agent-&gt;&gt;L2: HTTPS to api.frankfurter.app
-    L2-&gt;&gt;L2: frankfurter.app in ServiceEntry
-    L2--&gt;&gt;API: Forward request
-    API--&gt;&gt;Agent: Rate: 0.92
+    Agent-&gt;&gt;Gateway: tools/call(get_exchange_rate, USD, EUR)
+    Gateway-&gt;&gt;Authorino: Check authorization
+    Note over Authorino: Layer 3: Tool Policy
+    Authorino-&gt;&gt;Authorino: EUR not in blocked list
+    Authorino--&gt;&gt;Gateway: ALLOWED
+    Gateway-&gt;&gt;MCP: Forward to MCP Server
+    Note over MCP: Layer 2: Egress via Istio
+    MCP-&gt;&gt;API: GET /latest?from=USD&amp;to=EUR
+    API--&gt;&gt;MCP: Rate: 0.92
+    MCP--&gt;&gt;Gateway: Result
+    Gateway--&gt;&gt;Agent: Rate: 0.92
     Agent--&gt;&gt;User: "100 USD = 92 EUR"</code></pre>
 <h3 id="blocked-request-100-usd-to-btc">Blocked Request: "100 USD to BTC"</h3>
 <pre class="mermaid"><code>sequenceDiagram
     participant User
-    participant Agent
-    participant L3 as Layer 3 (OPA)
+    participant Agent as Agent (Kata VM)
+    participant Gateway as MCP Gateway
+    participant Authorino as Authorino (OPA)
 
-    Note over Agent: Running in Kata VM (Layer 1)
+    Note over Agent: Layer 1: Running in Kata VM
 
     User-&gt;&gt;Agent: "Convert 100 USD to BTC"
-    Agent-&gt;&gt;L3: tools/call(get_exchange_rate, USD, BTC)
-    L3-&gt;&gt;L3: BTC in blocked_currencies
-    L3--&gt;&gt;Agent: ✗ HTTP 403 DENIED
+    Agent-&gt;&gt;Gateway: tools/call(get_exchange_rate, USD, BTC)
+    Gateway-&gt;&gt;Authorino: Check authorization
+    Note over Authorino: Layer 3: Tool Policy
+    Authorino-&gt;&gt;Authorino: BTC in blocked_currencies
+    Authorino--&gt;&gt;Gateway: DENIED (403)
+    Gateway--&gt;&gt;Agent: HTTP 403 Forbidden
     Agent--&gt;&gt;User: "I can't convert to cryptocurrency"</code></pre>
 <h2 id="summary">Summary</h2>
 <table>
