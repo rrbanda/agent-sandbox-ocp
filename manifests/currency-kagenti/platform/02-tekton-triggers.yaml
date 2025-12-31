@@ -1,0 +1,192 @@
+# Currency Kagenti Demo - Step 2: Tekton Triggers (Optional)
+# WHAT: Enables automatic builds when developers push to Git
+# WHY:  GitOps-style automation - push to Git triggers AgentBuild
+# HOW:  oc apply -f 02-tekton-triggers.yaml
+#
+# PREREQUISITES:
+#   1. Tekton Triggers installed (comes with OpenShift Pipelines)
+#   2. Platform setup completed (00-*, 01-*)
+#
+# USAGE:
+#   1. Apply this manifest
+#   2. Get the webhook URL: oc get route agent-build-webhook -n currency-kagenti
+#   3. Configure GitHub webhook to POST to that URL on push events
+#
+# NOTE: This is OPTIONAL for the workshop. Manual AgentBuild apply works too.
+
+---
+# ServiceAccount for EventListener
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: tekton-triggers-sa
+  namespace: currency-kagenti
+
+---
+# RoleBinding for EventListener
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: tekton-triggers-rolebinding
+  namespace: currency-kagenti
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: tekton-triggers-eventlistener-roles
+subjects:
+- kind: ServiceAccount
+  name: tekton-triggers-sa
+  namespace: currency-kagenti
+
+---
+# ClusterRoleBinding for creating AgentBuilds
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: tekton-triggers-agentbuild
+  namespace: currency-kagenti
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: admin
+subjects:
+- kind: ServiceAccount
+  name: tekton-triggers-sa
+  namespace: currency-kagenti
+
+---
+# TriggerBinding - Extracts data from GitHub webhook payload
+apiVersion: triggers.tekton.dev/v1beta1
+kind: TriggerBinding
+metadata:
+  name: github-push-binding
+  namespace: currency-kagenti
+  labels:
+    app.kubernetes.io/name: currency-kagenti
+    app.kubernetes.io/component: triggers
+spec:
+  params:
+    - name: git-revision
+      value: $(body.head_commit.id)
+    - name: git-repo-url
+      value: $(body.repository.clone_url)
+    - name: git-repo-name
+      value: $(body.repository.name)
+    - name: git-branch
+      value: $(body.ref)
+    - name: git-commit-message
+      value: $(body.head_commit.message)
+
+---
+# TriggerTemplate - Creates AgentBuild from webhook data
+apiVersion: triggers.tekton.dev/v1beta1
+kind: TriggerTemplate
+metadata:
+  name: agentbuild-trigger-template
+  namespace: currency-kagenti
+  labels:
+    app.kubernetes.io/name: currency-kagenti
+    app.kubernetes.io/component: triggers
+spec:
+  params:
+    - name: git-revision
+      description: The git commit SHA
+    - name: git-repo-url
+      description: The git repository URL
+    - name: git-repo-name
+      description: The git repository name
+    - name: git-branch
+      description: The git branch reference
+    - name: git-commit-message
+      description: The commit message
+  resourcetemplates:
+    # Create AgentBuild for the Currency Agent
+    - apiVersion: agent.kagenti.dev/v1alpha1
+      kind: AgentBuild
+      metadata:
+        generateName: currency-agent-auto-
+        namespace: currency-kagenti
+        labels:
+          app.kubernetes.io/name: currency-agent
+          app.kubernetes.io/component: agent
+          kagenti.io/trigger: github-webhook
+          kagenti.io/revision: $(tt.params.git-revision)
+        annotations:
+          kagenti.io/commit-message: $(tt.params.git-commit-message)
+          kagenti.io/triggered-by: tekton-triggers
+      spec:
+        mode: dev
+
+        source:
+          sourceRepository: $(tt.params.git-repo-url)
+          sourceRevision: $(tt.params.git-revision)
+          sourceSubfolder: "python/agents/currency-agent"
+          sourceCredentials:
+            name: github-token-secret
+
+        pipeline:
+          namespace: kagenti-system
+
+        buildOutput:
+          image: "currency-agent"
+          # Use short commit SHA as tag for traceability
+          imageTag: $(tt.params.git-revision)
+          imageRegistry: "quay.io/rbrhssa"
+
+---
+# EventListener - Receives GitHub webhooks
+apiVersion: triggers.tekton.dev/v1beta1
+kind: EventListener
+metadata:
+  name: agent-build-listener
+  namespace: currency-kagenti
+  labels:
+    app.kubernetes.io/name: currency-kagenti
+    app.kubernetes.io/component: triggers
+spec:
+  serviceAccountName: tekton-triggers-sa
+  triggers:
+    - name: github-push-trigger
+      interceptors:
+        # Filter: Only trigger on push to main branch
+        - name: "filter-main-branch"
+          ref:
+            name: "cel"
+          params:
+            - name: "filter"
+              value: "body.ref == 'refs/heads/main'"
+        # Filter: Only trigger if currency-agent folder changed
+        - name: "filter-currency-agent"
+          ref:
+            name: "cel"
+          params:
+            - name: "filter"
+              value: >-
+                body.commits.exists(c, c.modified.exists(f, f.startsWith('python/agents/currency-agent/')) ||
+                                       c.added.exists(f, f.startsWith('python/agents/currency-agent/')))
+      bindings:
+        - ref: github-push-binding
+      template:
+        ref: agentbuild-trigger-template
+
+---
+# Route to expose EventListener externally
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: agent-build-webhook
+  namespace: currency-kagenti
+  labels:
+    app.kubernetes.io/name: currency-kagenti
+    app.kubernetes.io/component: triggers
+spec:
+  to:
+    kind: Service
+    name: el-agent-build-listener
+    weight: 100
+  port:
+    targetPort: http-listener
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+

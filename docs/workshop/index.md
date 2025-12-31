@@ -2,8 +2,10 @@
 
 A hands-on workshop for securing AI agents with VM isolation, network control, and policy enforcement.
 
-**Duration**: ~3 hours  
+**Duration**: ~2 hours  
 **Level**: Intermediate
+
+---
 
 ## What You'll Build
 
@@ -13,6 +15,8 @@ A **Currency Conversion Agent** that:
 - ❌ Is blocked from cryptocurrency conversions (BTC, ETH, DOGE)
 - 🔒 Runs in an isolated VM (Kata Containers)
 - 🌐 Can only reach approved external APIs
+
+---
 
 ## The Three Layers of Protection
 
@@ -29,6 +33,10 @@ flowchart LR
     end
     
     L1 --> L2 --> L3
+    
+    style L1 fill:#CC0000,color:#FFFFFF
+    style L2 fill:#A30000,color:#FFFFFF
+    style L3 fill:#820000,color:#FFFFFF
 ```
 
 | Layer | Technology | What It Protects Against |
@@ -39,145 +47,103 @@ flowchart LR
 
 ---
 
-## Workshop Flow
+## Workshop Structure
 
 ```mermaid
 flowchart LR
-    A["00<br/>Prerequisites"] --> B["01<br/>Introduction"]
-    B --> C["02<br/>Platform Setup"]
-    C --> D["03<br/>Agent Dev"]
-    D --> E["04<br/>Deploy & Test"]
-    E --> F["05<br/>Security Hardening"]
-    F --> G["06<br/>Appendix"]
+    A["Part 1<br/>Foundations"] --> B["Part 2<br/>Inner Loop"]
+    B --> C["Part 3<br/>Outer Loop"]
+    C --> D["Part 4<br/>Reference"]
+    
+    style A fill:#CC0000,color:#FFFFFF
+    style B fill:#A30000,color:#FFFFFF
+    style C fill:#820000,color:#FFFFFF
+    style D fill:#6A0000,color:#FFFFFF
 ```
 
 ---
 
-## Modules
+## Parts Overview
 
-### [Module 00: Prerequisites](00-prerequisites/index.md)
-**👷 Platform Admin** • 45-60 minutes (one-time)
+### [Part 1: Foundations](01-foundations/index.md)
+**👥 Everyone** • 30 minutes
 
-Install the required platform components:
-
-- OpenShift Sandboxed Containers Operator
-- Kagenti Platform (via Helm)
-- Istio Service Mesh
-- Kuadrant Operator
-
-> ⏭️ **Skip if already installed** - Run the verification script to check.
-
----
-
-### [Module 01: Introduction](01-introduction/index.md)
-**👥 Everyone** • 15 minutes
-
-Understand the security challenges with AI agents and the three-layer defense model.
+Understand the concepts before building:
 
 - Why AI agents need special security
-- The Currency Agent demo scenario
-- Workshop overview
+- The three-layer defense model
+- Agent Development Lifecycle (ADLC)
+- Technology stack overview
 
 ---
 
-### [Module 02: Platform Setup](02-platform-setup/index.md)
-**👷 Platform Admin** • 20 minutes
-
-Configure the agent runtime environment:
-
-- Apply KataConfig to enable VM runtime
-- Create secure namespace
-- Configure pipeline infrastructure for AgentBuild
-
-> 💡 This prepares the platform. Security hardening comes after testing.
-
----
-
-### [Module 03: Agent Development](03-agent-developer/index.md)
+### [Part 2: Inner Loop](02-inner-loop/index.md)
 **👩‍💻 Developer** • 30 minutes
 
-Build and test the Currency Agent locally:
+Develop and test rapidly using the ADK Web UI on the cluster:
 
-- Understand the agent code (Google ADK)
-- Run locally with `adk web`
-- Test in the ADK Web UI
-- Understand the MCP server
-
----
-
-### [Module 04: Deploy & Test](04-deploy-and-test/index.md)
-**🚀 Developer** • 30 minutes
-
-Deploy the agent to OpenShift using Kagenti:
-
-- Create AgentBuild to build from source
-- Deploy Agent CR with Kata isolation
-- Test currency conversions
-- View traces in Phoenix
+- Understand the agent code
+- Test in ADK Web UI (already deployed)
+- Iterate and refine
 
 ---
 
-### [Module 05: Security Hardening](05-security-hardening/index.md)
-**👷 Platform Admin** • 20 minutes
+### [Part 3: Outer Loop](03-outer-loop/index.md)
+**👷 Platform Admin + 👩‍💻 Developer** • 60 minutes
 
-Add security layers after verifying the agent works:
+Build, deploy, and secure the agent:
 
-- Configure Istio egress controls
-- Deploy OPA tool policies
-- Test blocked operations (BTC, ETH)
-- Verify defense-in-depth
-
-> 💡 **Why after deployment?** You first see the agent work, then understand what you're securing.
+- Platform Setup (Admin)
+- Build with AgentBuild (Developer)
+- Deploy Agent in Kata VM (Developer)
+- Security Hardening (Admin)
+- Monitor & Tune (Both)
 
 ---
 
-### [Module 06: Appendix](06-appendix/index.md)
+### [Part 4: Reference](04-reference/index.md)
 **📚 Reference**
 
-- Troubleshooting common issues
-- Cleanup instructions
-- Next steps and resources
+- Manifest guide
+- Troubleshooting
+- Cleanup
 
 ---
 
 ## Who Should Do What?
 
-| Your Role | Mod 00 | Mod 01 | Mod 02 | Mod 03 | Mod 04 | Mod 05 | Mod 06 |
-|-----------|--------|--------|--------|--------|--------|--------|--------|
-| **Solo Learner** | ✅ Do | ✅ Do | ✅ Do | ✅ Do | ✅ Do | ✅ Do | 📚 Ref |
-| **Platform Admin** | ✅ Do | ✅ Do | ✅ Do | 📖 Read | 📖 Read | ✅ Do | 📚 Ref |
-| **Agent Developer** | ⏭️ Skip | ✅ Do | 📖 Read | ✅ Do | ✅ Do | 📖 Read | 📚 Ref |
+| Your Role | Part 1 | Part 2 | Part 3 | Part 4 |
+|-----------|--------|--------|--------|--------|
+| **Solo Learner** | ✅ Do All | ✅ Do All | ✅ Do All | 📚 Ref |
+| **Platform Admin** | ✅ Do All | 📖 Read | ✅ Setup + Security | 📚 Ref |
+| **Agent Developer** | ✅ Do All | ✅ Do All | ✅ Build + Deploy | 📚 Ref |
 
 ---
 
-## Recommended Learning Path
+## Prerequisites
 
-### For Platform Admins
+- OpenShift 4.14+ cluster with admin access
+- Kagenti, Kuadrant, and OSC operators installed
+- `oc` CLI installed and logged in
+- Gemini API key ([Get one here](https://aistudio.google.com/app/apikey))
 
-```
-Prerequisites → Introduction → Platform Setup → Security Hardening
-     │                              │                    │
-     │                              │                    └── Add egress + policies
-     │                              └── Configure Kata, pipelines
-     └── Install operators, Kagenti
-```
+### Verify Prerequisites
 
-### For Developers
+```bash
+# Check operators
+oc get csv -n openshift-sandboxed-containers-operator | grep Succeeded
+oc get pods -n kagenti-system | grep kagenti-controller
 
-```
-Introduction → Develop Agent → Deploy & Test
-     │               │              │
-     │               │              └── AgentBuild, Agent CR, test
-     │               └── Understand code, test locally
-     └── Understand security model
+# Check ADK Web UI (for inner loop)
+oc get route adk-server -n adk-web
 ```
 
 ---
 
 ## Let's Get Started
 
-👉 [Start with Module 00: Prerequisites](00-prerequisites/index.md)
+👉 [Start with Part 1: Foundations](01-foundations/index.md)
 
-Or if prerequisites are already installed:
+Or if you already understand the concepts:
 
-👉 [Start with Module 01: Introduction](01-introduction/index.md)
+👉 [Skip to Part 2: Inner Loop](02-inner-loop/index.md)

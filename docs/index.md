@@ -14,16 +14,16 @@ This workshop teaches you how to deploy AI agents securely on OpenShift using **
 
 ## Workshop
 
-A structured, hands-on workshop that walks through:
+A structured, hands-on workshop organized around the **Agent Development Lifecycle (ADLC)**:
 
-0. **[Prerequisites](workshop/00-prerequisites/index.md)** - Install platform components (one-time)
-1. **[Introduction](workshop/01-introduction/index.md)** - Understand the security model
-2. **[Platform Setup](workshop/02-platform-setup/index.md)** - Configure namespace (Platform Admin)
-3. **[Agent Development](workshop/03-agent-developer/index.md)** - Build with Google ADK (Developer)
-4. **[Deploy & Test](workshop/04-deploy-and-test/index.md)** - Verify all security layers (Both)
-5. **[Appendix](workshop/05-appendix/index.md)** - Troubleshooting and cleanup
+| Part | Focus | Duration |
+|------|-------|----------|
+| **[Part 1: Foundations](workshop/01-foundations/index.md)** | Concepts, ADLC, technology stack | 30 min |
+| **[Part 2: Inner Loop](workshop/02-inner-loop/index.md)** | Develop & test with ADK Web UI | 30 min |
+| **[Part 3: Outer Loop](workshop/03-outer-loop/index.md)** | Build, deploy, secure, monitor | 60 min |
+| **[Part 4: Reference](workshop/04-reference/index.md)** | Manifests, troubleshooting, cleanup | Reference |
 
-**Duration**: ~2 hours
+**Total Duration**: ~2 hours
 
 👉 **[Start the Workshop](workshop/index.md)**
 
@@ -38,23 +38,52 @@ flowchart LR
             end
         end
     end
+    
+    style L1 fill:#CC0000,color:#FFFFFF
+    style L2 fill:#A30000,color:#FFFFFF
+    style L3 fill:#820000,color:#FFFFFF
 ```
+
+## The Agent Development Lifecycle
+
+This workshop follows the **ADLC** pattern:
+
+```mermaid
+flowchart LR
+    subgraph Inner["INNER LOOP"]
+        A["Design"] --> B["Develop"] --> C["Test"]
+    end
+    
+    subgraph Outer["OUTER LOOP"]
+        D["Deploy"] --> E["Secure"] --> F["Monitor"]
+    end
+    
+    C --> D
+    F -.-> A
+    
+    style Inner fill:#4285F4,color:#FFFFFF
+    style Outer fill:#CC0000,color:#FFFFFF
+```
+
+| Loop | Activities | Persona |
+|------|------------|---------|
+| **Inner Loop** | Write code, test in ADK Web UI, iterate | 👩‍💻 Developer |
+| **Outer Loop** | Build, deploy, harden security, monitor | 👷 Admin + 👩‍💻 Developer |
 
 ## Target Audience
 
 | Persona | What You'll Learn |
 |---------|-------------------|
-| **Platform Admin** | Configure secure agent namespaces |
-| **Agent Developer** | Build and deploy agents with Google ADK |
+| **Platform Admin** | Configure secure agent namespaces, apply security policies |
+| **Agent Developer** | Build and deploy agents with Google ADK, use AgentBuild |
 
 ## Prerequisites
 
 - OpenShift 4.14+ cluster
 - Kagenti, Kuadrant, and OSC operators installed
-- Python 3.11+ (for local development)
+- ADK Web UI deployed on cluster
 - Gemini API key
 
 ## Get Started
 
 👉 [Start the Workshop](workshop/index.md)
-

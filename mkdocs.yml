@@ -22,51 +22,41 @@ nav:
   - Home: index.md
   - Workshop:
     - Overview: workshop/index.md
-    - "00 - Prerequisites":
-      - Overview: workshop/00-prerequisites/index.md
-      - Install OSC: workshop/00-prerequisites/01-install-osc.md
-      - Install Istio: workshop/00-prerequisites/02-install-istio.md
-      - Install Kuadrant: workshop/00-prerequisites/03-install-kuadrant.md
-      - Deploy Kagenti: workshop/00-prerequisites/04-deploy-kagenti.md
-      - Verify Setup: workshop/00-prerequisites/05-verify-setup.md
-    - "01 - Introduction":
-      - Overview: workshop/01-introduction/index.md
-    - "02 - Platform Setup":
-      - Overview: workshop/02-platform-setup/index.md
-      - Install OSC: workshop/02-platform-setup/01-install-osc.md
-      - Configure Kata: workshop/02-platform-setup/02-configure-kata.md
-      - Create Namespace: workshop/02-platform-setup/03-create-namespace.md
-      - Configure Egress: workshop/02-platform-setup/04-configure-egress.md
-      - Configure Policy: workshop/02-platform-setup/05-configure-policy.md
-    - "03 - Agent Developer":
-      - Overview: workshop/03-agent-developer/index.md
-      - Understand Agent: workshop/03-agent-developer/01-understand-agent.md
-      - Run Locally: workshop/03-agent-developer/02-run-locally.md
-      - Test in ADK UI: workshop/03-agent-developer/03-test-in-adk-ui.md
-      - Containerize: workshop/03-agent-developer/04-containerize.md
-    - "04 - Deploy & Test":
-      - Overview: workshop/04-deploy-and-test/index.md
-      - Deploy Agent: workshop/04-deploy-and-test/01-deploy-agent.md
-      - Verify Kata: workshop/04-deploy-and-test/02-verify-kata.md
-      - Test Allowed: workshop/04-deploy-and-test/03-test-allowed.md
-      - Test Blocked: workshop/04-deploy-and-test/04-test-blocked.md
-      - Observe Traces: workshop/04-deploy-and-test/05-observe-traces.md
-    - "05 - Appendix":
-      - Overview: workshop/05-appendix/index.md
-      - Troubleshooting: workshop/05-appendix/troubleshooting.md
-      - Cleanup: workshop/05-appendix/cleanup.md
-      - Next Steps: workshop/05-appendix/next-steps.md
+    - "Part 1: Foundations":
+      - Overview: workshop/01-foundations/index.md
+      - Why Agents Need Security: workshop/01-foundations/01-why-agents-need-security.md
+      - Defense in Depth: workshop/01-foundations/02-defense-in-depth.md
+      - Agent Development Lifecycle: workshop/01-foundations/03-adlc-inner-outer-loop.md
+      - Technology Stack: workshop/01-foundations/04-technology-stack.md
+    - "Part 2: Inner Loop":
+      - Overview: workshop/02-inner-loop/index.md
+      - Understand Agent Code: workshop/02-inner-loop/01-understand-agent-code.md
+      - Test in ADK Web UI: workshop/02-inner-loop/02-test-in-adk-web-ui.md
+      - Iterate and Refine: workshop/02-inner-loop/03-iterate-and-refine.md
+    - "Part 3: Outer Loop":
+      - Overview: workshop/03-outer-loop/index.md
+      - "1. Platform Setup": workshop/03-outer-loop/01-platform-setup/index.md
+      - "2. Build with AgentBuild": workshop/03-outer-loop/02-build-with-agentbuild/index.md
+      - "3. Deploy Agent": workshop/03-outer-loop/03-deploy-agent/index.md
+      - "4. Security Hardening": workshop/03-outer-loop/04-security-hardening/index.md
+      - "5. Monitor & Tune": workshop/03-outer-loop/05-monitor-and-tune/index.md
+    - "Part 4: Reference":
+      - Overview: workshop/04-reference/index.md
+      - Manifest Reference: workshop/04-reference/manifest-reference.md
+      - Troubleshooting: workshop/04-reference/troubleshooting.md
+      - Cleanup: workshop/04-reference/cleanup.md
   - Concepts:
     - Overview: concepts/index.md
-    - "1. Problem & Solution":
+    - "Problem & Solution":
       - Threat Model: concepts/threat-model.md
       - Defense in Depth: concepts/defense-in-depth.md
-    - "2. Building Agents":
+    - "Building Agents":
       - Google ADK: concepts/google-adk.md
       - Inner & Outer Loop: concepts/inner-outer-loop.md
-    - "3. Deploying Agents":
+    - "Deploying Agents":
       - Kagenti Platform: concepts/kagenti-platform.md
-    - "4. Security Layers":
+      - "AgentBuild: Source-to-Image": concepts/agentbuild-source-to-image.md
+    - "Security Layers":
       - "Layer 1: OSC & Kata": concepts/osc-explained.md
       - "Layer 2: Istio Egress": concepts/istio-egress.md
       - "Layer 3: Kuadrant & OPA": concepts/kuadrant-opa.md
