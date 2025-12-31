@@ -1,0 +1,37 @@
+# Currency Kagenti Demo - Step 0b: RBAC and SCC Configuration
+# WHAT: Grants necessary permissions for Tekton pipelines to build images
+# WHY:  Buildah requires SETUID/SETGID capabilities; pipelines need workspace access
+# HOW:  oc apply -f 00b-rbac-scc.yaml
+#
+# NOTE: This requires cluster-admin privileges to apply!
+#       If you don't have cluster-admin access, ask your platform admin.
+
+---
+# RoleBinding for pipelines SCC ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: pipelines-scc-rolebinding
+  namespace: currency-kagenti
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: pipelines-scc-clusterrole
+subjects:
+- kind: ServiceAccount
+  name: pipeline
+  namespace: currency-kagenti
+
+---
+# Note: The following SCC bindings require cluster-admin
+# Run these manually or have an admin run them:
+#
+#   oc adm policy add-scc-to-user pipelines-scc system:serviceaccount:currency-kagenti:pipeline
+#   oc adm policy add-scc-to-user container-build system:serviceaccount:currency-kagenti:pipeline
+#
+# If builds still fail with permission issues, you may need:
+#   oc adm policy add-scc-to-user privileged system:serviceaccount:currency-kagenti:pipeline
+#
+# For the default service account (for running agents):
+#   oc adm policy add-scc-to-user anyuid system:serviceaccount:currency-kagenti:default
+

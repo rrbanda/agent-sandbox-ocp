@@ -55,18 +55,49 @@ Kagenti provides these as **platform capabilities**.
 Defines an AI agent as a Kubernetes resource:
 
 ```yaml
-apiVersion: kagenti.io/v1alpha1
+apiVersion: agent.kagenti.dev/v1alpha1
 kind: Agent
 metadata:
   name: currency-agent
   namespace: agent-sandbox
 spec:
-  image: ghcr.io/your-org/currency-agent:latest
-  runtimeClassName: kata    # VM isolation
-  tools:
-    - name: currency-mcp-server
-      namespace: agent-sandbox
+  # Option 1: Reference an AgentBuild (recommended)
+  imageSource:
+    buildRef:
+      name: currency-agent-build
+  
+  # Option 2: Direct image reference
+  # imageSource:
+  #   image: quay.io/your-org/currency-agent:latest
+  
+  podTemplateSpec:
+    spec:
+      runtimeClassName: kata    # VM isolation
 ```
+
+### AgentBuild CRD
+
+Automates building container images from source:
+
+```yaml
+apiVersion: agent.kagenti.dev/v1alpha1
+kind: AgentBuild
+metadata:
+  name: currency-agent-build
+  labels:
+    kagenti.io/framework: google-adk
+    kagenti.io/protocol: a2a
+spec:
+  source:
+    sourceRepository: "github.com/google/adk-samples.git"
+    sourceSubfolder: "python/agents/currency-agent"
+  buildOutput:
+    image: "currency-agent"
+    imageTag: "v1.0.0"
+    imageRegistry: "quay.io/your-org"
+```
+
+See [AgentBuild: Source-to-Image](agentbuild-source-to-image.md) for details.
 
 ### MCP Gateway
 
@@ -207,12 +238,33 @@ Kagenti does **not**:
 
 In the Currency Agent demo:
 
-1. **Agent CR** defines the currency agent with `runtimeClassName: kata`
-2. **Tool CR** registers the currency MCP server
-3. **MCP Gateway** routes `get_exchange_rate` calls
+1. **AgentBuild CRs** build both the agent and MCP server from source
+2. **Agent CR** deploys the currency agent with:
+   - `buildRef` pointing to AgentBuild
+   - `runtimeClassName: kata` for VM isolation
+3. **MCP Server Deployment** provides the `get_exchange_rate` tool
 4. **AuthPolicy** on the Gateway enforces OPA rules
 
-You deploy the agent using `oc apply`, and Kagenti handles the rest.
+### The Kagenti Deployment Flow
+
+```
+┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
+│ AgentBuild CR   │────▶│ Tekton Pipeline │────▶│ Container Image │
+│ (source code)   │     │ (build)         │     │ (quay.io)       │
+└─────────────────┘     └─────────────────┘     └────────┬────────┘
+                                                         │
+┌─────────────────┐     ┌─────────────────┐              │
+│ Agent CR        │────▶│ Running Pod     │◀─────────────┘
+│ (buildRef)      │     │ (Kata VM)       │
+└─────────────────┘     └─────────────────┘
+```
+
+You apply AgentBuild and Agent CRs, and Kagenti handles:
+
+- Cloning source from Git
+- Building container image
+- Pushing to registry
+- Deploying with Kata isolation
 
 ---
 

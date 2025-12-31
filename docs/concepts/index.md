@@ -33,6 +33,7 @@ Understand the platform that runs your agents.
 | Concept | Description |
 |---------|-------------|
 | [Kagenti Platform](kagenti-platform.md) | The MCP Gateway for deploying and managing AI agents on Kubernetes |
+| [AgentBuild: Source-to-Image](agentbuild-source-to-image.md) | Build container images from Git repositories automatically |
 
 ---
 
@@ -59,9 +60,10 @@ For workshop participants, read in this order:
 | 3 | [Google ADK](google-adk.md) | Know what you're building |
 | 4 | [Inner & Outer Loop](inner-outer-loop.md) | Understand the dev workflow |
 | 5 | [Kagenti Platform](kagenti-platform.md) | Know the deployment platform |
-| 6 | [OSC & Kata](osc-explained.md) | Layer 1 deep dive |
-| 7 | [Istio Egress](istio-egress.md) | Layer 2 deep dive |
-| 8 | [Kuadrant & OPA](kuadrant-opa.md) | Layer 3 deep dive |
+| 6 | [AgentBuild](agentbuild-source-to-image.md) | Understand source-to-image builds |
+| 7 | [OSC & Kata](osc-explained.md) | Layer 1 deep dive |
+| 8 | [Istio Egress](istio-egress.md) | Layer 2 deep dive |
+| 9 | [Kuadrant & OPA](kuadrant-opa.md) | Layer 3 deep dive |
 
 ---
 
@@ -74,6 +76,7 @@ For workshop participants, read in this order:
 | How to build an agent | [Google ADK](google-adk.md) |
 | How local vs production differs | [Inner & Outer Loop](inner-outer-loop.md) |
 | What Kagenti does | [Kagenti Platform](kagenti-platform.md) |
+| How source-to-image works | [AgentBuild](agentbuild-source-to-image.md) |
 | How VM isolation works | [OSC & Kata](osc-explained.md) |
 | How network egress is controlled | [Istio Egress](istio-egress.md) |
 | How tool policies work | [Kuadrant & OPA](kuadrant-opa.md) |

@@ -2,15 +2,15 @@
 
 A hands-on workshop for securing AI agents with VM isolation, network control, and policy enforcement.
 
-**Duration**: ~2.5 hours  
+**Duration**: ~3 hours  
 **Level**: Intermediate
 
 ## What You'll Build
 
 A **Currency Conversion Agent** that:
 
--  Converts between fiat currencies (USD, EUR, GBP, JPY)
--  Is blocked from cryptocurrency conversions (BTC, ETH, DOGE)
+- ✅ Converts between fiat currencies (USD, EUR, GBP, JPY)
+- ❌ Is blocked from cryptocurrency conversions (BTC, ETH, DOGE)
 - 🔒 Runs in an isolated VM (Kata Containers)
 - 🌐 Can only reach approved external APIs
 
@@ -47,7 +47,8 @@ flowchart LR
     B --> C["02<br/>Platform Setup"]
     C --> D["03<br/>Agent Dev"]
     D --> E["04<br/>Deploy & Test"]
-    E --> F["05<br/>Appendix"]
+    E --> F["05<br/>Security Hardening"]
+    F --> G["06<br/>Appendix"]
 ```
 
 ---
@@ -60,9 +61,9 @@ flowchart LR
 Install the required platform components:
 
 - OpenShift Sandboxed Containers Operator
+- Kagenti Platform (via Helm)
 - Istio Service Mesh
 - Kuadrant Operator
-- Kagenti Platform (via Helm)
 
 > ⏭️ **Skip if already installed** - Run the verification script to check.
 
@@ -80,49 +81,57 @@ Understand the security challenges with AI agents and the three-layer defense mo
 ---
 
 ### [Module 02: Platform Setup](02-platform-setup/index.md)
-**👷 Platform Admin performs** • 30 minutes  
-**👩‍💻 Developer reads** (to understand the security context)
+**👷 Platform Admin** • 20 minutes
 
-Configure the agent namespace:
+Configure the agent runtime environment:
 
 - Apply KataConfig to enable VM runtime
-- Create secure namespace with Istio labels
-- Configure egress controls (ServiceEntry)
-- Deploy OPA policies (AuthPolicy)
+- Create secure namespace
+- Configure pipeline infrastructure for AgentBuild
 
-> 💡 **Developers**: Read through to understand what policies protect your agent.
+> 💡 This prepares the platform. Security hardening comes after testing.
 
 ---
 
 ### [Module 03: Agent Development](03-agent-developer/index.md)
-**👩‍💻 Developer performs** • 30 minutes  
-**👷 Platform Admin reads** (to understand developer needs)
+**👩‍💻 Developer** • 30 minutes
 
 Build and test the Currency Agent locally:
 
 - Understand the agent code (Google ADK)
 - Run locally with `adk web`
 - Test in the ADK Web UI
-- Prepare for containerization
-
-> 💡 **Platform Admins**: Understanding how developers build agents helps you configure better policies.
+- Understand the MCP server
 
 ---
 
 ### [Module 04: Deploy & Test](04-deploy-and-test/index.md)
-**👥 Both personas** • 30 minutes
+**🚀 Developer** • 30 minutes
 
-Deploy the agent to OpenShift and verify all security layers:
+Deploy the agent to OpenShift using Kagenti:
 
-- Deploy the Agent CR
-- Verify VM isolation (Kata)
-- Test allowed requests (USD → EUR)
-- Test blocked requests (USD → BTC)
-- Observe traces and logs
+- Create AgentBuild to build from source
+- Deploy Agent CR with Kata isolation
+- Test currency conversions
+- View traces in Phoenix
 
 ---
 
-### [Module 05: Appendix](05-appendix/index.md)
+### [Module 05: Security Hardening](05-security-hardening/index.md)
+**👷 Platform Admin** • 20 minutes
+
+Add security layers after verifying the agent works:
+
+- Configure Istio egress controls
+- Deploy OPA tool policies
+- Test blocked operations (BTC, ETH)
+- Verify defense-in-depth
+
+> 💡 **Why after deployment?** You first see the agent work, then understand what you're securing.
+
+---
+
+### [Module 06: Appendix](06-appendix/index.md)
 **📚 Reference**
 
 - Troubleshooting common issues
@@ -133,11 +142,35 @@ Deploy the agent to OpenShift and verify all security layers:
 
 ## Who Should Do What?
 
-| Your Role | Mod 00 | Mod 01 | Mod 02 | Mod 03 | Mod 04 | Mod 05 |
-|-----------|--------|--------|--------|--------|--------|--------|
-| **Solo Learner** |  Do |  Do |  Do |  Do |  Do | Ref |
-| **Platform Admin** |  Do |  Do |  Do | 📖 Read |  Do | Ref |
-| **Agent Developer** | ⏭️ Skip |  Do | 📖 Read |  Do |  Do | Ref |
+| Your Role | Mod 00 | Mod 01 | Mod 02 | Mod 03 | Mod 04 | Mod 05 | Mod 06 |
+|-----------|--------|--------|--------|--------|--------|--------|--------|
+| **Solo Learner** | ✅ Do | ✅ Do | ✅ Do | ✅ Do | ✅ Do | ✅ Do | 📚 Ref |
+| **Platform Admin** | ✅ Do | ✅ Do | ✅ Do | 📖 Read | 📖 Read | ✅ Do | 📚 Ref |
+| **Agent Developer** | ⏭️ Skip | ✅ Do | 📖 Read | ✅ Do | ✅ Do | 📖 Read | 📚 Ref |
+
+---
+
+## Recommended Learning Path
+
+### For Platform Admins
+
+```
+Prerequisites → Introduction → Platform Setup → Security Hardening
+     │                              │                    │
+     │                              │                    └── Add egress + policies
+     │                              └── Configure Kata, pipelines
+     └── Install operators, Kagenti
+```
+
+### For Developers
+
+```
+Introduction → Develop Agent → Deploy & Test
+     │               │              │
+     │               │              └── AgentBuild, Agent CR, test
+     │               └── Understand code, test locally
+     └── Understand security model
+```
 
 ---
 

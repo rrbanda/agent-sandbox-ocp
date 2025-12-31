@@ -1,0 +1,82 @@
+# Currency Kagenti Demo - Step 4: MCP Server Deployment
+# WHAT: Deploys the Currency MCP Server (provides get_exchange_rate tool)
+# WHY:  The Currency Agent needs this MCP server to call the exchange rate tool
+# HOW:  oc apply -f 04-mcp-server-deploy.yaml
+#
+# NOTE: MCP Server runs as a standard deployment (not Agent CR)
+#       because it's a tool server, not an agent
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: currency-mcp-server
+  namespace: currency-kagenti
+  labels:
+    app: currency-mcp-server
+    kagenti.io/type: tool
+spec:
+  ports:
+    - port: 8080
+      protocol: TCP
+      targetPort: 8080
+      name: mcp
+  selector:
+    app: currency-mcp-server
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: currency-mcp-server
+  namespace: currency-kagenti
+  labels:
+    app: currency-mcp-server
+    kagenti.io/type: tool
+    kagenti.io/protocol: mcp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: currency-mcp-server
+  template:
+    metadata:
+      labels:
+        app: currency-mcp-server
+    spec:
+      imagePullSecrets:
+        - name: quay-registry-secret
+      containers:
+        - name: mcp-server
+          # Using pre-built image (Docker Hub rate limits blocking AgentBuild)
+          image: quay.io/rbrhssa/currency-mcp-server:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+              name: mcp
+          env:
+            - name: PORT
+              value: "8080"
+            - name: HOST
+              value: "0.0.0.0"
+            # MCP transport mode
+            - name: MCP_TRANSPORT
+              value: "streamable-http"
+          resources:
+            limits:
+              cpu: 200m
+              memory: 512Mi
+            requests:
+              cpu: 100m
+              memory: 256Mi
+          volumeMounts:
+            - mountPath: /.cache
+              name: cache
+            - mountPath: /opt/app-root/src/.cache
+              name: app-cache
+      volumes:
+        - name: cache
+          emptyDir: {}
+        - name: app-cache
+          emptyDir: {}
+

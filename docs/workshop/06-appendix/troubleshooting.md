@@ -167,6 +167,126 @@ oc run test-egress -n agent-sandbox --rm -it --restart=Never \
 
 ---
 
+## AgentBuild Issues
+
+### Build Fails with Permission Denied
+
+**Symptom**: Buildah step fails with `permission denied` or `operation not permitted`.
+
+**Check**:
+```bash
+oc logs -n agent-sandbox -l tekton.dev/taskRun -c step-build-image --tail=30
+```
+
+**Solution**:
+```bash
+# Add pipeline SA to privileged SCC (requires cluster-admin)
+oc adm policy add-scc-to-user privileged \
+  system:serviceaccount:agent-sandbox:pipeline
+
+# Also ensure pipelines-scc has required capabilities
+oc adm policy add-scc-to-user pipelines-scc \
+  system:serviceaccount:agent-sandbox:pipeline
+```
+
+---
+
+### Docker Hub Rate Limit
+
+**Symptom**: Build fails with `toomanyrequests: You have reached your unauthenticated pull rate limit`.
+
+**Solution**: The pipeline automatically replaces Docker Hub images with UBI equivalents:
+
+| Docker Hub | UBI Replacement |
+|------------|-----------------|
+| `python:3.13-slim` | `registry.access.redhat.com/ubi9/python-312` |
+| `python:3.12-slim` | `registry.access.redhat.com/ubi9/python-312` |
+| `python:3.11-slim` | `registry.access.redhat.com/ubi9/python-311` |
+
+If this isn't working, check the `buildah-build-step` ConfigMap in `kagenti-system`:
+
+```bash
+oc get configmap buildah-build-step -n kagenti-system -o yaml
+```
+
+---
+
+### Build Stuck in Pending
+
+**Symptom**: TaskRun shows `Pending` and pod never starts.
+
+**Check**:
+```bash
+oc describe taskrun <taskrun-name> -n agent-sandbox
+oc get pvc -n agent-sandbox
+```
+
+**Common Causes**:
+
+1. **PVC not available**
+   ```bash
+   oc get pvc -n agent-sandbox
+   # If stuck in Pending, check storage class
+   ```
+
+2. **Previous PVC being deleted**
+   - Wait for cleanup and retry
+   ```bash
+   oc delete agentbuild <name> -n agent-sandbox
+   sleep 30
+   oc apply -f <agentbuild.yaml>
+   ```
+
+---
+
+### Secret Not Found
+
+**Symptom**: Build fails with `secret "ghcr-secret" not found` or similar.
+
+**Solution**: Create required secrets:
+
+```bash
+# For registry push
+oc create secret docker-registry ghcr-secret \
+  --docker-server=quay.io \
+  --docker-username=your-user \
+  --docker-password=your-password \
+  -n agent-sandbox
+
+# For buildpacks
+oc create secret docker-registry ghcr-token \
+  --docker-server=quay.io \
+  --docker-username=your-user \
+  --docker-password=your-password \
+  -n agent-sandbox
+```
+
+---
+
+### UBI Image Permission Errors
+
+**Symptom**: Build fails with `Permission denied` when creating `.venv` or cache directories.
+
+**Cause**: UBI Python images run as non-root by default.
+
+**Solution**: The pipeline automatically adds `USER root` and `chmod` commands. If not working, check the `buildah-build-step` ConfigMap includes these fixes:
+
+```bash
+oc get configmap buildah-build-step -n kagenti-system -o jsonpath='{.data.task-spec\.yaml}' | grep -A5 "replace-base-image"
+```
+
+---
+
+### EXPOSE $PORT Error
+
+**Symptom**: Build fails with `EXPOSE requires at least one argument`.
+
+**Cause**: The Dockerfile uses `EXPOSE $PORT` but the variable isn't set at build time.
+
+**Solution**: The pipeline automatically replaces `EXPOSE $PORT` with `EXPOSE 8080`. If not working, check the `buildah-build-step` ConfigMap.
+
+---
+
 ## Kata Issues
 
 ### RuntimeClass Not Found

@@ -1,0 +1,33 @@
+# Currency Kagenti Demo - Step 4b: MCP HTTPRoute
+# WHAT: Routes traffic to MCP server through the MCP Gateway
+# WHY:  Required for MCPServer registration and policy enforcement
+# HOW:  oc apply -f 04b-mcp-httproute.yaml
+#
+# NOTE: Apply this after the MCP server is deployed
+
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: currency-mcp-route
+  namespace: currency-kagenti
+  labels:
+    app: currency-mcp-server
+    mcp-server: "true"
+    kagenti.io/type: tool
+    kagenti.io/protocol: mcp
+spec:
+  parentRefs:
+    - name: mcp-gateway
+      namespace: kagenti-system
+  hostnames:
+    - currency-mcp.mcp.local
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: currency-mcp-server
+          port: 8080
+

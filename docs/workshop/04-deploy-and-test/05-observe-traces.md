@@ -6,66 +6,64 @@
 
 Use observability tools to see the agent's execution traces and understand what happened during your tests.
 
+---
+
 ## Observability Options
 
 | Tool | What It Shows | How to Access |
 |------|---------------|---------------|
 | **Phoenix** | LLM traces, tool calls | Kagenti includes Phoenix |
-| **ADK Web UI** | Request traces | Built into ADK |
+| **Agent Logs** | Request processing | `oc logs` |
 | **Kiali** | Service mesh traffic | OpenShift Service Mesh |
-| **OpenShift Logs** | Container logs | `oc logs` |
 
-## Option A: ADK Web UI Traces
+---
 
-If using the ADK Web UI:
-
-1. Open `https://<adk-route>/dev-ui/`
-2. Click on a previous conversation
-3. Expand the trace view
-
-You'll see:
-- User message
-- LLM processing
-- Tool call (with arguments)
-- Tool result
-- Final response
-
-## Option B: Agent Logs
+## Option A: Agent Logs
 
 View the agent's container logs:
 
 ```bash
 # Stream logs
-oc logs -n agent-sandbox -l app=currency-agent -f
+oc logs -n currency-kagenti deployment/currency-agent -f
 
 # Last 100 lines
-oc logs -n agent-sandbox -l app=currency-agent --tail=100
+oc logs -n currency-kagenti deployment/currency-agent --tail=100
 ```
 
 Look for:
 - Incoming requests
-- Tool invocations
+- Tool invocations (MCP calls)
 - API responses
-- Errors (for blocked requests)
+- Errors
 
-## Option C: Phoenix Dashboard
+---
+
+## Option B: Phoenix Dashboard
 
 If Phoenix is deployed with Kagenti:
 
 ### 1. Get Phoenix URL
 
 ```bash
-oc get route -n kagenti-system | grep phoenix
+oc get route phoenix -n kagenti-system -o jsonpath='https://{.spec.host}'
 ```
 
-### 2. Open Dashboard
+Or port-forward:
 
-Navigate to the Phoenix URL and explore:
+```bash
+oc port-forward svc/phoenix -n kagenti-system 6006:6006
+# Open http://localhost:6006
+```
+
+### 2. Explore the Dashboard
+
 - **Traces**: Individual request traces
 - **Spans**: Breakdown of each step
-- **Errors**: Failed requests (blocked by policy)
+- **LLM Calls**: View prompts and completions
 
-## What to Look For
+---
+
+## Understanding Request Flow
 
 ### Successful Request Trace
 
@@ -76,88 +74,86 @@ Navigate to the Phoenix URL and explore:
    │     └─ Decided to call: get_exchange_rate
    │
    ├─ 🔧 Tool: get_exchange_rate(USD, EUR, 100)
-   │     ├─ Gateway: Authorized 
+   │     ├─ MCP Server: currency-mcp-server
    │     ├─ API call: api.frankfurter.app
    │     └─ Result: {rate: 0.9245, converted: 92.45}
    │
    └─ 💬 Response: "100 USD is 92.45 EUR"
 ```
 
-### Blocked Request Trace
-
-```
-📥 User: "What is 100 USD in BTC?"
-   │
-   ├─ 🤖 LLM: Parse intent
-   │     └─ Decided to call: get_exchange_rate
-   │
-   ├─ 🔧 Tool: get_exchange_rate(USD, BTC, 100)
-   │     ├─ Gateway: Authorization check
-   │     └─ OPA:  DENIED (BTC in blocked list)
-   │
-   └─ ⚠️ Error: Policy violation
-```
-
-## Understanding the Trace Diagram
+### Trace Visualization
 
 ```mermaid
 flowchart TD
     subgraph Trace["Request Trace"]
         A["User Message"] --> B["LLM Processing"]
-        B --> C{"Tool Call"}
-        C -->|Allowed| D["API Call"]
-        D --> E["Response"]
-        C -->|Blocked| F["Policy Error"]
+        B --> C["Tool Call"]
+        C --> D["MCP Server"]
+        D --> E["External API"]
+        E --> F["Response"]
     end
 ```
 
-## Check Authorino Metrics (Advanced)
+---
 
-If you want to see policy decision metrics:
+## Check MCP Server Logs
 
 ```bash
-# Get Authorino metrics endpoint
-oc get svc -n kuadrant-system | grep authorino
-
-# Port forward
-oc port-forward svc/authorino-metrics 8080:8080 -n kuadrant-system
-
-# View metrics
-curl http://localhost:8080/metrics | grep auth
+# MCP server logs
+oc logs -n currency-kagenti deployment/currency-mcp-server --tail=50
 ```
+
+Look for:
+- Incoming tool calls
+- Rate API responses
+- Any errors
+
+---
+
+## Verification Summary
+
+```bash
+echo "=== Observability Check ===" && \
+echo "" && \
+echo "1. Agent logs available:" && \
+oc logs -n currency-kagenti deployment/currency-agent --tail=5 && \
+echo "" && \
+echo "2. MCP server logs available:" && \
+oc logs -n currency-kagenti deployment/currency-mcp-server --tail=5 && \
+echo "" && \
+echo "3. Phoenix route:" && \
+oc get route phoenix -n kagenti-system -o jsonpath='https://{.spec.host}' 2>/dev/null || echo "   Not exposed"
+```
+
+---
 
 ## Module Complete! 🎉
 
 You've completed the Deploy & Test module:
 
--  Deployed the Currency Agent to OpenShift
--  Verified VM isolation (Kata)
--  Tested allowed currency conversions
--  Verified blocked cryptocurrency requests
--  Explored execution traces
+- ✅ Built agent from source using AgentBuild
+- ✅ Deployed with Kata VM isolation
+- ✅ Tested currency conversions
+- ✅ Explored execution traces
 
-## Summary of Security Layers
-
-| Layer | Technology | Test Result |
-|-------|------------|-------------|
-| **1. VM Isolation** | Kata Containers |  Pod runs in VM |
-| **2. Network Egress** | Istio ServiceEntry |  Only frankfurter.app reachable |
-| **3. Tool Policy** | Kuadrant + OPA |  BTC/ETH blocked |
+---
 
 ## What's Next?
 
-- [Appendix: Troubleshooting](../05-appendix/troubleshooting.md) - Common issues and fixes
-- [Appendix: Cleanup](../05-appendix/cleanup.md) - Remove demo resources
-- [Appendix: Next Steps](../05-appendix/next-steps.md) - Where to go from here
+Your agent is deployed and working. Now add security hardening:
 
-## Workshop Complete! 🏆
+| Next Step | Description |
+|-----------|-------------|
+| [Module 05: Security Hardening](../05-security-hardening/index.md) | Add egress control and tool policies |
 
-Congratulations! You've successfully:
+After security hardening, you'll have all three protection layers active:
 
-1. **Set up a secure platform** with VM isolation, egress control, and policy enforcement
-2. **Developed an AI agent** using Google ADK
-3. **Deployed and tested** the agent with all security layers active
-4. **Verified the protection** by testing both allowed and blocked requests
+| Layer | Status |
+|-------|--------|
+| **Layer 1: VM Isolation** | ✅ Configured (Kata) |
+| **Layer 2: Network Egress** | ⏳ Configure in Module 05 |
+| **Layer 3: Tool Policy** | ⏳ Configure in Module 05 |
 
-You now understand how to build and deploy **trusted AI agents** on OpenShift!
+---
 
+👉 [Continue to Module 05: Security Hardening](../05-security-hardening/index.md)

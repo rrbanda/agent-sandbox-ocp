@@ -1,0 +1,23 @@
+# ServiceEntry - Define allowed external APIs
+# Apply AFTER agent is deployed and tested
+apiVersion: networking.istio.io/v1beta1
+kind: ServiceEntry
+metadata:
+  name: allowed-external-apis
+  namespace: currency-kagenti
+  labels:
+    app.kubernetes.io/part-of: currency-agent
+    kagenti.io/security: egress
+spec:
+  hosts:
+    # Currency exchange rate API
+    - api.frankfurter.app
+    # Gemini LLM API
+    - generativelanguage.googleapis.com
+  ports:
+    - number: 443
+      name: https
+      protocol: HTTPS
+  resolution: DNS
+  location: MESH_EXTERNAL
+

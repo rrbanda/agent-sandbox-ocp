@@ -1,153 +1,236 @@
-# Step 03: Test in ADK UI
+# Step 03: Test the Agent
 
-**Time**: 10 minutes
+**Time**: 5 minutes
 
 ## What You'll Do
 
-Use the ADK Web UI to interactively test the Currency Agent and inspect execution traces.
+Test the Currency Agent using the A2A test client to verify it's working correctly.
 
-## The ADK Web UI
+---
 
-The UI has three main areas:
+## Prerequisites
 
-1. **Agent Selector**: Choose which agent to test
-2. **Chat Interface**: Send messages and see responses
-3. **Trace Viewer**: Inspect execution details
+Ensure both services are running (from Step 02):
 
-## Steps
+- **Terminal 1**: MCP Server (`uv run mcp-server/server.py`)
+- **Terminal 2**: A2A Server (`uv run uvicorn currency_agent.agent:a2a_app ...`)
 
-### 1. Select the Agent
+---
 
-1. Open `http://localhost:8000/dev-ui/`
-2. Click the dropdown at the top
-3. Select **currency_agent**
+## Run the Test Client
 
-### 2. Test a Basic Conversion
+In a **third terminal**, run the test client:
 
-Type in the chat:
-
-```
-What is 100 USD in EUR?
+```bash
+cd adk-samples/python/agents/currency-agent
+uv run currency_agent/test_client.py
 ```
 
-Expected response (rates will vary):
+---
+
+## Expected Output
+
+You should see output like this:
 
 ```
-100 USD is approximately 92.45 EUR based on the current exchange rate.
+--- 🔄 Connecting to agent at http://localhost:10000... ---
+--- ✅ Connection successful. ---
+--- ✉️  Single Turn Request ---
+--- 📥 Single Turn Request Response ---
+{"result":{"id":"task-abc123","status":{"state":"completed"},"artifacts":[{"parts":[{"kind":"text","text":"100 USD is approximately 141.50 CAD based on the current exchange rate."}]}]}}
+
+--- ❔ Query Task ---
+--- 📥 Query Task Response ---
+{"result":{"id":"task-abc123","status":{"state":"completed"},"artifacts":[...]}}
+
+--- 📝 Multi-Turn Request ---
+--- 📥 Multi-Turn: First Turn Response ---
+{"result":{"id":"task-def456","status":{"state":"input_required"},...}}
+
+--- 📝 Multi-Turn: Second Turn (Input Required) ---
+--- Multi-Turn: Second Turn Response ---
+{"result":{"id":"task-def456","status":{"state":"completed"},"artifacts":[{"parts":[{"kind":"text","text":"100 USD is approximately 78.50 GBP."}]}]}}
 ```
 
-### 3. Test Multiple Currencies
+---
 
-Try these prompts:
+## Understanding the Test Client
 
-| Prompt | Expected Behavior |
-|--------|-------------------|
-| "Convert 50 GBP to JPY" | Should work  |
-| "What's 1000 EUR in USD?" | Should work  |
-| "How much is 100 dollars in euros?" | Should understand and work  |
+The test client (`currency_agent/test_client.py`) demonstrates two test scenarios:
 
-### 4. Test Edge Cases
+### 1. Single-Turn Test
 
-Try prompts that might confuse the agent:
-
-| Prompt | What to Observe |
-|--------|-----------------|
-| "What's the weather?" | Agent should explain it only does currency |
-| "Convert monopoly money" | Agent should handle gracefully |
-| "USD to EUR" | Should assume amount of 1 |
-
-### 5. Inspect the Trace
-
-Click on any conversation to see the execution trace:
-
-1. **User Message**: Your input
-2. **LLM Call**: What was sent to Gemini
-3. **Tool Call**: Function execution details
-4. **Tool Result**: API response
-5. **LLM Response**: Final answer generation
-
-The trace shows:
-- Exactly what arguments were passed to the tool
-- The raw API response
-- How long each step took
-
-## Understanding the Trace
-
-```mermaid
-flowchart TD
-    subgraph Trace["Execution Trace"]
-        A["1. User Message<br/>'What is 100 USD in EUR?'"]
-        B["2. LLM Decision<br/>'Call get_exchange_rate'"]
-        C["3. Tool Call<br/>get_exchange_rate(USD, EUR, 100)"]
-        D["4. Tool Result<br/>{rate: 0.9245, converted: 92.45}"]
-        E["5. LLM Response<br/>'100 USD is 92.45 EUR'"]
-    end
+```python
+async def run_single_turn_test(client: A2AClient) -> None:
+    """Runs a single-turn non-streaming test."""
     
-    A --> B --> C --> D --> E
+    send_message_payload = create_send_message_payload(
+        text="how much is 100 USD in CAD?"
+    )
+    response = await client.send_message(request)
+    # Returns: "100 USD is approximately 141.50 CAD"
 ```
 
-## What to Look For
+A complete question that the agent can answer in one response.
 
-### Successful Tool Calls
+### 2. Multi-Turn Test
 
-In the trace, you should see:
+```python
+async def run_multi_turn_test(client: A2AClient) -> None:
+    """Runs a multi-turn non-streaming test."""
+    
+    # First turn: incomplete question
+    first_turn_payload = create_send_message_payload(
+        text="how much is 100 USD?"
+    )
+    # Agent responds: "What currency do you want to convert to?"
+    
+    # Second turn: provide the missing info
+    second_turn_payload = create_send_message_payload(
+        "in GBP", task.id, context_id
+    )
+    # Agent responds: "100 USD is approximately 78.50 GBP"
+```
+
+Demonstrates conversation context - the agent remembers the first message.
+
+---
+
+## A2A Message Structure
+
+The A2A protocol uses JSON-RPC messages:
 
 ```json
 {
-  "function_name": "get_exchange_rate",
-  "arguments": {
-    "currency_from": "USD",
-    "currency_to": "EUR",
-    "amount": 100
-  },
-  "result": {
-    "from": "USD",
-    "to": "EUR",
-    "rate": 0.9245,
-    "converted": 92.45
+  "jsonrpc": "2.0",
+  "method": "message/send",
+  "id": "unique-request-id",
+  "params": {
+    "message": {
+      "role": "user",
+      "parts": [{"kind": "text", "text": "100 USD to EUR?"}],
+      "messageId": "unique-message-id"
+    }
   }
 }
 ```
 
-### LLM Reasoning
+Response:
 
-The trace shows how Gemini interpreted your request and decided to call the tool.
+```json
+{
+  "jsonrpc": "2.0",
+  "id": "unique-request-id",
+  "result": {
+    "id": "task-id",
+    "status": {"state": "completed"},
+    "artifacts": [{
+      "parts": [{"kind": "text", "text": "100 USD is 92.45 EUR"}]
+    }]
+  }
+}
+```
 
-## Test Crypto (Preview of Security)
+---
 
-Try this prompt:
+## Manual Testing with curl
+
+You can also test manually:
+
+```bash
+curl -X POST http://localhost:10000 \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0",
+    "method": "message/send",
+    "id": "1",
+    "params": {
+      "message": {
+        "role": "user",
+        "parts": [{"kind": "text", "text": "What is 50 EUR in JPY?"}],
+        "messageId": "test-123"
+      }
+    }
+  }'
+```
+
+---
+
+## Check the Logs
+
+### MCP Server Logs (Terminal 1)
+
+You should see tool calls:
 
 ```
-What is 100 USD in BTC?
+[INFO]: --- 🛠️ Tool: get_exchange_rate called for converting USD to CAD ---
+[INFO]: ✅ API response: {"amount": 1, "base": "USD", "date": "2024-12-30", "rates": {"CAD": 1.415}}
 ```
 
-**Locally**, this might:
-- Work if Frankfurter supports BTC
-- Fail with an API error if it doesn't
+### A2A Server Logs (Terminal 2)
 
-**On OpenShift**, this will be **blocked by the OPA policy** - which you'll see in Module 03.
+You should see agent processing:
 
-## Screenshots
+```
+[INFO]: --- 🔧 Loading MCP tools from MCP Server... ---
+[INFO]: --- 🤖 Creating ADK Currency Agent... ---
+INFO:     127.0.0.1:54321 - "POST / HTTP/1.1" 200 OK
+```
 
-### Initial View
-![ADK Web UI Initial](../../images/adk-web-ui-initial.png)
+---
 
-### Conversion Result
-![ADK Web UI Conversion](../../images/adk-web-ui-conversion.png)
+## Test Different Currencies
 
-### Trace View
-![ADK Web UI Trace](../../images/adk-web-ui-trace.png)
+Try various conversion requests:
 
-## Module Checkpoint
+| Request | Expected Response |
+|---------|-------------------|
+| "100 USD to EUR" | ~92 EUR |
+| "50 GBP to JPY" | ~9,500 JPY |
+| "1000 EUR to USD" | ~1,080 USD |
+| "What's the exchange rate between CAD and AUD?" | Current rate |
 
-At this point, you should have:
+---
 
-- [ ] Successfully selected currency_agent in the UI
-- [ ] Tested at least 3 currency conversions
-- [ ] Inspected a trace to see tool execution
-- [ ] Understood how the agent processes requests
+## Test Error Handling
+
+Try requests the agent can't handle:
+
+```bash
+curl -X POST http://localhost:10000 \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0",
+    "method": "message/send",
+    "id": "1",
+    "params": {
+      "message": {
+        "role": "user",
+        "parts": [{"kind": "text", "text": "What is the weather today?"}],
+        "messageId": "test-456"
+      }
+    }
+  }'
+```
+
+Expected: The agent should politely decline and say it can only help with currency conversions.
+
+---
+
+## Verification Checklist
+
+Before moving on, confirm:
+
+- [ ] Test client connects successfully
+- [ ] Single-turn query returns conversion result
+- [ ] Multi-turn conversation works
+- [ ] MCP server logs show tool calls
+- [ ] Non-currency questions are politely declined
+
+---
 
 ## Next Step
 
-👉 [Step 04: Containerize the Agent](04-containerize.md)
+Now let's understand how the agent is containerized for deployment.
 
+👉 [Step 04: Understand Containerization](04-containerize.md)

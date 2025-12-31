@@ -1,0 +1,107 @@
+# Currency Kagenti Demo - Step 5: Currency Agent Deployment
+# WHAT: Deploys the Currency Agent using Kagenti Agent CRD with Kata VM isolation
+# WHY:  Demonstrates Google ADK agent deployed the Kagenti way with A2A protocol
+# HOW:  oc apply -f 05-currency-agent.yaml
+#
+# PREREQUISITES:
+#   1. MCP Server deployed (04-mcp-server-deploy.yaml)
+#   2. Gemini API key secret created:
+#      oc create secret generic gemini-api-key \
+#        --from-literal=GOOGLE_API_KEY='your-key' -n currency-kagenti
+
+---
+apiVersion: agent.kagenti.dev/v1alpha1
+kind: Agent
+metadata:
+  name: currency-agent
+  namespace: currency-kagenti
+  labels:
+    app.kubernetes.io/name: currency-agent
+    app.kubernetes.io/component: agent
+    kagenti.io/framework: google-adk
+    kagenti.io/protocol: a2a
+    kagenti.io/agent-protocol: a2a
+    kagenti.io/type: agent
+  annotations:
+    description: "Google ADK Currency Agent with A2A protocol and Kata VM isolation"
+spec:
+  description: "Currency conversion agent using Google ADK, A2A protocol, running in Kata VM"
+
+  replicas: 1
+
+  # Build from source using Kagenti AgentBuild
+  imageSource:
+    buildRef:
+      name: currency-agent-build
+
+  servicePorts:
+    - name: a2a
+      port: 10000
+      protocol: TCP
+      targetPort: 10000
+
+  podTemplateSpec:
+    spec:
+      # ============================================
+      # KATA VM ISOLATION - Security Layer 1
+      # ============================================
+      runtimeClassName: kata
+
+      imagePullSecrets:
+      - name: quay-registry-secret
+
+      containers:
+      - name: agent
+        env:
+        # Gemini API Key (from secret)
+        - name: GOOGLE_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: gemini-api-key
+              key: GOOGLE_API_KEY
+        # Use Gemini API directly (not Vertex AI)
+        - name: GOOGLE_GENAI_USE_VERTEXAI
+          value: "FALSE"
+        # MCP Server URL (points to our deployed MCP server)
+        - name: MCP_SERVER_URL
+          value: "http://currency-mcp-server.currency-kagenti.svc.cluster.local:8080/mcp"
+        # A2A Server settings
+        - name: PORT
+          value: "10000"
+        - name: HOST
+          value: "0.0.0.0"
+        # OpenTelemetry for observability
+        - name: OTEL_EXPORTER_OTLP_ENDPOINT
+          value: "http://otel-collector.kagenti-system.svc.cluster.local:8335"
+        # UV cache for faster builds
+        - name: UV_CACHE_DIR
+          value: "/app/.cache/uv"
+        # Home directory (required for some tools)
+        - name: HOME
+          value: "/tmp"
+
+        ports:
+        - containerPort: 10000
+          name: a2a
+          protocol: TCP
+
+        resources:
+          limits:
+            cpu: "1"
+            memory: "2Gi"      # Kata VMs need more memory
+          requests:
+            cpu: "500m"
+            memory: "1Gi"
+
+        volumeMounts:
+        - mountPath: /app/.cache
+          name: cache
+        - mountPath: /tmp
+          name: tmp
+
+      volumes:
+      - name: cache
+        emptyDir: {}
+      - name: tmp
+        emptyDir: {}
+

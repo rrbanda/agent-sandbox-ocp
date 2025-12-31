@@ -1,0 +1,31 @@
+# Currency Kagenti Demo - Step 4c: MCPServer Registration
+# WHAT: Registers the MCP server with the Kagenti MCP Gateway
+# WHY:  Enables tool discovery and routing through the gateway
+# HOW:  oc apply -f 04c-mcpserver.yaml
+#
+# PREREQ: 
+#   - MCP server deployed (04-mcp-server-deploy.yaml)
+#   - HTTPRoute created (04b-mcp-httproute.yaml)
+
+---
+apiVersion: mcp.kagenti.com/v1alpha1
+kind: MCPServer
+metadata:
+  name: currency-mcp-server
+  namespace: currency-kagenti
+  labels:
+    app: currency-mcp-server
+    kagenti.io/type: tool
+    kagenti.io/protocol: mcp
+spec:
+  # Reference to the HTTPRoute for this MCP server
+  targetRef:
+    group: gateway.networking.k8s.io
+    kind: HTTPRoute
+    name: currency-mcp-route
+    namespace: currency-kagenti
+  # Prefix for tool names (e.g., currency_get_exchange_rate)
+  toolPrefix: currency_
+  # Path to MCP endpoint
+  path: /mcp
+

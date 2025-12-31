@@ -1,0 +1,45 @@
+# Currency Kagenti Demo - Step 2: MCP Server Build
+# WHAT: AgentBuild CR for the Currency MCP Server
+# WHY:  Builds the MCP server that provides get_exchange_rate tool
+# HOW:  oc apply -f 02-mcp-server-build.yaml
+#
+# SOURCE: github.com/google/adk-samples - python/agents/currency-agent/mcp-server
+# NOTE: This folder HAS a Dockerfile, so buildah will be used
+
+---
+apiVersion: agent.kagenti.dev/v1alpha1
+kind: AgentBuild
+metadata:
+  name: currency-mcp-server-build
+  namespace: currency-kagenti
+  labels:
+    app.kubernetes.io/name: currency-mcp-server
+    app.kubernetes.io/component: mcp-server
+    kagenti.io/framework: Python
+    kagenti.io/protocol: mcp
+    kagenti.io/type: tool
+spec:
+  mode: dev
+
+  source:
+    # Official Google ADK samples repository
+    sourceRepository: "github.com/google/adk-samples.git"
+    sourceRevision: "main"
+    sourceSubfolder: "python/agents/currency-agent/mcp-server"
+    # GitHub credentials (create this secret if repo is private)
+    # For public repos, this may still be required by the pipeline
+    sourceCredentials:
+      name: github-token-secret
+
+  pipeline:
+    namespace: kagenti-system
+    parameters:
+    - name: SOURCE_REPO_SECRET
+      value: github-token-secret
+
+  buildOutput:
+    image: "currency-mcp-server"
+    imageTag: "v1.0.0"
+    # Quay.io registry
+    imageRegistry: "quay.io/rbrhssa"
+

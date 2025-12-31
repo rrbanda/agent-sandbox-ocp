@@ -1,0 +1,26 @@
+# Currency Kagenti Demo - Step 6: Agent Route (Optional)
+# WHAT: Exposes the Currency Agent externally via OpenShift Route
+# WHY:  Allows external access to the A2A endpoint for testing/demos
+# HOW:  oc apply -f 06-route.yaml
+
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: currency-agent
+  namespace: currency-kagenti
+  labels:
+    app: currency-agent
+    kagenti.io/type: agent
+    kagenti.io/protocol: a2a
+spec:
+  to:
+    kind: Service
+    name: currency-agent
+    weight: 100
+  port:
+    targetPort: 10000
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+

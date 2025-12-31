@@ -1,0 +1,16 @@
+# Currency Kagenti Demo - Step 0: Namespace
+# WHAT: Creates namespace for Currency Agent Kagenti-style deployment
+# WHY:  Isolated namespace for testing the build-from-source approach
+# HOW:  oc apply -f 00-namespace.yaml
+
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: currency-kagenti
+  labels:
+    app.kubernetes.io/name: currency-kagenti
+    app.kubernetes.io/component: agent-demo
+    # Enable Istio sidecar injection if needed
+    # istio-injection: enabled
+

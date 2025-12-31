@@ -1,154 +1,186 @@
 # Step 02: Run Locally
 
-**Time**: 5 minutes
+**Time**: 10 minutes
 
 ## What You'll Do
 
-Start the Currency Agent locally using `adk web` and access the development UI.
+Clone the official Google ADK samples, configure your environment, and start the Currency Agent locally.
+
+---
 
 ## Prerequisites
 
 Ensure you have:
 
+- Python 3.10+
+- Git installed
+- A Gemini API key ([Get one here](https://aistudio.google.com/app/apikey))
+
+---
+
+## Step 1: Clone the Repository
+
 ```bash
-# Check Python version (3.11+ required)
-python --version
-
-# Check ADK is installed
-pip show google-adk
-
-# Set your Gemini API key
-export GOOGLE_API_KEY="your-gemini-api-key"
+git clone https://github.com/google/adk-samples.git
+cd adk-samples/python/agents/currency-agent
 ```
 
-## Steps
+---
 
-### 1. Create the Agent Directory
+## Step 2: Install uv
 
-If you don't have the agent code yet:
+The project uses [uv](https://docs.astral.sh/uv/) for dependency management:
 
 ```bash
-mkdir -p currency_agent
-cd currency_agent
+# macOS and Linux
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Windows (PowerShell)
+# powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
 ```
 
-Create the files as shown in [Step 01](01-understand-agent.md), or clone from the repo:
+!!! note
+    You may need to restart your terminal after installing `uv`.
+
+---
+
+## Step 3: Configure Environment
+
+Create a `.env` file with your Gemini API key:
 
 ```bash
-git clone https://github.com/rrbanda/agent-sandbox-ocp.git
-cd agent-sandbox-ocp
+# Using Gemini API Key (recommended for getting started)
+echo "GOOGLE_API_KEY=your-api-key-here" >> .env
+echo "GOOGLE_GENAI_USE_VERTEXAI=FALSE" >> .env
 ```
 
-### 2. Start ADK Web
+Replace `your-api-key-here` with your actual API key from [Google AI Studio](https://aistudio.google.com/app/apikey).
 
-From the directory containing `currency_agent/`:
+---
+
+## Step 4: Start the MCP Server
+
+In a terminal, start the MCP Server (runs on port 8080):
 
 ```bash
-adk web
+uv run mcp-server/server.py
 ```
 
 You should see:
 
 ```
-INFO:     Started server process
-INFO:     Waiting for application startup.
-INFO:     Application startup complete.
-INFO:     Uvicorn running on http://0.0.0.0:8000
+[INFO]: 🚀 MCP server started on port 8080
 ```
 
-### 3. Open the Dev UI
+Keep this terminal running.
 
-Navigate to:
+---
 
-```
-http://localhost:8000/dev-ui/
-```
+## Step 5: Start the A2A Server
 
-You should see the ADK Web UI with your agent listed.
-
-## What `adk web` Does
-
-The `adk web` command:
-
-1. **Discovers agents**: Scans current directory for agent packages
-2. **Starts API server**: Provides endpoints for agent interaction
-3. **Serves Dev UI**: Angular-based UI for testing
-
-```mermaid
-flowchart LR
-    subgraph Local["Your Machine"]
-        ADK["adk web"]
-        Agent["currency_agent/"]
-        UI["Dev UI<br/>:8000/dev-ui/"]
-        API["API Server<br/>:8000"]
-    end
-    
-    ADK --> Agent
-    ADK --> UI
-    ADK --> API
-    Browser["Browser"] --> UI
-    UI --> API
-    API --> Agent
-```
-
-## Common Options
+In a **separate terminal** (same directory), start the A2A Server (runs on port 10000):
 
 ```bash
-# Specify a different port
-adk web --port 8080
-
-# Allow external access
-adk web --host 0.0.0.0
-
-# Enable CORS for all origins
-adk web --allow_origins "*"
-
-# Specify agent directory
-adk web --agents_dir /path/to/agents
+uv run uvicorn currency_agent.agent:a2a_app --host localhost --port 10000
 ```
+
+You should see:
+
+```
+[INFO]: --- 🔧 Loading MCP tools from MCP Server... ---
+[INFO]: --- 🤖 Creating ADK Currency Agent... ---
+INFO:     Uvicorn running on http://localhost:10000
+```
+
+Keep this terminal running.
+
+---
+
+## Understanding What's Running
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                    Local Development Setup                               │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│  Terminal 1: MCP Server                                                 │
+│  ─────────────────────                                                  │
+│  uv run mcp-server/server.py                                            │
+│  http://localhost:8080/mcp                                              │
+│  Exposes: get_exchange_rate tool                                        │
+│                                                                         │
+│  Terminal 2: A2A Server                                                 │
+│  ─────────────────────                                                  │
+│  uv run uvicorn currency_agent.agent:a2a_app ...                        │
+│  http://localhost:10000                                                 │
+│  Exposes: ADK agent via A2A protocol                                    │
+│                                                                         │
+│  Terminal 3: Test Client (next step)                                    │
+│  ─────────────────────                                                  │
+│  uv run currency_agent/test_client.py                                   │
+│  Sends test queries to the A2A server                                   │
+│                                                                         │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Verify Everything Is Running
+
+Check the services are accessible:
+
+```bash
+# Check MCP Server (should return server info)
+curl http://localhost:8080/mcp -H "Accept: application/json" -d '{"jsonrpc":"2.0","method":"initialize","id":"1","params":{}}' -H "Content-Type: application/json"
+
+# Check A2A Server (should return agent card)
+curl http://localhost:10000/.well-known/agent.json
+```
+
+---
 
 ## Troubleshooting
 
-### "No agents found"
-
-Ensure your agent directory structure is correct:
-
-```
-./
-└── currency_agent/
-    ├── __init__.py    # Must expose 'agent'
-    └── agent.py       # Must define 'agent = Agent(...)'
-```
-
 ### "GOOGLE_API_KEY not set"
 
-```bash
-# Set the environment variable
-export GOOGLE_API_KEY="your-key-here"
-
-# Or create a .env file
-echo "GOOGLE_API_KEY=your-key-here" > .env
-```
-
-### Port already in use
+Ensure the `.env` file exists and contains your API key:
 
 ```bash
-# Find what's using port 8000
-lsof -i :8000
-
-# Use a different port
-adk web --port 8080
+cat .env
+# Should show: GOOGLE_API_KEY=your-key-here
 ```
 
-## Verify It's Working
+### MCP Server Won't Start
 
-Before moving on, confirm:
+Check if port 8080 is available:
 
-- [ ] `adk web` is running without errors
-- [ ] You can access `http://localhost:8000/dev-ui/`
-- [ ] `currency_agent` appears in the agent dropdown
+```bash
+lsof -i :8080
+
+# Use a different port if needed
+PORT=9090 uv run mcp-server/server.py
+```
+
+### A2A Server Can't Connect to MCP
+
+Ensure MCP server is running first, then set the URL:
+
+```bash
+MCP_SERVER_URL=http://localhost:8080/mcp uv run uvicorn currency_agent.agent:a2a_app --host localhost --port 10000
+```
+
+### uv Not Found
+
+Restart your terminal or manually add uv to your PATH:
+
+```bash
+export PATH="$HOME/.cargo/bin:$PATH"
+```
+
+---
 
 ## Next Step
 
-👉 [Step 03: Test in ADK UI](03-test-in-adk-ui.md)
+Now let's test the agent with the A2A test client.
 
+👉 [Step 03: Test the Agent](03-test-in-adk-ui.md)

@@ -1,0 +1,96 @@
+# Currency Kagenti Demo - Step 1: Pipeline Template
+# WHAT: Defines the build pipeline template for dev mode
+# WHY:  AgentBuild with mode=dev looks for this ConfigMap
+# HOW:  oc apply -f 01-pipeline-template.yaml
+#
+# NOTE: This pipeline supports both Dockerfile builds (buildah) 
+#       and buildpack builds (when no Dockerfile exists)
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pipeline-template-dev
+  namespace: currency-kagenti
+  labels:
+    app.kubernetes.io/name: kagenti-operator
+    app.kubernetes.io/component: pipeline-template
+    component.kagenti.ai/mode: dev
+data:
+  template.json: |
+    {
+      "name": "Development Pipeline",
+      "namespace": "currency-kagenti",
+      "description": "Pipeline for building currency agent components",
+      "requiredParameters": [
+        "repo-url",
+        "revision",
+        "subfolder-path",
+        "image"
+      ],
+      "steps": [
+        {
+          "name": "github-clone",
+          "configMap": "github-clone-step",
+          "enabled": true,
+          "description": "Clone source code from GitHub repository",
+          "requiredParameters": ["repo-url"]
+        },
+        {
+          "name": "folder-verification",
+          "configMap": "check-subfolder-step",
+          "enabled": true,
+          "description": "Verify that the specified subfolder exists",
+          "requiredParameters": ["subfolder-path"]
+        },
+        {
+          "name": "dockerfile-check",
+          "configMap": "check-dockerfile-step",
+          "enabled": true,
+          "description": "Checks if Dockerfile exists in the specified subfolder",
+          "requiredParameters": ["subfolder-path"]
+        },
+        {
+          "name": "buildah-build",
+          "configMap": "buildah-build-step",
+          "enabled": true,
+          "description": "Build container image using buildah",
+          "requiredParameters": ["image"],
+          "whenExpressions": [
+            {
+              "input": "$(tasks.dockerfile-check.results.has-dockerfile)",
+              "operator": "in",
+              "values": ["true"]
+            }
+          ],
+          "defaultParameters": [
+            {
+              "name": "DOCKERFILE",
+              "value": "$(tasks.dockerfile-check.results.dockerfile-name)"
+            }
+          ]
+        },
+        {
+          "name": "buildpack-step",
+          "configMap": "buildpack-step",
+          "enabled": true,
+          "description": "Build container image using Buildpacks (when no Dockerfile)",
+          "requiredParameters": ["image"],
+          "whenExpressions": [
+            {
+              "input": "$(tasks.dockerfile-check.results.has-dockerfile)",
+              "operator": "in",
+              "values": ["false"]
+            }
+          ]
+        }
+      ],
+      "globalParameters": [
+        {
+          "name": "pipeline-timeout",
+          "value": "20m",
+          "description": "Overall pipeline timeout"
+        }
+      ]
+    }
+

@@ -1,0 +1,45 @@
+# Currency Kagenti Demo - Step 3: Currency Agent Build
+# WHAT: AgentBuild CR for the Currency Agent (Google ADK with A2A)
+# WHY:  Builds the ADK agent that uses MCP tools and exposes A2A protocol
+# HOW:  oc apply -f 03-currency-agent-build.yaml
+#
+# SOURCE: github.com/google/adk-samples - python/agents/currency-agent
+# NOTE: This folder does NOT have a Dockerfile at root, so buildpacks will be used
+#       The agent uses `to_a2a()` wrapper for A2A protocol exposure
+
+---
+apiVersion: agent.kagenti.dev/v1alpha1
+kind: AgentBuild
+metadata:
+  name: currency-agent-build
+  namespace: currency-kagenti
+  labels:
+    app.kubernetes.io/name: currency-agent
+    app.kubernetes.io/component: agent
+    kagenti.io/framework: google-adk
+    kagenti.io/protocol: a2a
+    kagenti.io/type: agent
+spec:
+  mode: dev
+
+  source:
+    # Official Google ADK samples repository
+    sourceRepository: "github.com/google/adk-samples.git"
+    sourceRevision: "main"
+    sourceSubfolder: "python/agents/currency-agent"
+    # GitHub credentials
+    sourceCredentials:
+      name: github-token-secret
+
+  pipeline:
+    namespace: kagenti-system
+    parameters:
+    - name: SOURCE_REPO_SECRET
+      value: github-token-secret
+
+  buildOutput:
+    image: "currency-agent"
+    imageTag: "v1.0.0"
+    # Quay.io registry
+    imageRegistry: "quay.io/rbrhssa"
+

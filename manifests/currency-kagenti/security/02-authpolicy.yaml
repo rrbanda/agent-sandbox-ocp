@@ -1,0 +1,46 @@
+# AuthPolicy - Block cryptocurrency conversions using OPA
+# Apply AFTER agent is deployed and tested
+apiVersion: kuadrant.io/v1beta2
+kind: AuthPolicy
+metadata:
+  name: block-crypto-policy
+  namespace: currency-kagenti
+  labels:
+    app.kubernetes.io/part-of: currency-agent
+    kagenti.io/security: policy
+spec:
+  targetRef:
+    group: gateway.networking.k8s.io
+    kind: HTTPRoute
+    name: currency-mcp-route
+  rules:
+    authorization:
+      opa:
+        allValues: true
+        rego: |
+          package currency_policy
+          
+          import future.keywords.if
+          import future.keywords.in
+          
+          # Default: allow all requests
+          default allow := true
+          
+          # List of blocked cryptocurrencies
+          blocked_currencies := ["BTC", "ETH", "DOGE", "XRP", "SOL", "ADA", "DOT", "MATIC", "SHIB", "AVAX"]
+          
+          # Block if source currency is crypto
+          deny if {
+            input.context.request.http.body.params.arguments.currency_from in blocked_currencies
+          }
+          
+          # Block if target currency is crypto
+          deny if {
+            input.context.request.http.body.params.arguments.currency_to in blocked_currencies
+          }
+          
+          # Allow only if not denied
+          allow if {
+            not deny
+          }
+

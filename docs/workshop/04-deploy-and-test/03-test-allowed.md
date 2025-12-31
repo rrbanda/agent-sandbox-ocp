@@ -1,97 +1,119 @@
-# Step 03: Test Allowed Request
+# Step 03: Test Currency Conversion
 
-**Time**: 5 minutes
+**Time**: 10 minutes
 
 ## What You'll Do
 
 Test that the Currency Agent can successfully convert fiat currencies (USD, EUR, GBP, JPY).
 
+---
+
 ## Test Methods
 
 You can test using:
 
-1. **ADK Web UI** (if deployed) - Visual, interactive
-2. **curl** - Command line, direct API calls
-3. **Test pod** - From inside the cluster
+1. **Route** - External access via OpenShift Route
+2. **Port Forward** - Local access
+3. **Test Pod** - From inside the cluster
 
-## Option A: ADK Web UI
+---
 
-If you deployed the ADK Web UI (from `manifests/adk-web/`):
+## Option A: Via Route (Recommended)
 
-### 1. Get the URL
-
-```bash
-oc get route adk-server -n adk-web -o jsonpath='{.spec.host}'
-```
-
-### 2. Open in Browser
-
-```
-https://<route-host>/dev-ui/
-```
-
-### 3. Select Agent and Test
-
-1. Select **currency_agent** from dropdown
-2. Type: **"What is 100 USD in EUR?"**
-3. Observe the response
-
-Expected result:
-
-```
-100 USD is approximately 92.45 EUR based on the current exchange rate.
-```
-
-## Option B: Direct API Call
-
-### 1. Get the Agent Service
+### 1. Get the Agent Route
 
 ```bash
-oc get svc -n agent-sandbox -l app=currency-agent
+AGENT_URL=$(oc get route currency-agent -n currency-kagenti -o jsonpath='https://{.spec.host}')
+echo "Agent URL: $AGENT_URL"
 ```
 
-### 2. Port Forward
+### 2. Test with A2A Request
 
 ```bash
-oc port-forward svc/currency-agent 8000:8000 -n agent-sandbox
+curl -X POST "$AGENT_URL" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0",
+    "method": "message/send",
+    "id": "1",
+    "params": {
+      "message": {
+        "role": "user",
+        "parts": [{"text": "What is 100 USD in EUR?"}]
+      },
+      "messageId": "test-1"
+    }
+  }'
 ```
 
-### 3. Test with curl
+Expected: JSON response with the conversion result.
+
+---
+
+## Option B: Port Forward
+
+### 1. Port Forward to Agent
+
+```bash
+oc port-forward -n currency-kagenti svc/currency-agent 10000:10000
+```
+
+### 2. Test with curl
 
 In another terminal:
 
 ```bash
-curl -X POST http://localhost:8000/v1/chat \
+curl -X POST http://localhost:10000 \
   -H "Content-Type: application/json" \
   -d '{
-    "messages": [
-      {"role": "user", "content": "What is 100 USD in EUR?"}
-    ]
+    "jsonrpc": "2.0",
+    "method": "message/send",
+    "id": "1",
+    "params": {
+      "message": {
+        "role": "user",
+        "parts": [{"text": "What is 100 USD in EUR?"}]
+      },
+      "messageId": "test-1"
+    }
   }'
 ```
 
-## Option C: Test Pod
+---
+
+## Option C: From Test Pod
 
 ### 1. Create Test Pod
 
 ```bash
-oc run test-curl -n agent-sandbox --rm -it --restart=Never \
-  --image=curlimages/curl -- sh
+oc run test-curl -n currency-kagenti --rm -it --restart=Never \
+  --image=registry.access.redhat.com/ubi9/ubi-minimal:latest -- bash
 ```
 
-### 2. Call Agent Service
+### 2. Install curl and Test
 
 Inside the pod:
 
 ```bash
-curl -X POST http://currency-agent:8000/v1/chat \
+microdnf install -y curl
+
+curl -X POST http://currency-agent.currency-kagenti.svc:10000 \
   -H "Content-Type: application/json" \
   -d '{
-    "messages": [
-      {"role": "user", "content": "What is 100 USD in EUR?"}
-    ]
+    "jsonrpc": "2.0",
+    "method": "message/send",
+    "id": "1",
+    "params": {
+      "message": {
+        "role": "user",
+        "parts": [{"text": "What is 100 USD in EUR?"}]
+      },
+      "messageId": "test-1"
+    }
   }'
 ```
+
+---
 
 ## Test Multiple Currencies
 
@@ -99,52 +121,125 @@ Try these requests:
 
 | Request | Expected Result |
 |---------|-----------------|
-| "100 USD to EUR" |  Works (~92 EUR) |
-| "50 GBP to JPY" |  Works (~9,500 JPY) |
-| "1000 EUR to USD" |  Works (~1,080 USD) |
-| "25 CAD to AUD" |  Works (~25 AUD) |
+| "100 USD to EUR" | ✅ Works (~92 EUR) |
+| "50 GBP to JPY" | ✅ Works (~9,500 JPY) |
+| "1000 EUR to USD" | ✅ Works (~1,080 USD) |
+| "25 CAD to AUD" | ✅ Works (~25 AUD) |
 
-## What's Happening
+---
+
+## Understanding the Flow
 
 ```mermaid
 sequenceDiagram
     participant User
     participant Agent as Currency Agent<br/>(Kata VM)
-    participant Gateway as MCP Gateway
-    participant OPA as OPA Policy
+    participant MCP as MCP Server
     participant API as api.frankfurter.app
     
     User->>Agent: "100 USD to EUR"
-    Agent->>Gateway: get_exchange_rate(USD, EUR)
-    Gateway->>OPA: Authorize
-    OPA-->>Gateway:  Allow (EUR not blocked)
-    Gateway->>API: GET /latest?from=USD&to=EUR
-    API-->>Gateway: {"EUR": 0.9245}
-    Gateway-->>Agent: Rate data
+    Agent->>Agent: Parse with LLM
+    Agent->>MCP: tools/call(get_exchange_rate, USD, EUR)
+    MCP->>API: GET /latest?from=USD&to=EUR
+    API-->>MCP: {"EUR": 0.9245}
+    MCP-->>Agent: Rate result
     Agent-->>User: "100 USD is 92.45 EUR"
 ```
 
-## Layers in Action
+---
 
-For this allowed request:
+## Check Agent Logs
 
-| Layer | Status | Why |
-|-------|--------|-----|
-| **Layer 1 (Kata)** |  Active | Agent runs in VM |
-| **Layer 2 (Egress)** |  Passed | `api.frankfurter.app` is in ServiceEntry |
-| **Layer 3 (Policy)** |  Passed | EUR is not in blocked currency list |
+View what the agent is processing:
 
-## Checkpoint
+```bash
+oc logs -n currency-kagenti deployment/currency-agent --tail=20
+```
+
+Look for:
+- Incoming A2A requests
+- LLM processing
+- MCP tool calls
+- Responses
+
+---
+
+## Check MCP Server Logs
+
+View the tool calls:
+
+```bash
+oc logs -n currency-kagenti deployment/currency-mcp-server --tail=20
+```
+
+Look for:
+- Incoming tools/call requests
+- API calls to frankfurter.app
+- Rate responses
+
+---
+
+## Verification Checklist
 
 Before moving on, confirm:
 
 - [ ] At least one currency conversion works
 - [ ] Response includes the exchange rate
-- [ ] No errors in agent logs: `oc logs -n agent-sandbox -l app=currency-agent`
+- [ ] No errors in agent logs
+- [ ] MCP server is receiving tool calls
+
+```bash
+echo "=== Verification ===" && \
+echo "" && \
+echo "Agent pod running:" && \
+oc get pods -n currency-kagenti -l app.kubernetes.io/name=currency-agent && \
+echo "" && \
+echo "MCP server pod running:" && \
+oc get pods -n currency-kagenti -l app=currency-mcp-server && \
+echo "" && \
+echo "Recent agent logs:" && \
+oc logs -n currency-kagenti deployment/currency-agent --tail=5 2>/dev/null || echo "  Check manually"
+```
+
+---
+
+## Troubleshooting
+
+### No Response / Timeout
+
+```bash
+# Check agent is running
+oc get pods -n currency-kagenti
+
+# Check agent logs for errors
+oc logs -n currency-kagenti deployment/currency-agent --tail=50
+```
+
+### MCP Server Not Responding
+
+```bash
+# Check MCP server
+oc get pods -n currency-kagenti -l app=currency-mcp-server
+
+# Test MCP server directly
+oc exec -n currency-kagenti deployment/currency-agent -- \
+  curl -s http://currency-mcp-server:8080/health
+```
+
+### LLM API Error
+
+```bash
+# Check Gemini API key is set
+oc get secret gemini-api-key -n currency-kagenti
+
+# Check agent env vars
+oc get deployment currency-agent -n currency-kagenti -o yaml | grep GOOGLE_API_KEY
+```
+
+---
 
 ## Next Step
 
-Now let's test what happens when you try to convert to cryptocurrency!
+View the execution traces in Phoenix.
 
-👉 [Step 04: Test Blocked Request](04-test-blocked.md)
-
+👉 [Step 05: Observe Traces](05-observe-traces.md)
