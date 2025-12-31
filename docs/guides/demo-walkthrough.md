@@ -36,13 +36,6 @@ flowchart TD
             end
         end
     end
-    
-    style L1 fill:#CC0000,color:#FFFFFF
-    style L2 fill:#A30000,color:#FFFFFF
-    style L3 fill:#820000,color:#FFFFFF
-    style X2 fill:#6A6A6A,color:#FFFFFF
-    style X3 fill:#6A6A6A,color:#FFFFFF
-    style D fill:#4A4A4A,color:#FFFFFF
 ```
 
 ---
@@ -176,11 +169,6 @@ flowchart TB
         B4["HOST KERNEL<br/>(isolated)"]
         B1 --- B2 --- B3 --- B4
     end
-    
-    style regular fill:#6A6A6A,color:#FFFFFF
-    style kata fill:#CC0000,color:#FFFFFF
-    style A3 fill:#4A4A4A,color:#FFFFFF
-    style B4 fill:#820000,color:#FFFFFF
 ```
 
 **Narrative**: "Even if an LLM generated malicious code that exploited a vulnerability, it would be trapped in the VM. The host and other pods are protected."

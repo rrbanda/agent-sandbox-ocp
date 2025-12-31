@@ -7,7 +7,6 @@
 
 AgentBuild automates **source-to-image** builds using Tekton pipelines. You'll trigger builds for both the MCP Server and the Currency Agent.
 
----
 
 ## How AgentBuild Works
 
@@ -17,12 +16,6 @@ flowchart LR
     B --> C["Tekton executes<br/>pipeline"]
     C --> D["Image pushed<br/>to registry"]
     D --> E["Agent CR<br/>references image"]
-    
-    style A fill:#CC0000,color:#FFFFFF
-    style B fill:#A30000,color:#FFFFFF
-    style C fill:#820000,color:#FFFFFF
-    style D fill:#6A0000,color:#FFFFFF
-    style E fill:#4A0000,color:#FFFFFF
 ```
 
 ### The Build Pipeline
@@ -47,7 +40,6 @@ flowchart LR
 └─────────────────────────────────────────────────────────────────────────┘
 ```
 
----
 
 ## Step 1: Build the MCP Server
 
@@ -87,7 +79,6 @@ spec:
 | `sourceSubfolder` | python/agents/currency-agent/mcp-server | Which folder to build |
 | `imageRegistry` | quay.io/rbrhssa | Where to push the image |
 
----
 
 ## Step 2: Build the Currency Agent
 
@@ -123,7 +114,6 @@ spec:
     - **MCP Server**: Has a Dockerfile → uses Buildah
     - **Currency Agent**: No Dockerfile → uses Buildpacks (auto-detect Python)
 
----
 
 ## Step 3: Watch the Builds
 
@@ -168,7 +158,6 @@ oc get agentbuild -n currency-kagenti
 oc describe agentbuild currency-agent-build -n currency-kagenti
 ```
 
----
 
 ## Step 4: Verify Images
 
@@ -185,7 +174,6 @@ currency-mcp-server-build: quay.io/rbrhssa/currency-mcp-server:v1.0.0
 currency-agent-build: quay.io/rbrhssa/currency-agent:v1.0.0
 ```
 
----
 
 ## Troubleshooting Builds
 
@@ -223,20 +211,18 @@ oc get secret quay-registry-secret -n currency-kagenti
 oc get serviceaccount pipeline -n currency-kagenti -o yaml | grep quay
 ```
 
----
 
 ## Summary
 
 You've now:
 
-- ✅ Triggered AgentBuild for MCP Server
-- ✅ Triggered AgentBuild for Currency Agent
-- ✅ Watched pipelines complete
-- ✅ Verified images in registry
+-  Triggered AgentBuild for MCP Server
+-  Triggered AgentBuild for Currency Agent
+-  Watched pipelines complete
+-  Verified images in registry
 
 Both images are now ready for deployment.
 
----
 
 ## Next
 

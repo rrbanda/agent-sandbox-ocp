@@ -23,13 +23,6 @@ flowchart TD
             end
         end
     end
-    
-    style L1 fill:#CC0000,color:#FFFFFF
-    style L2 fill:#A30000,color:#FFFFFF
-    style L3 fill:#820000,color:#FFFFFF
-    style X2 fill:#6A6A6A,color:#FFFFFF
-    style X3 fill:#6A6A6A,color:#FFFFFF
-    style D fill:#4A4A4A,color:#FFFFFF
 ```
 
 ---

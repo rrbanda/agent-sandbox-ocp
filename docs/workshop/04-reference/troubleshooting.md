@@ -2,7 +2,6 @@
 
 Common issues and solutions for the workshop.
 
----
 
 ## Build Issues
 
@@ -29,7 +28,6 @@ oc get configmap pipeline-template-dev -n currency-kagenti
 oc get secrets -n currency-kagenti
 ```
 
----
 
 ### PipelineRun Fails
 
@@ -65,7 +63,6 @@ oc get taskruns -n currency-kagenti
      system:serviceaccount:currency-kagenti:pipeline
    ```
 
----
 
 ## Deployment Issues
 
@@ -102,7 +99,6 @@ EOF
 oc get kataconfig -w
 ```
 
----
 
 ### Kata Pod OOM Killed
 
@@ -118,7 +114,6 @@ resources:
     memory: "1Gi"
 ```
 
----
 
 ### Agent Can't Connect to MCP Server
 
@@ -143,7 +138,6 @@ oc exec -n currency-kagenti deployment/currency-agent -- \
 oc rollout restart deployment/currency-mcp-server -n currency-kagenti
 ```
 
----
 
 ## Security Issues
 
@@ -188,7 +182,6 @@ oc patch istio default -n istio-system --type=merge -p '
 }'
 ```
 
----
 
 ### 502 Bad Gateway
 
@@ -215,7 +208,6 @@ spec:
 EOF
 ```
 
----
 
 ## ADK Web UI Issues
 
@@ -244,7 +236,6 @@ oc create secret generic gemini-api-key \
 oc rollout restart deployment/adk-server -n adk-web
 ```
 
----
 
 ## Useful Commands
 

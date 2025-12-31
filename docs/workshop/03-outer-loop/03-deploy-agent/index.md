@@ -7,7 +7,6 @@
 
 Now that images are built, you'll deploy the Currency Agent and MCP Server to the cluster with **Kata VM isolation**.
 
----
 
 ## What You'll Deploy
 
@@ -18,7 +17,6 @@ Now that images are built, you'll deploy the Currency Agent and MCP Server to th
 | Currency Agent | Agent CR | The ADK agent running in Kata VM |
 | Route | External access | Exposes agent for testing |
 
----
 
 ## Step 1: Deploy MCP Server
 
@@ -47,7 +45,6 @@ oc get pods -n currency-kagenti -l app=currency-mcp-server
 oc get svc currency-mcp-server -n currency-kagenti
 ```
 
----
 
 ## Step 2: Deploy Currency Agent
 
@@ -97,7 +94,6 @@ spec:
 | `GOOGLE_API_KEY` | From secret for LLM access |
 | `MCP_SERVER_URL` | Points to MCP Server in same namespace |
 
----
 
 ## Step 3: Verify Kata Isolation
 
@@ -124,7 +120,6 @@ oc describe pod -n currency-kagenti -l app=currency-agent | grep -i runtime
 oc debug node/<node-name> -- chroot /host crictl ps | grep currency-agent
 ```
 
----
 
 ## Step 4: Expose Agent Externally
 
@@ -140,7 +135,6 @@ AGENT_URL=$(oc get route currency-agent -n currency-kagenti \
 echo "Agent URL: $AGENT_URL"
 ```
 
----
 
 ## Step 5: Test the Agent
 
@@ -183,7 +177,6 @@ curl -X POST "$AGENT_URL" \
 }
 ```
 
----
 
 ## Step 6: Test Cryptocurrency (No Policy Yet)
 
@@ -210,7 +203,6 @@ curl -X POST "$AGENT_URL" \
 !!! warning "BTC Works Now"
     The agent can currently convert to cryptocurrency. After security hardening, this will be blocked.
 
----
 
 ## Troubleshooting
 
@@ -250,19 +242,17 @@ oc get nodes -l node-role.kubernetes.io/kata-oc
 # If no nodes labeled, kata is not configured
 ```
 
----
 
 ## Summary
 
 You've now:
 
-- ✅ Deployed MCP Server
-- ✅ Deployed Currency Agent in Kata VM
-- ✅ Verified Kata isolation
-- ✅ Tested agent functionality
+-  Deployed MCP Server
+-  Deployed Currency Agent in Kata VM
+-  Verified Kata isolation
+-  Tested agent functionality
 - ⚠️ Noted that crypto still works (no policy yet)
 
----
 
 ## Next
 

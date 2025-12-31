@@ -1,4 +1,4 @@
-site_name: AI Agent Sandbox on OpenShift
+site_name: Securing Code First Agents on OpenShift
 site_description: A hands-on workshop for securing AI agents with VM isolation, network control, and policy enforcement
 site_url: https://rrbanda.github.io/agent-sandbox-ocp
 repo_url: https://github.com/rrbanda/agent-sandbox-ocp
@@ -79,6 +79,9 @@ markdown_extensions:
   - attr_list
   - md_in_html
   - tables
+
+extra_css:
+  - stylesheets/extra.css
 
 extra:
   social:

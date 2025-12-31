@@ -132,9 +132,9 @@ In the Currency Agent example, the policy validates the **tool call arguments**:
 
 | Request | Validation | Result |
 |---------|------------|--------|
-| `get_exchange_rate(USD, EUR)` | Both in allowed list | ✅ Allow |
-| `get_exchange_rate(USD, BTC)` | BTC is blocked | ❌ Deny |
-| `get_exchange_rate(ETH, USD)` | ETH is blocked | ❌ Deny |
+| `get_exchange_rate(USD, EUR)` | Both in allowed list |  Allow |
+| `get_exchange_rate(USD, BTC)` | BTC is blocked |  Deny |
+| `get_exchange_rate(ETH, USD)` | ETH is blocked |  Deny |
 
 The policy runs **before** the MCP server executes the tool.
 

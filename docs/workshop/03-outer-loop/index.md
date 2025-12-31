@@ -1,11 +1,29 @@
 # Part 3: Outer Loop
 
-**Duration**: 60 minutes  
-**Persona**: 👷 Platform Admin + 👩‍💻 Developer
+**Duration**: 60 minutes | **Persona**: 👷 Platform Admin + 👩‍💻 Developer
 
-## Overview
+## Now We Make It Real. And Make It Safe.
 
-The outer loop is where you **build, deploy, secure, and monitor** the agent in production. This is where OpenShift's value really shines.
+Your agent works. You've tested it in the inner loop. It converts currencies correctly and handles edge cases gracefully.
+
+Now it's time to deploy it properly—with the security layers that will let you sleep at night.
+
+The outer loop is where agents go from "working on my machine" to "running securely in production."
+
+---
+
+## What Changes in the Outer Loop
+
+| Inner Loop | Outer Loop |
+|------------|------------|
+| Runs in development environment | Runs in Kata VM (hardware isolated) |
+| Can call any API | Can only call approved APIs (Istio egress) |
+| No policy enforcement | Every tool call validated (OPA) |
+| "I tested it" | "I can prove it's secure" |
+
+---
+
+## The Journey
 
 ```mermaid
 flowchart LR
@@ -25,144 +43,97 @@ flowchart LR
     
     A --> B --> C --> D --> E
     E -.->|"Continuous<br/>improvement"| B
-    
-    style A fill:#CC0000,color:#FFFFFF
-    style B fill:#A30000,color:#FFFFFF
-    style C fill:#820000,color:#FFFFFF
-    style D fill:#6A0000,color:#FFFFFF
-    style E fill:#4A0000,color:#FFFFFF
 ```
 
----
+## Sections
 
-## What You'll Do
-
-| Section | Persona | Duration | Activities |
-|---------|---------|----------|------------|
-| [1. Platform Setup](01-platform-setup/index.md) | 👷 Admin | 15 min | Create namespace, configure pipelines |
-| [2. Build with AgentBuild](02-build-with-agentbuild/index.md) | 👩‍💻 Developer | 15 min | Trigger source-to-image build |
-| [3. Deploy Agent](03-deploy-agent/index.md) | 👩‍💻 Developer | 15 min | Deploy in Kata VM, verify isolation |
+| Section | Persona | Duration | What You'll Do |
+|---------|---------|----------|----------------|
+| [1. Platform Setup](01-platform-setup/index.md) | 👷 Admin | 15 min | Create namespace, configure pipelines, set up secrets |
+| [2. Build with AgentBuild](02-build-with-agentbuild/index.md) | 👩‍💻 Developer | 15 min | Trigger source-to-image builds |
+| [3. Deploy Agent](03-deploy-agent/index.md) | 👩‍💻 Developer | 15 min | Deploy in Kata VM, expose endpoint |
 | [4. Security Hardening](04-security-hardening/index.md) | 👷 Admin | 10 min | Add egress control, OPA policies |
-| [5. Monitor & Tune](05-monitor-and-tune/index.md) | 👥 Both | 5 min | View traces, analyze behavior |
+| [5. Monitor & Tune](05-monitor-and-tune/index.md) | 👥 Both | 5 min | View traces, verify security |
 
 ---
 
-## YAML Manifests Used
+## Why This Order?
 
-This section uses all the manifests in `manifests/currency-kagenti/`:
+We intentionally deploy the agent **before** applying security policies.
+
+| Step | Why |
+|------|-----|
+| **Deploy first** | Verify the agent works in the cluster |
+| **Then add security** | See what changes when policies are applied |
+| **Test before/after** | Prove that security is actually blocking things |
+
+This approach means when you test "Convert USD to BTC" and it fails, you know:
+- It's not a bug (it worked before security was applied)
+- Security is working correctly
+
+---
+
+## YAML Manifests
+
+All manifests are in `manifests/currency-kagenti/`:
 
 ```
 manifests/currency-kagenti/
 ├── platform/                   # 👷 Platform Admin
-│   ├── 00-namespace.yaml       # Create namespace
-│   ├── 00b-rbac-scc.yaml       # Pipeline permissions
-│   └── 01-pipeline-template.yaml # Build pipeline config
+│   ├── 00-namespace.yaml       
+│   ├── 00b-rbac-scc.yaml       
+│   └── 01-pipeline-template.yaml 
 │
 ├── agent/                      # 👩‍💻 Developer
-│   ├── 02-mcp-server-build.yaml    # AgentBuild: MCP server
-│   ├── 03-currency-agent-build.yaml # AgentBuild: Agent
-│   ├── 04-mcp-server-deploy.yaml   # Deploy MCP server
-│   ├── 04b-mcp-httproute.yaml      # MCP Gateway routing
-│   ├── 04c-mcpserver.yaml          # MCPServer CR
-│   ├── 05-currency-agent.yaml      # Agent CR (Kata)
-│   └── 06-route.yaml               # External access
+│   ├── 02-mcp-server-build.yaml    
+│   ├── 03-currency-agent-build.yaml 
+│   ├── 04-mcp-server-deploy.yaml   
+│   ├── 04b-mcp-httproute.yaml      
+│   ├── 04c-mcpserver.yaml          
+│   ├── 05-currency-agent.yaml      
+│   └── 06-route.yaml               
 │
 └── security/                   # 👷 Platform Admin
-    ├── 01-service-entry.yaml   # Istio egress control
-    └── 02-authpolicy.yaml      # OPA tool policy
-```
-
----
-
-## Deployment Order
-
-```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                     OUTER LOOP DEPLOYMENT ORDER                          │
-├─────────────────────────────────────────────────────────────────────────┤
-│                                                                         │
-│   STEP 1: Platform Setup (👷 Admin)                                      │
-│   ─────────────────────────────────                                      │
-│   oc apply -f platform/00-namespace.yaml                                │
-│   oc apply -f platform/00b-rbac-scc.yaml                                │
-│   oc apply -f platform/01-pipeline-template.yaml                        │
-│   + Create secrets (GitHub, Gemini, Registry)                           │
-│                                                                         │
-│   STEP 2: Build Images (👩‍💻 Developer)                                   │
-│   ─────────────────────────────────                                      │
-│   oc apply -f agent/02-mcp-server-build.yaml    # Start MCP build       │
-│   oc apply -f agent/03-currency-agent-build.yaml # Start Agent build    │
-│   oc get pipelineruns -w                        # Watch builds          │
-│                                                                         │
-│   STEP 3: Deploy Components (👩‍💻 Developer)                              │
-│   ─────────────────────────────────────                                  │
-│   oc apply -f agent/04-mcp-server-deploy.yaml   # Deploy MCP server     │
-│   oc apply -f agent/04b-mcp-httproute.yaml      # Configure routing     │
-│   oc apply -f agent/05-currency-agent.yaml      # Deploy agent          │
-│   oc apply -f agent/06-route.yaml               # Expose externally     │
-│                                                                         │
-│   STEP 4: Test (👩‍💻 Developer)                                           │
-│   ─────────────────────                                                  │
-│   Verify agent works, test currency conversions                         │
-│   At this point: BTC/ETH still ALLOWED (no policy yet)                  │
-│                                                                         │
-│   STEP 5: Security Hardening (👷 Admin)                                  │
-│   ────────────────────────────────────                                   │
-│   oc apply -f security/01-service-entry.yaml    # Egress control        │
-│   oc apply -f security/02-authpolicy.yaml       # OPA policy            │
-│                                                                         │
-│   STEP 6: Verify Security (👩‍💻 Developer)                                │
-│   ───────────────────────────────────                                    │
-│   Test BTC/ETH conversion → Should be BLOCKED                           │
-│   Test USD/EUR conversion → Should still work                           │
-│                                                                         │
-└─────────────────────────────────────────────────────────────────────────┘
+    ├── 01-service-entry.yaml   
+    └── 02-authpolicy.yaml      
 ```
 
 ---
 
 ## Prerequisites
 
-Before starting, ensure:
+Before starting:
 
-- [ ] **Module 01 (Foundations)** completed
-- [ ] **Module 02 (Inner Loop)** completed
+- [ ] Part 1 (Foundations) completed
+- [ ] Part 2 (Inner Loop) completed
 - [ ] OpenShift cluster access with admin privileges
 - [ ] `oc` CLI installed and logged in
-- [ ] Access to a container registry (Quay.io or OpenShift internal)
-
-Verify:
 
 ```bash
-# Check you're logged in
+# Verify you're logged in
 oc whoami
 
-# Check cluster access
-oc get nodes
-
-# Check Kagenti is installed
+# Verify Kagenti is installed
 oc get crd agents.agent.kagenti.dev
 ```
 
 ---
 
-## Why This Order?
+## The Transformation
 
-| Step | Why This Order |
-|------|----------------|
-| **Platform first** | Creates namespace and pipeline infrastructure |
-| **Build before deploy** | Need images before deploying |
-| **Deploy before secure** | Want to verify agent works first |
-| **Security last** | Apply policies after confirming baseline functionality |
+By the end of this part:
 
-This approach lets you:
-1. **See the agent work** without restrictions
-2. **Understand what security adds** by testing before/after
-3. **Troubleshoot easily** (fewer variables at each step)
+| Before | After |
+|--------|-------|
+| Agent runs in regular container | Agent runs in Kata VM |
+| Can reach any external API | Can only reach api.frankfurter.app |
+| Can convert to any currency | Crypto conversions blocked by policy |
+| No production visibility | Full traces in Phoenix |
 
 ---
 
-## Let's Begin
+## Let's Deploy
 
-👉 [Section 1: Platform Setup](01-platform-setup/index.md)
+Time to take your agent to production—securely.
 
+👉 **[Section 1: Platform Setup](01-platform-setup/index.md)**

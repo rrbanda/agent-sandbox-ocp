@@ -10,7 +10,6 @@ Now that the agent is deployed and working, you'll add the remaining security la
 - **Layer 2**: Istio egress control (restrict external API access)
 - **Layer 3**: OPA tool policy (block cryptocurrency conversions)
 
----
 
 ## Why Harden After Deployment?
 
@@ -25,7 +24,6 @@ By hardening after deployment, you:
 2. **Apply targeted controls** - Know exactly what you're restricting
 3. **Verify the difference** - Test before and after
 
----
 
 ## Step 1: Apply Egress Control (Layer 2)
 
@@ -62,7 +60,6 @@ spec:
 | `generativelanguage.googleapis.com` | Gemini LLM API |
 | **Everything else** | **BLOCKED by default** |
 
----
 
 ## Step 2: Apply OPA Policy (Layer 3)
 
@@ -105,10 +102,9 @@ spec:
 
 | Currency | Status |
 |----------|--------|
-| USD, EUR, GBP, JPY | ✅ Allowed |
-| BTC, ETH, DOGE, XRP, SOL, ADA | ❌ Blocked |
+| USD, EUR, GBP, JPY |  Allowed |
+| BTC, ETH, DOGE, XRP, SOL, ADA |  Blocked |
 
----
 
 ## Step 3: Verify Security is Applied
 
@@ -132,7 +128,6 @@ oc get authpolicy -n currency-kagenti
 oc describe authpolicy block-crypto-policy -n currency-kagenti
 ```
 
----
 
 ## Step 4: Test Blocked Operations
 
@@ -180,7 +175,6 @@ The agent should indicate it cannot complete the request:
 
 Or you might see an HTTP 403 error in the tool call.
 
----
 
 ## Step 5: Test Allowed Operations (Should Still Work)
 
@@ -219,7 +213,6 @@ curl -X POST "$AGENT_URL" \
 }
 ```
 
----
 
 ## Security Layers Summary
 
@@ -230,17 +223,17 @@ All three layers are now active:
 │                    Defense in Depth - ACTIVE                             │
 ├─────────────────────────────────────────────────────────────────────────┤
 │                                                                         │
-│   Layer 1: Kata VM Isolation                              ✅ ACTIVE     │
+│   Layer 1: Kata VM Isolation                               ACTIVE     │
 │   ─────────────────────────────────────────────────────────────────     │
 │   Agent runs in isolated micro-VM                                       │
 │   Configured in: agent/05-currency-agent.yaml                           │
 │                                                                         │
-│   Layer 2: Istio Egress Control                           ✅ ACTIVE     │
+│   Layer 2: Istio Egress Control                            ACTIVE     │
 │   ─────────────────────────────────────────────────────────────────     │
 │   Only frankfurter.app and googleapis.com allowed                       │
 │   Configured in: security/01-service-entry.yaml                         │
 │                                                                         │
-│   Layer 3: OPA Tool Policy                                ✅ ACTIVE     │
+│   Layer 3: OPA Tool Policy                                 ACTIVE     │
 │   ─────────────────────────────────────────────────────────────────     │
 │   Cryptocurrency conversions blocked                                    │
 │   Configured in: security/02-authpolicy.yaml                            │
@@ -248,20 +241,18 @@ All three layers are now active:
 └─────────────────────────────────────────────────────────────────────────┘
 ```
 
----
 
 ## Summary
 
 You've now:
 
-- ✅ Applied Istio egress control (Layer 2)
-- ✅ Applied OPA tool policy (Layer 3)
-- ✅ Tested that BTC/ETH is blocked
-- ✅ Verified that USD/EUR still works
+-  Applied Istio egress control (Layer 2)
+-  Applied OPA tool policy (Layer 3)
+-  Tested that BTC/ETH is blocked
+-  Verified that USD/EUR still works
 
 All three security layers are now protecting the agent!
 
----
 
 ## Next
 

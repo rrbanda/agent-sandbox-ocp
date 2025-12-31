@@ -2,8 +2,6 @@
 
 **Duration**: 10 minutes
 
-## From SDLC to ADLC
-
 In traditional software development, the **Software Development Lifecycle (SDLC)** provides a structured approach to building applications. The **Agent Development Lifecycle (ADLC)** extends this for autonomous agents.
 
 | SDLC | ADLC |
@@ -12,8 +10,6 @@ In traditional software development, the **Software Development Lifecycle (SDLC)
 | Test for correctness | Test for alignment and robustness |
 | Deploy and monitor | Deploy, monitor, and continuously tune |
 | Static after deployment | Learns and adapts over time |
-
----
 
 ## The Five Phases of ADLC
 
@@ -30,12 +26,6 @@ flowchart LR
     end
     
     C --> D
-    
-    style A fill:#CC0000,color:#FFFFFF
-    style B fill:#A30000,color:#FFFFFF
-    style C fill:#820000,color:#FFFFFF
-    style D fill:#6A0000,color:#FFFFFF
-    style E fill:#4A0000,color:#FFFFFF
 ```
 
 | Phase | Activities | Output |
@@ -45,8 +35,6 @@ flowchart LR
 | **3. Testing & Validation** | Unit tests, E2E tests, adversarial tests | Validated agent |
 | **4. Deployment & Release** | Build image, deploy to cluster, configure security | Running agent |
 | **5. Monitoring & Tuning** | Observe traces, analyze behavior, refine | Improved agent |
-
----
 
 ## Inner Loop vs Outer Loop
 
@@ -79,8 +67,6 @@ The inner loop is where you **develop and test rapidly**. The goal is quick feed
 
 **In this workshop**, you use the **ADK Web UI deployed on the cluster** for inner loop testing—no local setup required.
 
----
-
 ### Outer Loop: Production Lifecycle
 
 The outer loop is where you **deploy, secure, and continuously improve** the agent.
@@ -107,8 +93,6 @@ The outer loop is where you **deploy, secure, and continuously improve** the age
 └─────────────────────────────────────────────────────────────────────────┘
 ```
 
----
-
 ## Persona Responsibilities
 
 ### 👩‍💻 Agent Developer
@@ -128,8 +112,6 @@ The outer loop is where you **deploy, secure, and continuously improve** the age
 | **Security** | Configure Kata runtime, Istio egress, OPA policies |
 | **Governance** | Define allowed APIs, blocked operations |
 | **Operations** | Monitor cluster health, update policies |
-
----
 
 ## Workshop Flow Mapped to ADLC
 
@@ -163,8 +145,6 @@ The outer loop is where you **deploy, secure, and continuously improve** the age
 └─────────────────────────────────────────────────────────────────────────┘
 ```
 
----
-
 ## YAML Manifests by Phase
 
 | ADLC Phase | YAML Files | Who Applies |
@@ -175,8 +155,6 @@ The outer loop is where you **deploy, secure, and continuously improve** the age
 | **Secure** | `security/01-service-entry.yaml`<br>`security/02-authpolicy.yaml` | 👷 Admin |
 | **Monitor** | (No YAML—use Phoenix UI) | 👥 Both |
 
----
-
 ## Key Takeaways
 
 1. **ADLC extends SDLC** for non-deterministic agent behavior
@@ -184,10 +162,6 @@ The outer loop is where you **deploy, secure, and continuously improve** the age
 3. **Outer loop** = production lifecycle with security hardening
 4. **Two personas**: Developers build, Admins secure
 5. **Continuous improvement**: Monitor, learn, tune
-
----
-
-## Next
 
 👉 [Chapter 4: Technology Stack](04-technology-stack.md)
 

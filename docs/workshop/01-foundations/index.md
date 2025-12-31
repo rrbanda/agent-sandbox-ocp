@@ -1,13 +1,21 @@
 # Part 1: Foundations
 
-**Duration**: 30 minutes  
-**Persona**: 👥 Everyone
+**Duration**: 30 minutes | **Persona**: 👥 Everyone
 
-## Overview
+## Before You Can Solve a Problem, You Need to Understand It
 
-Before building and deploying agents, you need to understand **why** they require special security considerations and **how** this workshop addresses them.
+AI agents aren't chatbots. They don't just answer questions—they take actions. They call APIs. They execute code. They make decisions.
 
-Read these concepts in order—they build on each other.
+That changes everything about security.
+
+Traditional application security assumes predictable behavior: code is written by humans, inputs are structured, outputs are deterministic. Agents break all three assumptions.
+
+**In this part, you'll understand:**
+
+- Why agents create new security challenges
+- How defense in depth protects against these threats
+- The agent development lifecycle (inner loop vs outer loop)
+- The technology stack that makes it all work
 
 ---
 
@@ -18,51 +26,45 @@ flowchart LR
     A["1. Why Agents<br/>Need Security"] --> B["2. Defense<br/>in Depth"]
     B --> C["3. Agent Development<br/>Lifecycle"]
     C --> D["4. Technology<br/>Stack"]
-    
-    style A fill:#CC0000,color:#FFFFFF
-    style B fill:#A30000,color:#FFFFFF
-    style C fill:#820000,color:#FFFFFF
-    style D fill:#6A0000,color:#FFFFFF
 ```
-
----
 
 ## Chapters
 
 | # | Chapter | Duration | What You'll Learn |
 |---|---------|----------|-------------------|
-| 1 | [Why Agents Need Security](01-why-agents-need-security.md) | 5 min | How agents differ from traditional apps; unique threat vectors |
-| 2 | [Defense in Depth](02-defense-in-depth.md) | 10 min | The three-layer protection model (Kata, Istio, OPA) |
-| 3 | [Agent Development Lifecycle](03-adlc-inner-outer-loop.md) | 10 min | Inner loop vs outer loop; persona responsibilities |
+| 1 | [Why Agents Need Security](01-why-agents-need-security.md) | 5 min | How agents differ from traditional apps; the three threat vectors |
+| 2 | [Defense in Depth](02-defense-in-depth.md) | 10 min | The three-layer protection model (VM, Network, Policy) |
+| 3 | [Agent Development Lifecycle](03-adlc-inner-outer-loop.md) | 10 min | Inner loop vs outer loop; who does what |
 | 4 | [Technology Stack](04-technology-stack.md) | 5 min | Google ADK, Kagenti, OpenShift components |
 
 ---
 
-## Key Concepts Summary
+## By the End of This Part
 
-By the end of this section, you'll understand:
+You'll be able to answer:
 
-| Concept | Summary |
-|---------|---------|
-| **The Problem** | AI agents take actions, not just respond—they can execute code, call APIs, and make decisions |
-| **The Solution** | Defense in depth with three independent security layers |
-| **Inner Loop** | Fast iteration cycle: write code → test on cluster → refine |
-| **Outer Loop** | Production cycle: build → deploy → secure → monitor → tune |
-| **Your Role** | Platform Admins configure security; Developers build and deploy agents |
+| Question | You'll Know |
+|----------|-------------|
+| *"Why can't I just use regular containers?"* | Agents can generate code that escapes containers |
+| *"What's defense in depth?"* | Three independent layers, each works if others fail |
+| *"What's the inner loop vs outer loop?"* | Fast iteration locally → production deployment securely |
+| *"What technologies are involved?"* | ADK for agents, Kagenti for deployment, Kata/Istio/OPA for security |
 
 ---
 
-## Prerequisites
+## Skip Ahead?
 
-Before starting the workshop modules, ensure you understand these concepts. If you're already familiar with:
+If you're already familiar with these concepts:
 
-- Why AI agents need special security → Skip to [Defense in Depth](02-defense-in-depth.md)
-- Defense in depth models → Skip to [Agent Development Lifecycle](03-adlc-inner-outer-loop.md)
-- ADLC and inner/outer loops → Skip to [Technology Stack](04-technology-stack.md)
+- Know why agents need special security? → [Skip to Defense in Depth](02-defense-in-depth.md)
+- Understand defense in depth? → [Skip to Agent Development Lifecycle](03-adlc-inner-outer-loop.md)
+- Know ADLC and inner/outer loops? → [Skip to Technology Stack](04-technology-stack.md)
+- Ready to build? → [Jump to Part 2: Inner Loop](../02-inner-loop/index.md)
 
 ---
 
 ## Let's Begin
 
-👉 [Chapter 1: Why Agents Need Security](01-why-agents-need-security.md)
+The first step is understanding why agents are different—and why that matters.
 
+👉 **[Chapter 1: Why Agents Need Security](01-why-agents-need-security.md)**

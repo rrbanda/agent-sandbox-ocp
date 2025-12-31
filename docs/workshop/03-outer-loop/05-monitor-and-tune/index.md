@@ -1,55 +1,42 @@
 # Section 5: Monitor & Tune
 
-**Duration**: 5 minutes  
-**Persona**: 👥 Both (Platform Admin + Developer)
+**Duration**: 5 minutes | **Persona**: 👥 Both (Platform Admin + Developer)
 
-## Overview
+## The Journey Continues
 
-The outer loop doesn't end at deployment. **Monitoring and tuning** is an ongoing process where you observe agent behavior and continuously improve.
+Deployment isn't the finish line—it's the starting point for continuous improvement.
+
+Monitoring tells you how your agent behaves in the real world. Tuning makes it better over time.
 
 ---
 
 ## Observability Stack
 
-Kagenti provides observability through:
+Kagenti provides built-in observability:
 
-| Component | Purpose |
-|-----------|---------|
-| **Phoenix** | Trace visualization and analysis |
-| **OpenTelemetry** | Distributed tracing |
-| **Authorino Logs** | Policy decision audit trail |
+| Component | What It Shows |
+|-----------|---------------|
+| **Phoenix** | Visual traces of agent interactions |
+| **OpenTelemetry** | Distributed tracing across services |
+| **Authorino Logs** | Audit trail of every policy decision |
 
 ---
 
 ## Step 1: View Traces in Phoenix
 
-### Access Phoenix UI
+### Access Phoenix
 
 ```bash
-# Get Phoenix URL
-PHOENIX_URL=$(oc get route phoenix -n kagenti-system \
-  -o jsonpath='https://{.spec.host}')
-echo "Phoenix URL: $PHOENIX_URL"
+# Get the Phoenix URL
+PHOENIX_URL=$(oc get route phoenix -n kagenti-system -o jsonpath='https://{.spec.host}')
+echo "Phoenix UI: $PHOENIX_URL"
 ```
 
 Open the URL in your browser.
 
 ### What You'll See
 
-Phoenix shows:
-- **Request timeline** - Each agent interaction
-- **Trace details** - LLM calls, tool invocations, latency
-- **Span breakdown** - Individual steps in the request
-
----
-
-## Step 2: Analyze Agent Behavior
-
-### View a Single Trace
-
-1. Find a recent trace in Phoenix
-2. Click to expand
-3. Review the spans:
+Every agent interaction is traced:
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
@@ -59,34 +46,31 @@ Phoenix shows:
 │  ▼ currency-agent (1.5s)                                                │
 │    │                                                                    │
 │    ├─ LLM: gemini-2.0-flash-exp (0.4s)                                  │
-│    │   Tokens: 150 input, 50 output                                     │
 │    │   Decision: Call get_exchange_rate                                 │
 │    │                                                                    │
 │    ├─ Tool: get_exchange_rate (0.6s)                                    │
-│    │   Arguments: {currency_from: "USD", currency_to: "EUR"}            │
+│    │   Args: {currency_from: "USD", currency_to: "EUR"}                 │
 │    │   Result: {rate: 0.9245}                                           │
 │    │                                                                    │
 │    └─ LLM: Response Generation (0.5s)                                   │
-│        Tokens: 80 input, 100 output                                     │
-│        Response: "100 USD is approximately 92.45 EUR"                   │
+│        Output: "100 USD is approximately 92.45 EUR"                     │
 │                                                                         │
 └─────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## Step 3: Review Policy Decisions
+## Step 2: Review Policy Decisions
 
 ### Check Authorino Logs
 
-For blocked requests, view Authorino logs:
+For blocked requests, see exactly why:
 
 ```bash
-# View Authorino logs
 oc logs -n kuadrant-system -l app=authorino -c authorino --tail=50
 ```
 
-### Look For
+### Example Blocked Request
 
 ```json
 {
@@ -95,80 +79,37 @@ oc logs -n kuadrant-system -l app=authorino -c authorino --tail=50
   "authorized": false,
   "reason": "denied by opa policy",
   "policy": "block-crypto-policy",
-  "request_path": "/mcp",
   "currency_to": "BTC"
 }
 ```
 
+**This is exactly what you want to see.** Security is working.
+
 ---
 
-## Step 4: Key Metrics to Monitor
+## Step 3: Key Metrics to Watch
 
-### Agent Performance
+### Performance
 
 | Metric | Good | Warning | Action |
 |--------|------|---------|--------|
 | **Response time** | < 2s | 2-5s | Check LLM latency |
 | **Tool call latency** | < 1s | 1-3s | Check external API |
 | **Error rate** | < 1% | 1-5% | Review error logs |
-| **Token usage** | As expected | Spike | Check prompt efficiency |
 
 ### Security
 
-| Metric | Monitor For |
-|--------|-------------|
-| **Blocked requests** | Crypto conversion attempts |
-| **Egress denials** | Unauthorized API calls |
-| **Policy violations** | Unusual patterns |
+| What to Monitor | Why |
+|-----------------|-----|
+| **Blocked requests** | Confirms policies are working |
+| **Egress denials** | Catches unauthorized API attempts |
+| **Unusual patterns** | Early warning of attacks |
 
 ---
 
-## Step 5: Tuning the Agent
+## Step 4: Continuous Improvement
 
-Based on monitoring, you might need to:
-
-### Improve Response Quality
-
-```python
-# Before: Generic instruction
-instruction="Help with currency conversions"
-
-# After: More specific
-instruction="""You are a currency conversion assistant.
-
-When users ask for conversions:
-1. Use the get_exchange_rate tool
-2. Always show the formula: amount × rate = result
-3. Mention the date of the rate
-4. Offer to do more conversions"""
-```
-
-### Optimize Performance
-
-```yaml
-# Adjust resource limits if needed
-resources:
-  limits:
-    memory: "2Gi"    # Increase if OOM
-    cpu: "1"         # Increase if slow
-  requests:
-    memory: "1Gi"
-    cpu: "500m"
-```
-
-### Refine Policies
-
-```rego
-# Add more blocked currencies if needed
-blocked_currencies := [
-  "BTC", "ETH", "DOGE", "XRP", "SOL",
-  "ADA", "DOT", "MATIC", "SHIB", "AVAX"  # Added more
-]
-```
-
----
-
-## The Continuous Loop
+The feedback loop never stops:
 
 ```mermaid
 flowchart LR
@@ -177,44 +118,65 @@ flowchart LR
     C --> D["Update Agent<br/>or Policy"]
     D --> E["Deploy Changes"]
     E --> A
-    
-    style A fill:#CC0000,color:#FFFFFF
-    style B fill:#A30000,color:#FFFFFF
-    style C fill:#820000,color:#FFFFFF
-    style D fill:#6A0000,color:#FFFFFF
-    style E fill:#4A0000,color:#FFFFFF
 ```
-
----
-
-## Summary
-
-You've completed the outer loop:
-
-- ✅ **Platform Setup** - Namespace, pipelines, secrets
-- ✅ **Build** - AgentBuild for source-to-image
-- ✅ **Deploy** - Agent in Kata VM
-- ✅ **Secure** - Egress control + OPA policy
-- ✅ **Monitor** - Phoenix traces, policy logs
 
 ---
 
 ## Workshop Complete! 🎉
 
-Congratulations! You've successfully:
+**You did it.**
 
-1. **Understood** why AI agents need special security (Foundations)
-2. **Tested** the agent in ADK Web UI (Inner Loop)
-3. **Built** images with AgentBuild (Outer Loop)
-4. **Deployed** the agent with Kata VM isolation (Outer Loop)
-5. **Secured** with egress control and OPA policies (Outer Loop)
-6. **Monitored** with Phoenix traces (Outer Loop)
+You've gone from "I have an AI agent" to "I have a secured, observable, production-ready AI agent."
+
+---
+
+## What You've Accomplished
+
+| Phase | What You Did | Outcome |
+|-------|--------------|---------|
+| **Foundations** | Understood why agents need special security | Clarity on the threat model |
+| **Inner Loop** | Built and tested the Currency Agent | Working, validated agent |
+| **Platform Setup** | Created namespace, pipelines, secrets | Infrastructure ready |
+| **Build** | Used AgentBuild for source-to-image | Production container images |
+| **Deploy** | Deployed with Kata VM isolation | Hardware-level protection |
+| **Secure** | Applied egress control + OPA policies | Defense in depth active |
+| **Monitor** | Set up Phoenix traces | Full observability |
+
+---
+
+## The Transformation
+
+| Before This Workshop | After This Workshop |
+|---------------------|---------------------|
+| "I hope my agent is secure" | "I can prove it's secure" |
+| "I don't know what it's doing" | "I can trace every action" |
+| "What if someone exploits it?" | "Three independent layers protect it" |
+| "Is this production-ready?" | "Yes, with VM isolation, egress control, and policy enforcement" |
 
 ---
 
 ## Next Steps
 
-- [Reference: Manifest Guide](../../04-reference/manifest-reference.md) - Complete YAML documentation
-- [Troubleshooting](../../04-reference/troubleshooting.md) - Common issues and solutions
-- [Cleanup](../../04-reference/cleanup.md) - Remove workshop resources
+### Keep Learning
 
+- [Manifest Reference](../../04-reference/manifest-reference.md) - Every YAML explained
+- [Troubleshooting](../../04-reference/troubleshooting.md) - Common issues and fixes
+
+### Clean Up
+
+- [Cleanup Guide](../../04-reference/cleanup.md) - Remove workshop resources
+
+### Go Deeper
+
+- **Google ADK**: [google.github.io/adk-docs](https://google.github.io/adk-docs)
+- **Kagenti**: [github.com/kagenti/kagenti](https://github.com/kagenti/kagenti)
+
+---
+
+## Thank You
+
+You've taken a critical step toward deploying AI agents responsibly.
+
+The patterns you've learned—defense in depth, inner/outer loop, observability—apply to any agent you build.
+
+**Now go build something amazing. And secure.**

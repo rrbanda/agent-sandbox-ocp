@@ -1,45 +1,99 @@
 # Part 4: Reference
 
-This section provides reference documentation for the workshop.
+## Everything You Need, When You Need It
+
+Stuck? Need details? This section has you covered.
+
+---
+
+## Quick Links
+
+| Need | Go To |
+|------|-------|
+| All YAML manifests explained | [Manifest Reference](manifest-reference.md) |
+| Something not working? | [Troubleshooting](troubleshooting.md) |
+| Done and cleaning up? | [Cleanup](cleanup.md) |
+
+---
 
 ## Contents
 
 | Document | Description |
 |----------|-------------|
-| [Manifest Reference](manifest-reference.md) | Complete guide to all YAML files |
-| [Troubleshooting](troubleshooting.md) | Common issues and solutions |
-| [Cleanup](cleanup.md) | Remove workshop resources |
+| [Manifest Reference](manifest-reference.md) | Complete guide to all YAML files—what they do, when to apply, in what order |
+| [Troubleshooting](troubleshooting.md) | Common issues and how to fix them |
+| [Cleanup](cleanup.md) | Remove all workshop resources from your cluster |
 
-## Quick Links
+---
 
-### Manifests by Phase
+## Commands Cheat Sheet
 
-| Phase | Files |
-|-------|-------|
-| **Platform Setup** | `platform/00-namespace.yaml`, `00b-rbac-scc.yaml`, `01-pipeline-template.yaml` |
-| **Build** | `agent/02-mcp-server-build.yaml`, `03-currency-agent-build.yaml` |
-| **Deploy** | `agent/04-*.yaml`, `05-currency-agent.yaml`, `06-route.yaml` |
-| **Security** | `security/01-service-entry.yaml`, `02-authpolicy.yaml` |
-
-### Commands Cheat Sheet
+### Check Status
 
 ```bash
-# Check agent status
+# Agent status
 oc get agent -n currency-kagenti
 
-# Check build status
+# Build status
 oc get agentbuild -n currency-kagenti
 oc get pipelineruns -n currency-kagenti
 
-# View agent logs
+# Pod status
+oc get pods -n currency-kagenti
+
+# View logs
 oc logs -n currency-kagenti deployment/currency-agent
-
-# Get agent URL
-oc get route currency-agent -n currency-kagenti
-
-# Test agent
-curl -X POST "https://$(oc get route currency-agent -n currency-kagenti -o jsonpath='{.spec.host}')" \
-  -H "Content-Type: application/json" \
-  -d '{"jsonrpc":"2.0","method":"message/send","id":"1","params":{"message":{"role":"user","parts":[{"text":"100 USD to EUR"}]}}}'
 ```
 
+### Get URLs
+
+```bash
+# Agent URL
+echo "https://$(oc get route currency-agent -n currency-kagenti -o jsonpath='{.spec.host}')"
+
+# ADK Web UI URL
+echo "https://$(oc get route adk-server -n adk-web -o jsonpath='{.spec.host}')/dev-ui/"
+```
+
+### Test the Agent
+
+```bash
+# Quick test
+curl -X POST "https://$(oc get route currency-agent -n currency-kagenti -o jsonpath='{.spec.host}')" \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","method":"message/send","id":"1","params":{"message":{"role":"user","parts":[{"text":"Convert 100 USD to EUR"}]}}}'
+```
+
+### Verify Security
+
+```bash
+# Check Kata runtime
+oc get pod -n currency-kagenti -l app.kubernetes.io/name=currency-agent \
+  -o jsonpath='{.items[0].spec.runtimeClassName}'
+# Should output: kata
+
+# Check egress policy
+oc get serviceentry -n currency-kagenti
+
+# Check OPA policy
+oc get authpolicy -n currency-kagenti
+```
+
+---
+
+## Manifests by Phase
+
+| Phase | Files | Applied By |
+|-------|-------|------------|
+| **Platform Setup** | `platform/00-namespace.yaml`<br>`platform/00b-rbac-scc.yaml`<br>`platform/01-pipeline-template.yaml` | 👷 Admin |
+| **Build** | `agent/02-mcp-server-build.yaml`<br>`agent/03-currency-agent-build.yaml` | 👩‍💻 Developer |
+| **Deploy** | `agent/04-*.yaml`<br>`agent/05-currency-agent.yaml`<br>`agent/06-route.yaml` | 👩‍💻 Developer |
+| **Security** | `security/01-service-entry.yaml`<br>`security/02-authpolicy.yaml` | 👷 Admin |
+
+---
+
+## Need Help?
+
+- **Workshop Issues**: Check [Troubleshooting](troubleshooting.md)
+- **Kagenti Documentation**: [github.com/kagenti/kagenti](https://github.com/kagenti/kagenti)
+- **Google ADK Documentation**: [google.github.io/adk-docs](https://google.github.io/adk-docs)

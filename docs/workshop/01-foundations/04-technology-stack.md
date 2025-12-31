@@ -2,8 +2,6 @@
 
 **Duration**: 5 minutes
 
-## Overview
-
 This workshop uses several technologies that work together to provide a secure agent development and deployment platform.
 
 ```mermaid
@@ -28,13 +26,7 @@ flowchart TB
     OCP --> OSC
     OCP --> Istio
     Istio --> Kuadrant
-    
-    style Development fill:#4285F4,color:#FFFFFF
-    style Platform fill:#CC0000,color:#FFFFFF
-    style Security fill:#820000,color:#FFFFFF
 ```
-
----
 
 ## Google Agent Development Kit (ADK)
 
@@ -126,8 +118,6 @@ root_agent = Agent(
 
 ADK offers flexibility in how you interact with your agents. The core agent logic (defined in `agent.py`) remains the same—only the interface changes.
 
-![ADK Interaction Interfaces](../../images/adk-interaction-interfaces.png)
-
 | Mode | Command | Use Case |
 |------|---------|----------|
 | **CLI** | `adk run` | Quick testing from command line |
@@ -136,8 +126,6 @@ ADK offers flexibility in how you interact with your agents. The core agent logi
 | **Python API** | Direct import | Programmatic integration |
 
 In this workshop, you'll use the **Web UI** deployed on the cluster for inner loop testing.
-
----
 
 ## Platform: Kagenti
 
@@ -183,8 +171,6 @@ spec:
       runtimeClassName: kata      # Kata VM isolation
 ```
 
----
-
 ## Security Layer 1: OpenShift Sandboxed Containers (OSC)
 
 **VM-based container isolation** using Kata Containers.
@@ -210,8 +196,6 @@ Regular Container:                  Kata Container:
                                             ▼
                                       Host Kernel
 ```
-
----
 
 ## Security Layer 2: Istio Service Mesh
 
@@ -240,8 +224,6 @@ spec:
   location: MESH_EXTERNAL
 ```
 
----
-
 ## Security Layer 3: Kuadrant + OPA
 
 **API policy enforcement** using Open Policy Agent.
@@ -265,8 +247,6 @@ deny if {
 
 allow if { not deny }
 ```
-
----
 
 ## How Components Connect
 
@@ -311,8 +291,6 @@ flowchart TB
     Egress --> Gemini
 ```
 
----
-
 ## ADK Lifecycle: Build, Interact, Evaluate, Deploy
 
 The complete agent development lifecycle with ADK:
@@ -339,8 +317,6 @@ The complete agent development lifecycle with ADK:
 └─────────────────────────────────────────────────────────────────────────┘
 ```
 
----
-
 ## Summary
 
 | Layer | Technology | Role in Workshop |
@@ -352,8 +328,6 @@ The complete agent development lifecycle with ADK:
 | **Layer 2** | Istio | Network egress control |
 | **Layer 3** | Kuadrant/OPA | Tool policy enforcement |
 
----
-
 ## Learn More
 
 - **ADK Documentation**: [google.github.io/adk-docs](https://google.github.io/adk-docs)
@@ -362,19 +336,12 @@ The complete agent development lifecycle with ADK:
 - **ADK Samples**: [github.com/google/adk-samples](https://github.com/google/adk-samples)
 - **Kagenti**: [github.com/kagenti/kagenti](https://github.com/kagenti/kagenti)
 
----
-
 ## You're Ready!
 
 You now understand:
-
-- ✅ Why agents need special security
-- ✅ The three-layer defense model
-- ✅ Inner loop vs outer loop development
-- ✅ The technology stack and ADK's code-first approach
-
----
-
-## Next: Start Building
+-  Why agents need special security
+-  The three-layer defense model
+-  Inner loop vs outer loop development
+-  The technology stack and ADK's code-first approach
 
 👉 [Part 2: Inner Loop - Test in ADK Web UI](../02-inner-loop/index.md)

@@ -74,13 +74,6 @@ flowchart TD
     T1 -.->|blocked by| L1
     T2 -.->|blocked by| L2
     T3 -.->|blocked by| L3
-    
-    style T1 fill:#6A6A6A,color:#FFFFFF
-    style T2 fill:#6A6A6A,color:#FFFFFF
-    style T3 fill:#6A6A6A,color:#FFFFFF
-    style L1 fill:#CC0000,color:#FFFFFF
-    style L2 fill:#A30000,color:#FFFFFF
-    style L3 fill:#820000,color:#FFFFFF
 ```
 
 | Threat | Layer 1 (Kata) | Layer 2 (Egress) | Layer 3 (OPA) |

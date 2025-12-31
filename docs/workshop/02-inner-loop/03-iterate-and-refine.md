@@ -2,23 +2,25 @@
 
 **Duration**: 5 minutes
 
-## Overview
+## The Power of Rapid Iteration
 
-The inner loop is about **rapid iteration**. Based on your testing, you might need to refine the agent before moving to production.
+The inner loop is about **fast feedback**. You test, observe, adjust, and test again—until your agent behaves exactly as you intend.
+
+Based on your testing, you might need to refine the agent before moving to production.
 
 ---
 
 ## Common Refinements
 
-### 1. Improve the Instruction Prompt
+### 1. Sharpen the Instruction Prompt
 
-If the agent isn't behaving as expected, adjust the instruction:
+If the agent isn't behaving as expected, make the instruction more specific:
 
 ```python
 # Before: Too vague
 instruction="Help users with currency conversions"
 
-# After: More specific
+# After: Clear guidance
 instruction="""You are a friendly currency conversion assistant. 
 
 When users ask about currency conversions:
@@ -30,18 +32,16 @@ When users ask about currency conversions:
 If a conversion fails, apologize and suggest checking the currency code."""
 ```
 
----
-
 ### 2. Improve Tool Docstrings
 
-Better docstrings help the LLM choose tools correctly:
+Better docstrings help the LLM choose the right tool:
 
 ```python
-# Before: Minimal docstring
+# Before: Minimal
 def get_exchange_rate(currency_from: str, currency_to: str):
     """Get exchange rate."""
 
-# After: Detailed docstring
+# After: Detailed
 def get_exchange_rate(currency_from: str, currency_to: str) -> dict:
     """Get the current exchange rate between two currencies.
     
@@ -51,29 +51,22 @@ def get_exchange_rate(currency_from: str, currency_to: str) -> dict:
     - Compare currency values
     
     Args:
-        currency_from: The source currency code (e.g., USD, EUR, GBP, JPY)
-        currency_to: The target currency code (e.g., EUR, GBP, JPY, USD)
+        currency_from: Source currency code (e.g., USD, EUR, GBP)
+        currency_to: Target currency code (e.g., EUR, GBP, JPY)
     
     Returns:
-        Dictionary containing:
-        - rate: The exchange rate
-        - date: The date of the rate
-        - message: A formatted message
+        Dictionary with rate, date, and formatted message
         
-    Note: Only supports fiat currencies. Cryptocurrency is not supported.
+    Note: Only supports fiat currencies.
     """
 ```
 
----
+### 3. Add Robust Error Handling
 
-### 3. Add Error Handling
-
-Make the tool more robust:
+Make your tool resilient:
 
 ```python
 def get_exchange_rate(currency_from: str, currency_to: str) -> dict:
-    """Get exchange rate between currencies."""
-    
     # Validate inputs
     if not currency_from or not currency_to:
         return {"error": "Both currency codes are required"}
@@ -81,48 +74,35 @@ def get_exchange_rate(currency_from: str, currency_to: str) -> dict:
     currency_from = currency_from.upper().strip()
     currency_to = currency_to.upper().strip()
     
-    url = f"https://api.frankfurter.app/latest?from={currency_from}&to={currency_to}"
-    
     try:
+        url = f"https://api.frankfurter.app/latest?from={currency_from}&to={currency_to}"
         with urllib.request.urlopen(url, timeout=10) as response:
             data = json.loads(response.read().decode())
             rate = data.get("rates", {}).get(currency_to)
             
             if rate is None:
-                return {
-                    "error": f"Could not find rate for {currency_from} to {currency_to}",
-                    "hint": "Check that both are valid currency codes"
-                }
+                return {"error": f"Could not find rate for {currency_from} to {currency_to}"}
             
-            return {
-                "from": currency_from,
-                "to": currency_to, 
-                "rate": rate,
-                "date": data.get("date", "unknown")
-            }
-    except urllib.error.URLError as e:
-        return {"error": f"Network error: {e.reason}"}
-    except json.JSONDecodeError:
-        return {"error": "Invalid response from exchange rate API"}
+            return {"from": currency_from, "to": currency_to, "rate": rate}
     except Exception as e:
-        return {"error": f"Unexpected error: {str(e)}"}
+        return {"error": str(e)}
 ```
 
 ---
 
-## When Is the Agent Ready?
+## Readiness Checklist
 
-Use this checklist:
+Use this to confirm your agent is ready:
 
-| Check | Status |
-|-------|--------|
-| Agent responds to basic currency queries | ✅ |
-| Tool is called with correct arguments | ✅ |
-| Results are formatted clearly | ✅ |
-| Errors are handled gracefully | ✅ |
-| Off-topic queries are handled appropriately | ✅ |
+| Check | Passing? |
+|-------|----------|
+| Responds correctly to basic currency queries | ☐ |
+| Tool is called with correct arguments | ☐ |
+| Results are formatted clearly | ☐ |
+| Errors are handled gracefully | ☐ |
+| Off-topic queries are handled appropriately | ☐ |
 
-When all checks pass, you're ready for the outer loop!
+**When all boxes are checked, you're ready for the outer loop.**
 
 ---
 
@@ -134,31 +114,38 @@ flowchart TD
     B -->|Yes| C["Identify Problem<br/>from Traces"]
     C --> D["Modify Code"]
     D --> E["Push Changes"]
-    E --> F["Redeploy ADK"]
+    E --> F["Redeploy"]
     F --> A
     B -->|No| G["Ready for<br/>Outer Loop"]
-    
-    style G fill:#2E7D32,color:#FFFFFF
 ```
 
 ---
 
-## What Happens Next
+## Inner Loop Complete! ✓
 
-In the **Outer Loop**, you'll:
+**What you've accomplished:**
 
-1. **Build** - Use AgentBuild to create a production container image
-2. **Deploy** - Deploy the agent in a Kata VM with proper isolation
-3. **Secure** - Add egress control and OPA policies
-4. **Monitor** - View traces in Phoenix for production observability
+| Before | After |
+|--------|-------|
+| Code in a repository | Working agent that responds correctly |
+| "I think it works" | "I've tested it and seen the traces" |
+| Unknown edge cases | Error handling confirmed |
 
-The inner loop tested functionality. The outer loop adds security.
+**What comes next:**
+
+| Outer Loop Step | What Happens |
+|-----------------|--------------|
+| **Build** | AgentBuild creates a production container image |
+| **Deploy** | Agent runs in a Kata VM with hardware isolation |
+| **Secure** | Egress control + OPA policies block unauthorized actions |
+| **Monitor** | Phoenix traces show everything the agent does |
+
+The inner loop proved functionality. The outer loop adds security.
 
 ---
 
-## Move to Production
+## Onwards to Production
 
-You've completed the inner loop! The agent is working correctly.
+Your agent works. Now let's make it safe.
 
-👉 [Part 3: Outer Loop - Build, Deploy, and Secure](../03-outer-loop/index.md)
-
+👉 **[Part 3: Outer Loop - Build, Deploy, and Secure](../03-outer-loop/index.md)**

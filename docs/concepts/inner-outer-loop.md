@@ -25,8 +25,6 @@ flowchart LR
         C --> D[Fix Bugs]
         D --> A
     end
-    
-    style laptop fill:#CC0000,color:#FFFFFF
 ```
 
 *Iterate in seconds. No Kubernetes required.*
@@ -75,14 +73,6 @@ flowchart TD
         G --> H[Kata provides VM isolation]
         H --> I[Phoenix captures traces]
     end
-    
-    style cluster fill:#CC0000,color:#FFFFFF
-    style B fill:#A30000,color:#FFFFFF
-    style D fill:#820000,color:#FFFFFF
-    style E fill:#A30000,color:#FFFFFF
-    style F fill:#820000,color:#FFFFFF
-    style G fill:#A30000,color:#FFFFFF
-    style H fill:#820000,color:#FFFFFF
 ```
 
 *Platform handles security automatically.*
@@ -132,10 +122,6 @@ flowchart LR
     end
     
     A --> B --> C
-    
-    style inner fill:#CC0000,color:#FFFFFF
-    style transition fill:#A30000,color:#FFFFFF
-    style outer fill:#820000,color:#FFFFFF
 ```
 
 ### Currency Agent Dockerfile

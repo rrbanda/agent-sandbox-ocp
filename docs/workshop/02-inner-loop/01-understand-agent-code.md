@@ -2,11 +2,7 @@
 
 **Duration**: 10 minutes
 
-## Overview
-
 Before testing, let's understand how the Currency Agent is built using Google ADK's **code-first approach**.
-
----
 
 ## ADK's Code-First Philosophy
 
@@ -21,8 +17,6 @@ ADK replaces complex prompting with **modular, testable components**:
 
 This approach makes your AI logic **scalable and easy to reuse**.
 
----
-
 ## Agent Structure
 
 The Currency Agent has a simple structure:
@@ -33,8 +27,6 @@ currency-agent/
 ├── requirements.txt   # Dependencies (google-adk)
 └── __init__.py        # Exports root_agent
 ```
-
----
 
 ## The Agent Definition
 
@@ -87,8 +79,6 @@ Supported currencies include: USD, EUR, GBP, JPY, CAD, AUD, CHF, CNY, and more."
 )
 ```
 
----
-
 ## Key Components Explained
 
 ### 1. Tool Definition
@@ -112,11 +102,11 @@ def get_exchange_rate(currency_from: str, currency_to: str) -> dict:
     The docstring is critical—it tells the LLM **when and how** to use the tool. Well-written docstrings lead to better tool selection.
 
     ```python
-    # ❌ Bad: Too vague
+    #  Bad: Too vague
     def get_exchange_rate(a, b):
         """Get rate."""
     
-    # ✅ Good: Clear and descriptive
+    #  Good: Clear and descriptive
     def get_exchange_rate(currency_from: str, currency_to: str) -> dict:
         """Get the current exchange rate between two currencies.
         
@@ -130,8 +120,6 @@ def get_exchange_rate(currency_from: str, currency_to: str) -> dict:
             currency_to: The target currency code (e.g., EUR, GBP)
         """
     ```
-
----
 
 ### 2. Agent Configuration
 
@@ -153,8 +141,6 @@ root_agent = Agent(
 | **instruction** | System prompt that guides agent behavior |
 | **tools** | List of functions the agent can call |
 
----
-
 ### 3. The Instruction (System Prompt)
 
 The instruction shapes the agent's **persona and behavior**:
@@ -175,16 +161,12 @@ This tells the agent:
 - **Behavior**: Use the tool, present clearly
 - **Scope**: Listed currencies
 
----
-
 ## How the Agent Executes
 
 The Currency Agent uses two protocols to communicate:
 
 - **A2A (Agent-to-Agent)**: How clients communicate with the agent
 - **MCP (Model Context Protocol)**: How the agent calls external tools
-
-![ADK A2A and MCP Architecture](../../images/adk-a2a-mcp-architecture.png)
 
 ### Request Flow
 
@@ -207,8 +189,6 @@ sequenceDiagram
     LLM-->>Agent: "100 USD is approximately 92 EUR"
     Agent-->>User: "100 USD is approximately 92 EUR..."
 ```
-
----
 
 ## Multi-Agent Capabilities (Advanced)
 
@@ -239,8 +219,6 @@ root_agent = Agent(
 !!! note "Workshop Focus"
     This workshop uses a single agent for simplicity, but the security patterns apply equally to multi-agent systems.
 
----
-
 ## What the Agent Can Do
 
 | Capability | Example |
@@ -249,8 +227,6 @@ root_agent = Agent(
 | Multi-step conversions | "100 USD to EUR, then to GBP" → Two tool calls |
 | Answer questions | "What currencies do you support?" → From instruction |
 | Handle errors | "100 USD to XYZ" → Tool returns error, agent explains |
-
----
 
 ## What We'll Add Later (Security)
 
@@ -261,8 +237,6 @@ After deploying, we'll add restrictions:
 | Can convert to BTC, ETH | Blocked by OPA policy |
 | Can call any external API | Only frankfurter.app allowed |
 | Runs in regular container | Runs in Kata VM |
-
----
 
 ## Source Code Location
 
@@ -275,8 +249,6 @@ In this workshop, the code is:
 - Embedded in a ConfigMap for the ADK Web UI demo
 - Built from Git source using AgentBuild for production deployment
 
----
-
 ## Key Takeaways
 
 1. **Code-first**: Agents are defined in Python, enabling version control and testing
@@ -284,10 +256,6 @@ In this workshop, the code is:
 3. **Docstrings guide the LLM**: Clear descriptions improve tool selection
 4. **Instructions shape behavior**: The system prompt defines persona and rules
 5. **Multi-agent ready**: ADK supports delegation to specialized sub-agents
-
----
-
-## Next
 
 Now that you understand the code, let's test it.
 

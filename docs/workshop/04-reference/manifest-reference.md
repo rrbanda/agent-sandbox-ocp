@@ -25,7 +25,6 @@ manifests/currency-kagenti/
     └── 02-authpolicy.yaml      # OPA tool policy
 ```
 
----
 
 ## Platform Manifests
 
@@ -48,7 +47,6 @@ metadata:
     app.kubernetes.io/name: currency-kagenti
 ```
 
----
 
 ### 00b-rbac-scc.yaml
 
@@ -63,7 +61,6 @@ oc adm policy add-scc-to-user pipelines-scc \
   system:serviceaccount:currency-kagenti:pipeline
 ```
 
----
 
 ### 01-pipeline-template.yaml
 
@@ -78,7 +75,6 @@ oc apply -f platform/01-pipeline-template.yaml
 - If source has Dockerfile → Buildah
 - If no Dockerfile → Buildpacks (auto-detect)
 
----
 
 ## Agent Manifests
 
@@ -102,7 +98,6 @@ spec:
     imageRegistry: "quay.io/rbrhssa"
 ```
 
----
 
 ### 03-currency-agent-build.yaml
 
@@ -124,7 +119,6 @@ spec:
     imageRegistry: "quay.io/rbrhssa"
 ```
 
----
 
 ### 04-mcp-server-deploy.yaml
 
@@ -139,7 +133,6 @@ oc apply -f agent/04-mcp-server-deploy.yaml
 - Deployment: `currency-mcp-server`
 - Service: `currency-mcp-server` (port 8080)
 
----
 
 ### 04b-mcp-httproute.yaml
 
@@ -160,7 +153,6 @@ spec:
     - currency-mcp.mcp.local
 ```
 
----
 
 ### 05-currency-agent.yaml
 
@@ -185,7 +177,6 @@ spec:
 **Security**:
 - Layer 1 (Kata) is enabled here via `runtimeClassName: kata`
 
----
 
 ### 06-route.yaml
 
@@ -196,7 +187,6 @@ spec:
 oc apply -f agent/06-route.yaml
 ```
 
----
 
 ## Security Manifests
 
@@ -219,7 +209,6 @@ spec:
 
 **Security**: Layer 2 (Network Egress)
 
----
 
 ### 02-authpolicy.yaml
 
@@ -235,7 +224,6 @@ oc apply -f security/02-authpolicy.yaml
 
 **Security**: Layer 3 (Tool Policy)
 
----
 
 ## Deployment Order Summary
 
@@ -253,7 +241,6 @@ oc apply -f security/02-authpolicy.yaml
 | 10 | `security/01-service-entry.yaml` | 👷 Admin | After testing |
 | 11 | `security/02-authpolicy.yaml` | 👷 Admin | After testing |
 
----
 
 ## Quick Apply All
 

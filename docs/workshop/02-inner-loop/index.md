@@ -1,28 +1,40 @@
 # Part 2: Inner Loop
 
-**Duration**: 30 minutes  
-**Persona**: 👩‍💻 Agent Developer
+**Duration**: 30 minutes | **Persona**: 👩‍💻 Agent Developer
 
-## Overview
+## Start Small. Iterate Fast. Prove It Works.
 
-The inner loop is where you **develop and test rapidly**. In this workshop, you'll use the **ADK Web UI already deployed on the cluster**—no local setup required.
+Before worrying about production security, you need to know your agent actually does what you want.
+
+The inner loop is where you develop and test rapidly—without the complexity of Kubernetes, security policies, or production infrastructure. You write code, test it, see results, and iterate.
+
+**In this workshop**, you'll use the **ADK Web UI already deployed on the cluster**. No local setup required.
+
+---
+
+## What You'll Accomplish
+
+By the end of this part:
+
+| Before | After |
+|--------|-------|
+| "I have agent code" | "I have a working Currency Agent" |
+| "I think it handles currency conversions" | "I've tested it with real prompts and seen the results" |
+| "I'm not sure how to debug agent behavior" | "I can trace exactly what the agent does step by step" |
+
+---
+
+## The Flow
 
 ```mermaid
 flowchart LR
     A["Understand<br/>Agent Code"] --> B["Test in<br/>ADK Web UI"]
     B --> C["Iterate &<br/>Refine"]
-    C -->|"Ready for<br/>production"| D["Outer Loop"]
-    C -->|"Need changes"| A
-    
-    style A fill:#CC0000,color:#FFFFFF
-    style B fill:#A30000,color:#FFFFFF
-    style C fill:#820000,color:#FFFFFF
-    style D fill:#4A0000,color:#FFFFFF
+    C -->|"Ready"| D["Move to<br/>Outer Loop"]
+    C -->|"Issues"| A
 ```
 
----
-
-## What You'll Do
+## Steps
 
 | Step | Activity | Time |
 |------|----------|------|
@@ -32,17 +44,17 @@ flowchart LR
 
 ---
 
-## The Currency Agent
+## Meet the Currency Agent
 
-You'll be working with a **Currency Agent** that converts currencies using the Frankfurter API:
+You'll be working with a Currency Agent that converts currencies using live exchange rates:
 
 ```python
 from google.adk.agents import Agent
 
 def get_exchange_rate(currency_from: str, currency_to: str) -> dict:
     """Get the exchange rate between two currencies."""
-    url = f"https://api.frankfurter.app/latest?from={currency_from}&to={currency_to}"
-    # ... fetch and return rate
+    # Calls api.frankfurter.app for real-time rates
+    ...
 
 root_agent = Agent(
     name="currency_agent",
@@ -53,81 +65,39 @@ root_agent = Agent(
 )
 ```
 
+Simple, practical, and perfect for demonstrating security layers later.
+
 ---
 
-## Prerequisites
+## Prerequisites Check
 
-Before starting, ensure:
-
-- [ ] You have access to the OpenShift cluster
-- [ ] ADK Web UI is deployed (check with `oc get route adk-server -n adk-web`)
-- [ ] You have the cluster URL
-
-Quick check:
+Before starting:
 
 ```bash
 # Verify ADK Web UI is running
 oc get pods -n adk-web -l app=adk-server
 
-# Get the ADK Web UI URL
+# Get the URL
 echo "https://$(oc get route adk-server -n adk-web -o jsonpath='{.spec.host}')/dev-ui/"
 ```
 
 ---
 
-## Inner Loop Flow
+## Why Inner Loop First?
 
-```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                         INNER LOOP FLOW                                  │
-├─────────────────────────────────────────────────────────────────────────┤
-│                                                                         │
-│   1. UNDERSTAND                                                         │
-│   ─────────────                                                         │
-│   • Review agent.py structure                                           │
-│   • Understand tool definitions                                         │
-│   • Know the agent instructions                                         │
-│                                                                         │
-│   2. TEST                                                               │
-│   ───────                                                               │
-│   • Open ADK Web UI on cluster                                          │
-│   • Select currency_agent                                               │
-│   • Send test prompts                                                   │
-│   • View execution traces                                               │
-│                                                                         │
-│   3. ITERATE                                                            │
-│   ─────────                                                             │
-│   • Identify issues from traces                                         │
-│   • Modify agent code                                                   │
-│   • Push changes                                                        │
-│   • Redeploy and test again                                             │
-│                                                                         │
-│   4. READY FOR PRODUCTION                                               │
-│   ────────────────────────                                              │
-│   • Agent works correctly                                               │
-│   • Move to Outer Loop                                                  │
-│                                                                         │
-└─────────────────────────────────────────────────────────────────────────┘
-```
+| Approach | Problem |
+|----------|---------|
+|  Jump straight to production | Can't tell if issues are agent bugs or security misconfigurations |
+|  Inner loop first | Agent works → then add security → confident it's the security working |
+
+When something doesn't work in production, you want to know: *"Is this a bug in my agent, or is security blocking it correctly?"*
+
+The inner loop gives you that baseline.
 
 ---
 
-## No Local Setup Required
+## Let's Build
 
-Unlike traditional development where you run everything locally, this workshop uses a **cluster-first approach**:
+Time to see what your Currency Agent can do.
 
-| Traditional Approach | This Workshop |
-|---------------------|---------------|
-| Install Python locally | Python on cluster |
-| Install ADK locally | ADK Web UI on cluster |
-| Run `adk web` locally | Access cluster URL |
-| Local container builds | AgentBuild on cluster |
-
-This better represents how **production development** works in enterprise environments.
-
----
-
-## Let's Begin
-
-👉 [Step 1: Understand the Agent Code](01-understand-agent-code.md)
-
+👉 **[Step 1: Understand the Agent Code](01-understand-agent-code.md)**

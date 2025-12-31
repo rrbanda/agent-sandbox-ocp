@@ -2,11 +2,7 @@
 
 **Duration**: 15 minutes
 
-## Overview
-
 The ADK Web UI is **already deployed on the cluster**. You'll use it to test the Currency Agent interactively and view execution traces.
-
----
 
 ## Access the ADK Web UI
 
@@ -28,8 +24,6 @@ https://adk.apps.<your-cluster-domain>/dev-ui/
 You should see the Google ADK Web interface:
 
 ![ADK Web UI Initial](../../images/adk-web-ui-initial.png)
-
----
 
 ## Test the Currency Agent
 
@@ -64,8 +58,6 @@ The exchange rate is 1 USD = 0.9245 EUR (as of 2024-12-31).
 
 Would you like me to help with any other currency conversions?
 ```
-
----
 
 ## View Execution Traces
 
@@ -105,8 +97,6 @@ Traces show you exactly what happened during agent execution:
 
 ![ADK Web UI Trace](../../images/adk-web-ui-trace.png)
 
----
-
 ## Test Edge Cases
 
 Try these prompts to understand agent behavior:
@@ -139,8 +129,6 @@ Expected: Currently WORKS (no policy applied yet)
 !!! warning "BTC Works Now"
     At this stage, cryptocurrency conversions work because we haven't applied the OPA policy yet. After the outer loop security hardening, this will be blocked.
 
----
-
 ## Debugging with Traces
 
 If something doesn't work as expected, use traces to debug:
@@ -151,8 +139,6 @@ If something doesn't work as expected, use traces to debug:
 | Tool error | Tool Call result - what error returned? |
 | Slow response | Time for each step - is tool call slow? |
 | Wrong answer | LLM Response - did it use the tool result correctly? |
-
----
 
 ## Modify and Test Again (Optional)
 
@@ -180,26 +166,15 @@ For production workflows, you would:
 3. Trigger AgentBuild (covered in Outer Loop)
 4. Deploy new version
 
----
-
 ## Summary
 
 You've now:
-
-- ✅ Accessed the ADK Web UI on the cluster
-- ✅ Tested the Currency Agent with various prompts
-- ✅ Viewed execution traces
-- ✅ Tested edge cases
+-  Accessed the ADK Web UI on the cluster
+-  Tested the Currency Agent with various prompts
+-  Viewed execution traces
+-  Tested edge cases
 
 The agent is working correctly in the inner loop. Time to deploy it properly with security!
 
----
-
-## Next
-
-👉 [Step 3: Iterate and Refine](03-iterate-and-refine.md)
-
-Or if you're ready to deploy:
-
-👉 [Part 3: Outer Loop](../03-outer-loop/index.md)
+👉 [Step 3: Iterate and Refine](03-iterate-and-refine.md) | [Skip to Outer Loop](../03-outer-loop/index.md)
 

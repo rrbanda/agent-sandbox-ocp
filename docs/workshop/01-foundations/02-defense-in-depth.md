@@ -2,35 +2,16 @@
 
 **Duration**: 10 minutes
 
-## Overview
-
 The Currency Agent is protected by **three independent security layers**. Each layer operates independently—if one fails, the others still provide protection.
 
 ```mermaid
-flowchart TD
-    subgraph L1["Layer 1: VM Isolation (Kata Containers)"]
-        direction TB
-        A["Agent runs in isolated micro-VM"]
-        
-        subgraph L2["Layer 2: Network Egress (Istio)"]
-            B["Outbound requests filtered"]
-            
-            subgraph L3["Layer 3: Tool Policy (OPA)"]
-                C["Tool calls validated"]
-                C -->|Allowed| D["✓ Tool Executed"]
-                C -->|Blocked| E["✗ Request Denied"]
-            end
-        end
-    end
-    
-    style L1 fill:#CC0000,color:#FFFFFF
-    style L2 fill:#A30000,color:#FFFFFF
-    style L3 fill:#820000,color:#FFFFFF
-    style D fill:#2E7D32,color:#FFFFFF
-    style E fill:#4A4A4A,color:#FFFFFF
+flowchart LR
+    A["Agent Request"] --> L1["Layer 1: VM Isolation"]
+    L1 --> L2["Layer 2: Network Egress"]
+    L2 --> L3["Layer 3: Tool Policy"]
+    L3 -->|Allowed| D["Tool Executed"]
+    L3 -->|Blocked| E["Request Denied"]
 ```
-
----
 
 ## Layer 1: VM Isolation (Foundation)
 
@@ -87,8 +68,6 @@ oc get pod -n currency-kagenti -l app=currency-agent \
   -o jsonpath='{.items[0].spec.runtimeClassName}'
 # Output: kata
 ```
-
----
 
 ## Layer 2: Network Egress Control
 
@@ -158,8 +137,6 @@ curl https://api.frankfurter.app/latest?from=USD
 curl https://api.openai.com/v1/models
 # Connection refused or timeout
 ```
-
----
 
 ## Layer 3: Tool Policy Enforcement
 
@@ -242,8 +219,6 @@ curl -X POST "$GATEWAY_URL/mcp" \
 # Response: HTTP 403 Forbidden
 ```
 
----
-
 ## How the Layers Work Together
 
 ### Allowed Request: "100 USD to EUR"
@@ -286,8 +261,6 @@ sequenceDiagram
     Agent-->>User: "I can't convert to cryptocurrency"
 ```
 
----
-
 ## Summary
 
 | Layer | Technology | Question Answered | Applied When |
@@ -297,10 +270,6 @@ sequenceDiagram
 | **3. Tool Policy** | Kuadrant + OPA | Is this tool call allowed? | After testing |
 
 Each layer is **independent**. Configure them based on your security requirements.
-
----
-
-## Next
 
 👉 [Chapter 3: Agent Development Lifecycle](03-adlc-inner-outer-loop.md)
 

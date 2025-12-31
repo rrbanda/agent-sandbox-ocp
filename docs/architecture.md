@@ -52,12 +52,6 @@ flowchart TB
     %% Blocked paths
     MCPGateway -.->|"blocked by OPA"| Blocked
     IstioSidecar -.->|"REGISTRY_ONLY blocks"| Blocked
-
-    style KataVM fill:#CC0000,color:#FFFFFF,stroke:#820000,stroke-width:2px
-    style Kagenti fill:#A30000,color:#FFFFFF,stroke:#820000
-    style Policy fill:#820000,color:#FFFFFF,stroke:#6A0000
-    style Blocked fill:#4A4A4A,color:#FFFFFF,stroke:#2A2A2A
-    style Approved fill:#6A6A6A,color:#FFFFFF,stroke:#4A4A4A
 ```
 
 ## Request Flow
@@ -129,10 +123,6 @@ flowchart LR
     end
 
     Layer1 --> Layer2 --> Layer3
-
-    style Layer1 fill:#CC0000,color:#FFFFFF
-    style Layer2 fill:#A30000,color:#FFFFFF
-    style Layer3 fill:#820000,color:#FFFFFF
 ```
 
 ## Kagenti Agent CRD with Kata

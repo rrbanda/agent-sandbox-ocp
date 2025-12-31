@@ -132,9 +132,9 @@ In the Currency Agent example:
 
 | Action | Result |
 |--------|--------|
-| Agent calls `api.frankfurter.app` | ✅ Allowed by ServiceEntry |
-| Prompt injection tries `evil.com/exfiltrate` | ❌ Blocked - no ServiceEntry |
-| Agent tries `crypto-api.com` for BTC rates | ❌ Blocked - not in allowlist |
+| Agent calls `api.frankfurter.app` |  Allowed by ServiceEntry |
+| Prompt injection tries `evil.com/exfiltrate` |  Blocked - no ServiceEntry |
+| Agent tries `crypto-api.com` for BTC rates |  Blocked - not in allowlist |
 
 Even if OPA policy fails, the network layer provides defense in depth.
 

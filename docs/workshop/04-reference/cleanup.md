@@ -2,8 +2,6 @@
 
 Remove all workshop resources from the cluster.
 
----
-
 ## Quick Cleanup
 
 Delete the entire namespace (removes all resources):
@@ -16,44 +14,33 @@ oc delete namespace currency-kagenti
 oc delete namespace adk-web
 ```
 
----
-
 ## Selective Cleanup
 
-### Remove Agent Only
-
+**Remove Agent Only:**
 ```bash
 oc delete -f manifests/currency-kagenti/agent/
 ```
 
-### Remove Security Policies Only
-
+**Remove Security Policies Only:**
 ```bash
 oc delete -f manifests/currency-kagenti/security/
 ```
 
-### Remove Platform Setup
-
+**Remove Platform Setup:**
 ```bash
 oc delete -f manifests/currency-kagenti/platform/
 ```
-
----
 
 ## Verify Cleanup
 
 ```bash
 # Check namespace is gone
 oc get namespace currency-kagenti
-
-# Should return:
-# Error from server (NotFound): namespaces "currency-kagenti" not found
+# Should return: Error from server (NotFound): namespaces "currency-kagenti" not found
 
 # Check no resources remain
 oc get all -n currency-kagenti
 ```
-
----
 
 ## Keep Platform Components
 
@@ -67,8 +54,6 @@ oc delete namespace currency-kagenti
 oc get csv -n openshift-sandboxed-containers-operator
 oc get pods -n kagenti-system
 ```
-
----
 
 ## Full Teardown (Including Operators)
 
