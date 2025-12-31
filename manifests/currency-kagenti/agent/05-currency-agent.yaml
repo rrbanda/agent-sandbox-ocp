@@ -62,9 +62,16 @@ spec:
         # Use Gemini API directly (not Vertex AI)
         - name: GOOGLE_GENAI_USE_VERTEXAI
           value: "FALSE"
-        # MCP Server URL (points to our deployed MCP server)
+        # ============================================
+        # MCP GATEWAY - Security Layer 3 (OPA Policy)
+        # ============================================
+        # Routes through MCP Gateway (Envoy) for policy enforcement
+        # The Host header enables routing to the correct backend MCP server
+        # and triggers OPA policy evaluation via AuthPolicy
         - name: MCP_SERVER_URL
-          value: "http://currency-mcp-server.currency-kagenti.svc.cluster.local:8080/mcp"
+          value: "http://mcp-gateway-istio.gateway-system.svc.cluster.local:8080/mcp"
+        - name: MCP_HOST_HEADER
+          value: "currency-mcp.mcp.local"
         # A2A Server settings
         - name: PORT
           value: "10000"
@@ -98,10 +105,18 @@ spec:
           name: cache
         - mountPath: /tmp
           name: tmp
+        # Mount updated agent code with MCP Gateway + Host header support
+        - mountPath: /app/currency_agent/agent.py
+          name: agent-code
+          subPath: agent.py
 
       volumes:
       - name: cache
         emptyDir: {}
       - name: tmp
         emptyDir: {}
+      # ConfigMap containing agent code with MCP Gateway support
+      - name: agent-code
+        configMap:
+          name: currency-agent-code
 
