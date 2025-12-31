@@ -127,10 +127,10 @@ When deployed to OpenShift, we use the separate ADK Web UI deployment to interac
 
 You've completed the Agent Developer module:
 
-- ✅ Understood the Currency Agent code
-- ✅ Ran it locally with `adk web`
-- ✅ Tested it in the ADK Web UI
-- ✅ Learned how to containerize it
+-  Understood the Currency Agent code
+-  Ran it locally with `adk web`
+-  Tested it in the ADK Web UI
+-  Learned how to containerize it
 
 ## Next Steps
 

@@ -149,10 +149,10 @@ Thank you for completing the **AI Agent Sandbox on OpenShift** workshop.
 
 You now have the knowledge to:
 
-✅ Build AI agents with Google ADK  
-✅ Deploy agents securely on OpenShift  
-✅ Implement defense-in-depth with VM isolation, network control, and policies  
-✅ Test and verify security controls  
+ Build AI agents with Google ADK  
+ Deploy agents securely on OpenShift  
+ Implement defense-in-depth with VM isolation, network control, and policies  
+ Test and verify security controls  
 
 Go build something amazing! 🚀
 

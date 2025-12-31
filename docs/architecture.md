@@ -31,8 +31,8 @@ flowchart TB
     end
 
     subgraph External["External APIs"]
-        Approved["✅ api.frankfurter.app<br/>✅ USD, EUR, GBP, JPY"]
-        Blocked["❌ BTC, ETH, DOGE"]
+        Approved[" api.frankfurter.app<br/> USD, EUR, GBP, JPY"]
+        Blocked[" BTC, ETH, DOGE"]
     end
 
     %% Deployment flow

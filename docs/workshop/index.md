@@ -9,8 +9,8 @@ A hands-on workshop for securing AI agents with VM isolation, network control, a
 
 A **Currency Conversion Agent** that:
 
-- ✅ Converts between fiat currencies (USD, EUR, GBP, JPY)
-- ❌ Is blocked from cryptocurrency conversions (BTC, ETH, DOGE)
+-  Converts between fiat currencies (USD, EUR, GBP, JPY)
+-  Is blocked from cryptocurrency conversions (BTC, ETH, DOGE)
 - 🔒 Runs in an isolated VM (Kata Containers)
 - 🌐 Can only reach approved external APIs
 
@@ -135,9 +135,9 @@ Deploy the agent to OpenShift and verify all security layers:
 
 | Your Role | Mod 00 | Mod 01 | Mod 02 | Mod 03 | Mod 04 | Mod 05 |
 |-----------|--------|--------|--------|--------|--------|--------|
-| **Solo Learner** | ✅ Do | ✅ Do | ✅ Do | ✅ Do | ✅ Do | Ref |
-| **Platform Admin** | ✅ Do | ✅ Do | ✅ Do | 📖 Read | ✅ Do | Ref |
-| **Agent Developer** | ⏭️ Skip | ✅ Do | 📖 Read | ✅ Do | ✅ Do | Ref |
+| **Solo Learner** |  Do |  Do |  Do |  Do |  Do | Ref |
+| **Platform Admin** |  Do |  Do |  Do | 📖 Read |  Do | Ref |
+| **Agent Developer** | ⏭️ Skip |  Do | 📖 Read |  Do |  Do | Ref |
 
 ---
 

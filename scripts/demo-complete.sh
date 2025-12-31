@@ -71,9 +71,9 @@ RESULT=$(oc exec -n mcp-test test-curl -- curl -sw '%{http_code}' -o /dev/null \
   -H "Mcp-Session-Id: $SESSION" \
   -d '{"jsonrpc":"2.0","id":"2","method":"tools/call","params":{"name":"get_exchange_rate","arguments":{"currency_from":"USD","currency_to":"EUR"}}}')
 if [ "$RESULT" == "200" ]; then
-  echo "  ✅ HTTP 200 - ALLOWED (correct)"
+  echo "   HTTP 200 - ALLOWED (correct)"
 else
-  echo "  ❌ HTTP $RESULT - Expected 200"
+  echo "   HTTP $RESULT - Expected 200"
 fi
 echo ""
 
@@ -86,9 +86,9 @@ RESULT=$(oc exec -n mcp-test test-curl -- curl -sw '%{http_code}' -o /dev/null \
   -H "Mcp-Session-Id: $SESSION" \
   -d '{"jsonrpc":"2.0","id":"3","method":"tools/call","params":{"name":"get_exchange_rate","arguments":{"currency_from":"USD","currency_to":"BTC"}}}')
 if [ "$RESULT" == "403" ]; then
-  echo "  ✅ HTTP 403 - BLOCKED (correct)"
+  echo "   HTTP 403 - BLOCKED (correct)"
 else
-  echo "  ❌ HTTP $RESULT - Expected 403"
+  echo "   HTTP $RESULT - Expected 403"
 fi
 echo ""
 
@@ -101,9 +101,9 @@ RESULT=$(oc exec -n mcp-test test-curl -- curl -sw '%{http_code}' -o /dev/null \
   -H "Mcp-Session-Id: $SESSION" \
   -d '{"jsonrpc":"2.0","id":"4","method":"tools/call","params":{"name":"get_exchange_rate","arguments":{"currency_from":"ETH","currency_to":"EUR"}}}')
 if [ "$RESULT" == "403" ]; then
-  echo "  ✅ HTTP 403 - BLOCKED (correct)"
+  echo "   HTTP 403 - BLOCKED (correct)"
 else
-  echo "  ❌ HTTP $RESULT - Expected 403"
+  echo "   HTTP $RESULT - Expected 403"
 fi
 echo ""
 
@@ -116,9 +116,9 @@ RESULT=$(oc exec -n mcp-test test-curl -- curl -sw '%{http_code}' -o /dev/null \
   -H "Mcp-Session-Id: $SESSION" \
   -d '{"jsonrpc":"2.0","id":"5","method":"tools/call","params":{"name":"get_exchange_rate","arguments":{"currency_from":"GBP","currency_to":"JPY"}}}')
 if [ "$RESULT" == "200" ]; then
-  echo "  ✅ HTTP 200 - ALLOWED (correct)"
+  echo "   HTTP 200 - ALLOWED (correct)"
 else
-  echo "  ❌ HTTP $RESULT - Expected 200"
+  echo "   HTTP $RESULT - Expected 200"
 fi
 echo ""
 
@@ -130,9 +130,9 @@ echo ""
 echo "Checking Currency Agent runtime..."
 RUNTIME=$(oc get pod -n agent-sandbox -l app=currency-agent -o jsonpath='{.items[0].spec.runtimeClassName}' 2>/dev/null || echo "not-found")
 if [ "$RUNTIME" == "kata" ]; then
-  echo "  ✅ RuntimeClass: kata (VM isolation enabled)"
+  echo "   RuntimeClass: kata (VM isolation enabled)"
 else
-  echo "  ❌ RuntimeClass: $RUNTIME (expected: kata)"
+  echo "   RuntimeClass: $RUNTIME (expected: kata)"
 fi
 echo ""
 

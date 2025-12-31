@@ -95,18 +95,18 @@ spec:
 
 | Destination | Allowed? | Why |
 |-------------|----------|-----|
-| `api.frankfurter.app` | ✅ Yes | In ServiceEntry |
-| `api.openai.com` | ❌ No | Not in ServiceEntry |
-| `evil.com` | ❌ No | Not in ServiceEntry |
-| Internal services | ✅ Yes | Within mesh |
+| `api.frankfurter.app` |  Yes | In ServiceEntry |
+| `api.openai.com` |  No | Not in ServiceEntry |
+| `evil.com` |  No | Not in ServiceEntry |
+| Internal services |  Yes | Within mesh |
 
 ## How It Works
 
 ```mermaid
 flowchart LR
     Agent["Currency Agent"] --> Istio["Istio Proxy"]
-    Istio -->|"api.frankfurter.app"| API["✅ External API"]
-    Istio -->|"evil.com"| Block["❌ Blocked"]
+    Istio -->|"api.frankfurter.app"| API[" External API"]
+    Istio -->|"evil.com"| Block[" Blocked"]
 ```
 
 ## Next Step

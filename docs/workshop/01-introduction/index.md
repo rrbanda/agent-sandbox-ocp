@@ -56,16 +56,16 @@ The agent runs in a lightweight VM, not a regular container. Even if the agent i
 **Technology**: Istio Service Mesh + ServiceEntry
 
 The agent can only reach explicitly approved external APIs:
-- ✅ `api.frankfurter.app` (currency rates)
-- ❌ Everything else is blocked
+-  `api.frankfurter.app` (currency rates)
+-  Everything else is blocked
 
 ### Layer 3: Tool Policy Enforcement
 
 **Technology**: Kuadrant + OPA (Open Policy Agent)
 
 Every tool call is validated before execution:
-- ✅ `get_exchange_rate(USD, EUR)` → Allowed
-- ❌ `get_exchange_rate(USD, BTC)` → Blocked (crypto not allowed)
+-  `get_exchange_rate(USD, EUR)` → Allowed
+-  `get_exchange_rate(USD, BTC)` → Blocked (crypto not allowed)
 
 ## What You'll Build
 
@@ -81,8 +81,8 @@ Agent: I'll check the current exchange rate for you.
 
 By the end of this workshop, you'll verify:
 
-- ✅ Fiat currency conversion works (USD → EUR)
-- ❌ Crypto conversion is blocked by policy (USD → BTC)
+-  Fiat currency conversion works (USD → EUR)
+-  Crypto conversion is blocked by policy (USD → BTC)
 - 🔒 Agent runs in VM isolation (Kata)
 
 ## Prerequisites
@@ -126,8 +126,8 @@ flowchart TB
     end
     
     subgraph External["External APIs"]
-        API["✅ api.frankfurter.app"]
-        Blocked["❌ Other APIs"]
+        API[" api.frankfurter.app"]
+        Blocked[" Other APIs"]
     end
     
     User -->|"1. Prompt"| Agent

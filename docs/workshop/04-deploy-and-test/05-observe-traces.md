@@ -76,7 +76,7 @@ Navigate to the Phoenix URL and explore:
    │     └─ Decided to call: get_exchange_rate
    │
    ├─ 🔧 Tool: get_exchange_rate(USD, EUR, 100)
-   │     ├─ Gateway: Authorized ✅
+   │     ├─ Gateway: Authorized 
    │     ├─ API call: api.frankfurter.app
    │     └─ Result: {rate: 0.9245, converted: 92.45}
    │
@@ -93,7 +93,7 @@ Navigate to the Phoenix URL and explore:
    │
    ├─ 🔧 Tool: get_exchange_rate(USD, BTC, 100)
    │     ├─ Gateway: Authorization check
-   │     └─ OPA: ❌ DENIED (BTC in blocked list)
+   │     └─ OPA:  DENIED (BTC in blocked list)
    │
    └─ ⚠️ Error: Policy violation
 ```
@@ -130,19 +130,19 @@ curl http://localhost:8080/metrics | grep auth
 
 You've completed the Deploy & Test module:
 
-- ✅ Deployed the Currency Agent to OpenShift
-- ✅ Verified VM isolation (Kata)
-- ✅ Tested allowed currency conversions
-- ✅ Verified blocked cryptocurrency requests
-- ✅ Explored execution traces
+-  Deployed the Currency Agent to OpenShift
+-  Verified VM isolation (Kata)
+-  Tested allowed currency conversions
+-  Verified blocked cryptocurrency requests
+-  Explored execution traces
 
 ## Summary of Security Layers
 
 | Layer | Technology | Test Result |
 |-------|------------|-------------|
-| **1. VM Isolation** | Kata Containers | ✅ Pod runs in VM |
-| **2. Network Egress** | Istio ServiceEntry | ✅ Only frankfurter.app reachable |
-| **3. Tool Policy** | Kuadrant + OPA | ✅ BTC/ETH blocked |
+| **1. VM Isolation** | Kata Containers |  Pod runs in VM |
+| **2. Network Egress** | Istio ServiceEntry |  Only frankfurter.app reachable |
+| **3. Tool Policy** | Kuadrant + OPA |  BTC/ETH blocked |
 
 ## What's Next?
 

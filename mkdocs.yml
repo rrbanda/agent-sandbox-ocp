@@ -60,6 +60,7 @@ nav:
     - Threat Model: concepts/threat-model.md
     - Defense in Depth: concepts/defense-in-depth.md
     - Inner & Outer Loop: concepts/inner-outer-loop.md
+    - OSC Explained: concepts/osc-explained.md
   - Reference:
     - Architecture: architecture.md
     - Troubleshooting: troubleshooting.md

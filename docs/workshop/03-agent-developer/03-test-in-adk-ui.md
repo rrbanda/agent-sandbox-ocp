@@ -42,9 +42,9 @@ Try these prompts:
 
 | Prompt | Expected Behavior |
 |--------|-------------------|
-| "Convert 50 GBP to JPY" | Should work ✅ |
-| "What's 1000 EUR in USD?" | Should work ✅ |
-| "How much is 100 dollars in euros?" | Should understand and work ✅ |
+| "Convert 50 GBP to JPY" | Should work  |
+| "What's 1000 EUR in USD?" | Should work  |
+| "How much is 100 dollars in euros?" | Should understand and work  |
 
 ### 4. Test Edge Cases
 

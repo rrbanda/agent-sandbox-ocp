@@ -99,10 +99,10 @@ Try these requests:
 
 | Request | Expected Result |
 |---------|-----------------|
-| "100 USD to EUR" | ✅ Works (~92 EUR) |
-| "50 GBP to JPY" | ✅ Works (~9,500 JPY) |
-| "1000 EUR to USD" | ✅ Works (~1,080 USD) |
-| "25 CAD to AUD" | ✅ Works (~25 AUD) |
+| "100 USD to EUR" |  Works (~92 EUR) |
+| "50 GBP to JPY" |  Works (~9,500 JPY) |
+| "1000 EUR to USD" |  Works (~1,080 USD) |
+| "25 CAD to AUD" |  Works (~25 AUD) |
 
 ## What's Happening
 
@@ -117,7 +117,7 @@ sequenceDiagram
     User->>Agent: "100 USD to EUR"
     Agent->>Gateway: get_exchange_rate(USD, EUR)
     Gateway->>OPA: Authorize
-    OPA-->>Gateway: ✅ Allow (EUR not blocked)
+    OPA-->>Gateway:  Allow (EUR not blocked)
     Gateway->>API: GET /latest?from=USD&to=EUR
     API-->>Gateway: {"EUR": 0.9245}
     Gateway-->>Agent: Rate data
@@ -130,9 +130,9 @@ For this allowed request:
 
 | Layer | Status | Why |
 |-------|--------|-----|
-| **Layer 1 (Kata)** | ✅ Active | Agent runs in VM |
-| **Layer 2 (Egress)** | ✅ Passed | `api.frankfurter.app` is in ServiceEntry |
-| **Layer 3 (Policy)** | ✅ Passed | EUR is not in blocked currency list |
+| **Layer 1 (Kata)** |  Active | Agent runs in VM |
+| **Layer 2 (Egress)** |  Passed | `api.frankfurter.app` is in ServiceEntry |
+| **Layer 3 (Policy)** |  Passed | EUR is not in blocked currency list |
 
 ## Checkpoint
 

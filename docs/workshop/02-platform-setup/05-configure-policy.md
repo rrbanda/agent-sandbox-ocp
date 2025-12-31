@@ -94,10 +94,10 @@ spec:
 
 | Request | currency_from | currency_to | Result |
 |---------|---------------|-------------|--------|
-| "100 USD to EUR" | USD | EUR | ✅ Allowed |
-| "100 USD to BTC" | USD | BTC | ❌ Denied |
-| "100 BTC to USD" | BTC | USD | ❌ Denied |
-| "50 GBP to JPY" | GBP | JPY | ✅ Allowed |
+| "100 USD to EUR" | USD | EUR |  Allowed |
+| "100 USD to BTC" | USD | BTC |  Denied |
+| "100 BTC to USD" | BTC | USD |  Denied |
+| "50 GBP to JPY" | GBP | JPY |  Allowed |
 
 ## How It Works
 
@@ -111,13 +111,13 @@ sequenceDiagram
     Agent->>Gateway: tools/call(get_exchange_rate, USD, BTC)
     Gateway->>OPA: Authorize request
     OPA->>OPA: Check: BTC in blocked list?
-    OPA-->>Gateway: ❌ Deny
+    OPA-->>Gateway:  Deny
     Gateway-->>Agent: HTTP 403 Forbidden
     
     Agent->>Gateway: tools/call(get_exchange_rate, USD, EUR)
     Gateway->>OPA: Authorize request
     OPA->>OPA: Check: EUR in blocked list?
-    OPA-->>Gateway: ✅ Allow
+    OPA-->>Gateway:  Allow
     Gateway->>MCP: Forward request
     MCP-->>Agent: Exchange rate result
 ```
@@ -148,10 +148,10 @@ oc get authpolicy -n mcp-test
 ## Module Complete! 🎉
 
 You've configured:
-- ✅ VM isolation (Kata Containers)
-- ✅ Secure namespace (agent-sandbox)
-- ✅ Network egress control (ServiceEntry)
-- ✅ Tool policy enforcement (AuthPolicy)
+-  VM isolation (Kata Containers)
+-  Secure namespace (agent-sandbox)
+-  Network egress control (ServiceEntry)
+-  Tool policy enforcement (AuthPolicy)
 
 The platform is ready for developers to deploy agents.
 

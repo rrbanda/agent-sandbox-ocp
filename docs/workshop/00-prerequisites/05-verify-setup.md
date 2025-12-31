@@ -20,16 +20,16 @@ echo ""
 # 1. OSC Operator
 echo "1. OpenShift Sandboxed Containers Operator:"
 if oc get csv -n openshift-sandboxed-containers-operator 2>/dev/null | grep -q sandboxed; then
-    echo "   ✅ Installed"
+    echo "    Installed"
 else
-    echo "   ❌ Not installed"
+    echo "    Not installed"
 fi
 
 # 2. RuntimeClass
 echo ""
 echo "2. Kata RuntimeClass:"
 if oc get runtimeclass kata 2>/dev/null; then
-    echo "   ✅ Available"
+    echo "    Available"
 else
     echo "   ⚠️  Not yet available (KataConfig may still be installing)"
 fi
@@ -38,27 +38,27 @@ fi
 echo ""
 echo "3. Istio Service Mesh:"
 if oc get pods -n istio-system 2>/dev/null | grep -q istiod; then
-    echo "   ✅ Running"
+    echo "    Running"
 else
-    echo "   ❌ Not installed"
+    echo "    Not installed"
 fi
 
 # 4. Kuadrant
 echo ""
 echo "4. Kuadrant (Authorino):"
 if oc get pods -n kuadrant-system 2>/dev/null | grep -q authorino; then
-    echo "   ✅ Running"
+    echo "    Running"
 else
-    echo "   ❌ Not installed"
+    echo "    Not installed"
 fi
 
 # 5. Kagenti Controller
 echo ""
 echo "5. Kagenti Controller:"
 if oc get pods -n kagenti-system 2>/dev/null | grep -q kagenti-controller; then
-    echo "   ✅ Running"
+    echo "    Running"
 else
-    echo "   ❌ Not installed"
+    echo "    Not installed"
 fi
 
 # 6. Kagenti UI
@@ -66,16 +66,16 @@ echo ""
 echo "6. Kagenti UI:"
 KAGENTI_UI=$(oc get route kagenti-ui -n kagenti-system -o jsonpath='{.spec.host}' 2>/dev/null)
 if [ -n "$KAGENTI_UI" ]; then
-    echo "   ✅ Available at: https://$KAGENTI_UI"
+    echo "    Available at: https://$KAGENTI_UI"
 else
-    echo "   ❌ Not available"
+    echo "    Not available"
 fi
 
 # 7. Phoenix (Observability)
 echo ""
 echo "7. Phoenix (Observability):"
 if oc get pods -n kagenti-system 2>/dev/null | grep -q phoenix; then
-    echo "   ✅ Running"
+    echo "    Running"
 else
     echo "   ⚠️  Not installed (optional)"
 fi
@@ -90,13 +90,13 @@ echo "=========================================="
 
 | Component | Status | Notes |
 |-----------|--------|-------|
-| OSC Operator | ✅ Installed | Required for Kata |
-| Kata RuntimeClass | ✅ Available | May take 10+ min after KataConfig |
-| Istio | ✅ Running | Required for egress control |
-| Kuadrant | ✅ Running | Required for policy enforcement |
-| Kagenti Controller | ✅ Running | Manages Agent CRDs |
-| Kagenti UI | ✅ Available | Optional but useful |
-| Phoenix | ✅ Running | Optional observability |
+| OSC Operator |  Installed | Required for Kata |
+| Kata RuntimeClass |  Available | May take 10+ min after KataConfig |
+| Istio |  Running | Required for egress control |
+| Kuadrant |  Running | Required for policy enforcement |
+| Kagenti Controller |  Running | Manages Agent CRDs |
+| Kagenti UI |  Available | Optional but useful |
+| Phoenix |  Running | Optional observability |
 
 ## What If Something Is Missing?
 

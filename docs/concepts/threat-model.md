@@ -85,10 +85,10 @@ flowchart TD
 
 | Threat | Layer 1 (Kata) | Layer 2 (Egress) | Layer 3 (OPA) |
 |--------|----------------|------------------|---------------|
-| Container escape | ✅ Blocks | - | - |
-| Data exfiltration | - | ✅ Blocks | - |
-| Unauthorized tool usage | - | - | ✅ Blocks |
-| Prompt injection | ✅ Contains | ✅ Limits damage | ✅ Limits damage |
+| Container escape |  Blocks | - | - |
+| Data exfiltration | - |  Blocks | - |
+| Unauthorized tool usage | - | - |  Blocks |
+| Prompt injection |  Contains |  Limits damage |  Limits damage |
 
 No single layer is sufficient. Together, they provide defense in depth.
 

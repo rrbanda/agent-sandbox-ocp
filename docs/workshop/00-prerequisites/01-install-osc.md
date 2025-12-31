@@ -10,6 +10,9 @@ Install the OpenShift Sandboxed Containers (OSC) Operator, which provides Kata C
 
 Kata Containers run each AI agent pod in a lightweight VM with its own kernel. This provides hardware-level isolation - even if an agent is compromised, it cannot escape the VM.
 
+!!! info "Deep Dive: Understanding OSC"
+    For a comprehensive explanation of what OSC is, how it works, and why it's relevant for AI agents, see [OSC Explained](../../concepts/osc-explained.md).
+
 ## Steps
 
 ### 1. Install via OperatorHub

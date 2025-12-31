@@ -43,19 +43,19 @@ Run this command to check if prerequisites are already installed:
 echo "=== Checking Prerequisites ===" && \
 echo "" && \
 echo "1. OSC Operator:" && \
-oc get csv -n openshift-sandboxed-containers-operator 2>/dev/null | grep -i sandboxed || echo "   ❌ Not installed" && \
+oc get csv -n openshift-sandboxed-containers-operator 2>/dev/null | grep -i sandboxed || echo "    Not installed" && \
 echo "" && \
 echo "2. KataConfig:" && \
-oc get kataconfig 2>/dev/null || echo "   ❌ Not configured" && \
+oc get kataconfig 2>/dev/null || echo "    Not configured" && \
 echo "" && \
 echo "3. Istio:" && \
-oc get pods -n istio-system 2>/dev/null | grep istiod || echo "   ❌ Not installed" && \
+oc get pods -n istio-system 2>/dev/null | grep istiod || echo "    Not installed" && \
 echo "" && \
 echo "4. Kuadrant:" && \
-oc get pods -n kuadrant-system 2>/dev/null | grep authorino || echo "   ❌ Not installed" && \
+oc get pods -n kuadrant-system 2>/dev/null | grep authorino || echo "    Not installed" && \
 echo "" && \
 echo "5. Kagenti:" && \
-oc get pods -n kagenti-system 2>/dev/null | grep kagenti-controller || echo "   ❌ Not installed"
+oc get pods -n kagenti-system 2>/dev/null | grep kagenti-controller || echo "    Not installed"
 ```
 
 If all components show as running, skip to [Module 01: Introduction](../01-introduction/index.md).

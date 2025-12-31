@@ -193,12 +193,12 @@ curl http://localhost:8000/health
 
 The platform handles these automatically:
 
-- ❌ Configure OPA policies (pre-configured by platform admin)
-- ❌ Set up Istio egress rules (pre-configured)
-- ❌ Configure Kata isolation (enabled at namespace level)
-- ❌ Set up SPIFFE identity (automatic via SPIRE)
-- ❌ Configure mTLS (automatic via Istio)
-- ❌ Set up tracing (automatic via Phoenix)
+-  Configure OPA policies (pre-configured by platform admin)
+-  Set up Istio egress rules (pre-configured)
+-  Configure Kata isolation (enabled at namespace level)
+-  Set up SPIFFE identity (automatic via SPIRE)
+-  Configure mTLS (automatic via Istio)
+-  Set up tracing (automatic via Phoenix)
 
 You just deploy your Agent CR. Security is automatic.
 

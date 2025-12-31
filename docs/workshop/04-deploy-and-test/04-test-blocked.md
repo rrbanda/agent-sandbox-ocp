@@ -14,7 +14,7 @@ Try to convert USD to Bitcoin:
 What is 100 USD in BTC?
 ```
 
-Expected result: **Blocked** ❌
+Expected result: **Blocked** 
 
 ## Option A: ADK Web UI
 
@@ -56,7 +56,7 @@ sequenceDiagram
     Gateway->>OPA: Authorize
     OPA->>OPA: Check: BTC in blocked list?
     Note over OPA: BTC ∈ [BTC, ETH, DOGE, XRP, SOL]
-    OPA-->>Gateway: ❌ Deny
+    OPA-->>Gateway:  Deny
     Gateway-->>Agent: HTTP 403 Forbidden
     Agent-->>User: Error: Request denied
 ```
@@ -65,11 +65,11 @@ sequenceDiagram
 
 | Request | Expected |
 |---------|----------|
-| "100 USD to BTC" | ❌ Blocked |
-| "100 USD to ETH" | ❌ Blocked |
-| "100 USD to DOGE" | ❌ Blocked |
-| "Convert BTC to USD" | ❌ Blocked |
-| "What's 1 ETH in EUR?" | ❌ Blocked |
+| "100 USD to BTC" |  Blocked |
+| "100 USD to ETH" |  Blocked |
+| "100 USD to DOGE" |  Blocked |
+| "Convert BTC to USD" |  Blocked |
+| "What's 1 ETH in EUR?" |  Blocked |
 
 ## Verify the Policy
 
@@ -109,9 +109,9 @@ For this blocked request:
 
 | Layer | Status | Why |
 |-------|--------|-----|
-| **Layer 1 (Kata)** | ✅ Active | Agent runs in VM |
+| **Layer 1 (Kata)** |  Active | Agent runs in VM |
 | **Layer 2 (Egress)** | N/A | Request never reaches external API |
-| **Layer 3 (Policy)** | ❌ **Blocked** | BTC is in denied currency list |
+| **Layer 3 (Policy)** |  **Blocked** | BTC is in denied currency list |
 
 ## Why This Matters
 
@@ -126,8 +126,8 @@ This is **proactive security** - the bad request never executes.
 
 | Request | Layer 1 | Layer 2 | Layer 3 | Result |
 |---------|---------|---------|---------|--------|
-| "USD to EUR" | ✅ Kata | ✅ Egress | ✅ Policy | ✅ Success |
-| "USD to BTC" | ✅ Kata | N/A | ❌ Policy | ❌ Blocked |
+| "USD to EUR" |  Kata |  Egress |  Policy |  Success |
+| "USD to BTC" |  Kata | N/A |  Policy |  Blocked |
 
 ## Test Egress Control (Optional)
 

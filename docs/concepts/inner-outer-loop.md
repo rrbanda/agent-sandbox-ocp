@@ -165,16 +165,16 @@ docker push quay.io/myorg/currency-agent:v1
 
 | Activity | Inner Loop (Developer) | Outer Loop (Platform) |
 |----------|------------------------|----------------------|
-| Write agent logic | ✅ | |
-| Design prompts | ✅ | |
-| Test tool integrations | ✅ | |
-| Create Dockerfile | ✅ | |
-| Configure OPA policies | | ✅ |
-| Configure egress rules | | ✅ |
-| Set up Kata isolation | | ✅ |
-| Set up observability | | ✅ |
-| Deploy Agent CR | ✅ | |
-| Monitor and debug | ✅ | ✅ |
+| Write agent logic |  | |
+| Design prompts |  | |
+| Test tool integrations |  | |
+| Create Dockerfile |  | |
+| Configure OPA policies | |  |
+| Configure egress rules | |  |
+| Set up Kata isolation | |  |
+| Set up observability | |  |
+| Deploy Agent CR |  | |
+| Monitor and debug |  |  |
 
 ---
 

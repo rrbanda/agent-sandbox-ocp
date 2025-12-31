@@ -26,13 +26,13 @@ flowchart TD
         
         subgraph L2["Layer 2: Egress Control (Istio)"]
             B["Can it reach this API?"]
-            B -->|Blocked| X2["❌ Unauthorized API"]
+            B -->|Blocked| X2[" Unauthorized API"]
             B -->|Allowed| C
             
             subgraph L3["Layer 3: Tool Policy (OPA)"]
                 C["Is this tool call allowed?"]
-                C -->|Blocked| X3["❌ Crypto Blocked"]
-                C -->|Allowed| D["✅ Secure Execution"]
+                C -->|Blocked| X3[" Crypto Blocked"]
+                C -->|Allowed| D[" Secure Execution"]
             end
         end
     end

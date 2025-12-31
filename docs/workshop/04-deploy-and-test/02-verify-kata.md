@@ -102,7 +102,7 @@ chroot /host
 crictl pods | grep currency-agent
 ```
 
-## Layer 1 Verified! ✅
+## Layer 1 Verified! 
 
 You've confirmed:
 

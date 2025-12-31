@@ -13,13 +13,13 @@ flowchart TD
         
         subgraph L2["Layer 2: Network Egress (Istio)"]
             B["Outbound Request"]
-            B -->|Blocked| X2[❌ Egress Denied]
+            B -->|Blocked| X2[ Egress Denied]
             B -->|Allowed| C
             
             subgraph L3["Layer 3: Tool Policy (OPA)"]
                 C["Tool Call via MCP Gateway"]
-                C -->|Blocked| X3[❌ Policy Violation]
-                C -->|Allowed| D[✅ Tool Executed]
+                C -->|Blocked| X3[ Policy Violation]
+                C -->|Allowed| D[ Tool Executed]
             end
         end
     end
@@ -92,9 +92,9 @@ spec:
 ```
 
 **Effect**:
-- `curl api.frankfurter.app` → ✅ Allowed
-- `curl api.openai.com` → ❌ Blocked (not in ServiceEntry)
-- `curl evil.com` → ❌ Blocked
+- `curl api.frankfurter.app` →  Allowed
+- `curl api.openai.com` →  Blocked (not in ServiceEntry)
+- `curl evil.com` →  Blocked
 
 ---
 
@@ -125,8 +125,8 @@ spec:
 ```
 
 **Test**:
-- "What is 100 USD in EUR?" → ✅ Allowed
-- "What is 100 USD in BTC?" → ❌ HTTP 403
+- "What is 100 USD in EUR?" →  Allowed
+- "What is 100 USD in BTC?" →  HTTP 403
 
 ---
 
@@ -136,15 +136,15 @@ spec:
 
 1. **Layer 1 (Kata)**: Agent pod is running in a VM
    - Isolated kernel, protected from container escapes
-   - Result: ✅ Execution environment is secure
+   - Result:  Execution environment is secure
 
 2. **Layer 2 (Egress)**: Agent calls `api.frankfurter.app`
    - ServiceEntry: `api.frankfurter.app` is allowed
-   - Result: ✅ Allowed
+   - Result:  Allowed
 
 3. **Layer 3 (OPA)**: Inspects tool call `get_exchange_rate(USD, EUR)`
    - Policy rule: EUR is not in blocked list
-   - Result: ✅ Allowed
+   - Result:  Allowed
 
 **Response**: "100 USD is 85.06 EUR"
 
@@ -152,11 +152,11 @@ spec:
 
 **Request**: "What is 100 USD in BTC?"
 
-1. **Layer 1 (Kata)**: Agent pod is running in a VM ✅
-2. **Layer 2 (Egress)**: Agent would call an external API ✅
+1. **Layer 1 (Kata)**: Agent pod is running in a VM 
+2. **Layer 2 (Egress)**: Agent would call an external API 
 3. **Layer 3 (OPA)**: Inspects tool call `get_exchange_rate(USD, BTC)`
    - Policy rule: `deny if currency_to in ["BTC", "ETH"]`
-   - Result: ❌ **Request blocked** (HTTP 403)
+   - Result:  **Request blocked** (HTTP 403)
 
 ---
 

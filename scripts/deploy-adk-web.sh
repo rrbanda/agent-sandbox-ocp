@@ -64,7 +64,7 @@ oc delete secret gemini-api-key -n adk-web 2>/dev/null || true
 oc create secret generic gemini-api-key \
   --from-literal=GOOGLE_API_KEY="$GEMINI_KEY" \
   -n adk-web
-echo "✅ Gemini API key configured"
+echo " Gemini API key configured"
 echo ""
 
 # Step 3: Deploy ADK Server
@@ -91,7 +91,7 @@ echo ""
 ADK_URL=$(oc get route adk-server -n adk-web -o jsonpath='{.spec.host}' 2>/dev/null)
 
 echo "=============================================="
-echo "  ✅ ADK Web UI Ready!"
+echo "   ADK Web UI Ready!"
 echo "=============================================="
 echo ""
 echo "🌐 Web UI URL: https://$ADK_URL/dev-ui/"
