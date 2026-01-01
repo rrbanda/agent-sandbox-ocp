@@ -2,7 +2,6 @@
 # Provides the get_exchange_rate tool for currency conversion
 #
 # NOTE: Kagenti pipeline replaces base image with UBI9
-# Using pip instead of uv for better UBI compatibility
 
 FROM python:3.11-slim
 
@@ -12,12 +11,11 @@ WORKDIR /opt/app-root/src
 # Allow statements and log messages to immediately appear in the logs
 ENV PYTHONUNBUFFERED=1
 
-# Copy project files
-COPY pyproject.toml .
-COPY server.py .
+# Copy all project files (including README.md for pyproject.toml)
+COPY . .
 
 # Install dependencies using pip (more compatible with UBI)
-RUN pip install --no-cache-dir fastmcp httpx
+RUN pip install --no-cache-dir .
 
 EXPOSE 8080
 
