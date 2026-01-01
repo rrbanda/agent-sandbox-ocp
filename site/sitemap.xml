@@ -9,6 +9,10 @@
          <lastmod>2026-01-01</lastmod>
     </url>
     <url>
+         <loc>https://rrbanda.github.io/agent-sandbox-ocp/kagenti-installation-guide/</loc>
+         <lastmod>2026-01-01</lastmod>
+    </url>
+    <url>
          <loc>https://rrbanda.github.io/agent-sandbox-ocp/troubleshooting/</loc>
          <lastmod>2026-01-01</lastmod>
     </url>
@@ -66,6 +70,26 @@
     </url>
     <url>
          <loc>https://rrbanda.github.io/agent-sandbox-ocp/workshop/</loc>
+         <lastmod>2026-01-01</lastmod>
+    </url>
+    <url>
+         <loc>https://rrbanda.github.io/agent-sandbox-ocp/workshop/00-prerequisites/</loc>
+         <lastmod>2026-01-01</lastmod>
+    </url>
+    <url>
+         <loc>https://rrbanda.github.io/agent-sandbox-ocp/workshop/00-prerequisites/01-requirements/</loc>
+         <lastmod>2026-01-01</lastmod>
+    </url>
+    <url>
+         <loc>https://rrbanda.github.io/agent-sandbox-ocp/workshop/00-prerequisites/02-install-osc/</loc>
+         <lastmod>2026-01-01</lastmod>
+    </url>
+    <url>
+         <loc>https://rrbanda.github.io/agent-sandbox-ocp/workshop/00-prerequisites/03-install-kagenti/</loc>
+         <lastmod>2026-01-01</lastmod>
+    </url>
+    <url>
+         <loc>https://rrbanda.github.io/agent-sandbox-ocp/workshop/00-prerequisites/04-verify-setup/</loc>
          <lastmod>2026-01-01</lastmod>
     </url>
     <url>

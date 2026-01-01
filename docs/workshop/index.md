@@ -96,12 +96,13 @@ flowchart LR
 
 | Part | Focus | Duration | Who |
 |------|-------|----------|-----|
+| [**Part 0: Prerequisites**](00-prerequisites/index.md) | Install OSC, Kagenti, verify setup | 40 min | 👷 Platform Admin |
 | [**Part 1: Foundations**](01-foundations/index.md) | Understand the problem and solution | 30 min | 👥 Everyone |
 | [**Part 2: Inner Loop**](02-inner-loop/index.md) | Build and test your agent | 30 min | 👩‍💻 Developer |
 | [**Part 3: Outer Loop**](03-outer-loop/index.md) | Deploy with security layers | 60 min | 👷 Admin + 👩‍💻 Dev |
 | [**Part 4: Reference**](04-reference/index.md) | Manifests and troubleshooting | As needed | 📚 All |
 
-**Total time:** ~2 hours
+**Total time:** ~2.5 hours (or ~2 hours if prerequisites already complete)
 
 ### Who Should Do What?
 
@@ -118,20 +119,22 @@ flowchart LR
 Before you start, ensure you have:
 
 - OpenShift 4.14+ cluster with admin access
-- Kagenti, Kuadrant, and OSC operators installed
 - `oc` CLI installed and logged in
+- `helm` CLI v3.18+ installed
 - Gemini API key ([Get one here](https://aistudio.google.com/app/apikey))
 
-### Quick Verification
+### Already Have Kagenti Installed?
 
 ```bash
-# Check operators are installed
-oc get csv -n openshift-sandboxed-containers-operator | grep Succeeded
-oc get pods -n kagenti-system | grep kagenti-controller
-
-# Check ADK Web UI is available
-oc get route adk-server -n adk-web
+# Quick verification
+oc get runtimeclass kata && \
+oc get pods -n kagenti-system | grep kagenti-controller && \
+echo "✅ Ready - skip to Part 1!"
 ```
+
+### Need to Install Kagenti?
+
+👉 **[Start with Part 0: Prerequisites](00-prerequisites/index.md)**
 
 ---
 
@@ -139,6 +142,10 @@ oc get route adk-server -n adk-web
 
 In the next two hours, you'll go from "I hope my agent is secure" to "I can prove it."
 
-👉 **[Start Part 1: Foundations](01-foundations/index.md)**
+### Choose Your Starting Point
 
-<small>Already familiar with agent security concepts? [Skip to Part 2: Inner Loop](02-inner-loop/index.md)</small>
+| Your Situation | Start Here |
+|----------------|------------|
+| **Fresh cluster, need to install Kagenti** | 👉 [Part 0: Prerequisites](00-prerequisites/index.md) |
+| **Kagenti already installed** | 👉 [Part 1: Foundations](01-foundations/index.md) |
+| **Familiar with security concepts** | 👉 [Part 2: Inner Loop](02-inner-loop/index.md) |

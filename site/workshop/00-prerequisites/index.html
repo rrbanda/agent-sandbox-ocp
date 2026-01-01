@@ -10,13 +10,13 @@
       
       
       
-        <link rel="canonical" href="https://rrbanda.github.io/agent-sandbox-ocp/concepts/kuadrant-opa/">
+        <link rel="canonical" href="https://rrbanda.github.io/agent-sandbox-ocp/workshop/00-prerequisites/">
       
       
-        <link rel="prev" href="../istio-egress/">
+        <link rel="prev" href="../">
       
       
-        <link rel="next" href="../../guides/developer-guide/">
+        <link rel="next" href="01-requirements/">
       
       
         
@@ -27,7 +27,7 @@
     
     
       
-        <title>Layer 3: Kuadrant & OPA - Securing Code First Agents on OpenShift</title>
+        <title>Overview - Securing Code First Agents on OpenShift</title>
       
     
     
@@ -80,7 +80,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#what-to-know-about-kuadrant-and-opa-policy" class="md-skip">
+        <a href="#part-0-prerequisites" class="md-skip">
           Skip to content
         </a>
       
@@ -114,7 +114,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Layer 3: Kuadrant & OPA
+              Overview
             
           </span>
         </div>
@@ -228,11 +228,13 @@
   
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
-        <a href="../../workshop/" class="md-tabs__link">
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../" class="md-tabs__link">
           
   
   
@@ -248,13 +250,11 @@
   
   
   
-    
-  
   
     
     
-      <li class="md-tabs__item md-tabs__item--active">
-        <a href="../" class="md-tabs__link">
+      <li class="md-tabs__item">
+        <a href="../../concepts/" class="md-tabs__link">
           
   
   
@@ -384,28 +384,31 @@
       
   
   
+    
   
   
+  
     
     
     
     
+      
+        
+        
       
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
         
           
-        
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
-        
-          
-          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
             
   
   
@@ -423,7 +426,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_2">
             <span class="md-nav__icon md-icon"></span>
             
@@ -441,7 +444,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../workshop/" class="md-nav__link">
+      <a href="../" class="md-nav__link">
         
   
   
@@ -466,28 +469,31 @@
                 
   
   
+    
   
   
+  
     
     
     
     
       
       
-        
-      
-    
-    
-    <li class="md-nav__item md-nav__item--nested">
-      
-        
         
           
+          
         
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2_2" >
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_2" checked>
         
           
-          <label class="md-nav__link" for="__nav_2_2" id="__nav_2_2_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_2_2" id="__nav_2_2_label" tabindex="">
             
   
   
@@ -505,7 +511,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_2_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_2_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_2_2">
             <span class="md-nav__icon md-icon"></span>
             
@@ -520,10 +526,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../../workshop/00-prerequisites/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -539,6 +572,114 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#before-the-workshop-begins" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Before the Workshop Begins
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-gets-installed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What Gets Installed
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#prerequisites-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prerequisites Checklist
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installation-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Installation Steps
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#who-needs-to-do-this" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Who Needs to Do This?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#automated-installation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Automated Installation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#time-investment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Time Investment
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lets-begin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Let's Begin
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -551,7 +692,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../workshop/00-prerequisites/01-requirements/" class="md-nav__link">
+      <a href="01-requirements/" class="md-nav__link">
         
   
   
@@ -579,7 +720,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../workshop/00-prerequisites/02-install-osc/" class="md-nav__link">
+      <a href="02-install-osc/" class="md-nav__link">
         
   
   
@@ -607,7 +748,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../workshop/00-prerequisites/03-install-kagenti/" class="md-nav__link">
+      <a href="03-install-kagenti/" class="md-nav__link">
         
   
   
@@ -635,7 +776,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../workshop/00-prerequisites/04-verify-setup/" class="md-nav__link">
+      <a href="04-verify-setup/" class="md-nav__link">
         
   
   
@@ -677,10 +818,13 @@
       
       
         
+          
+          
+        
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
       
         
         
@@ -689,7 +833,7 @@
         <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2_3" >
         
           
-          <label class="md-nav__link" for="__nav_2_3" id="__nav_2_3_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_2_3" id="__nav_2_3_label" tabindex="">
             
   
   
@@ -725,7 +869,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../workshop/01-foundations/" class="md-nav__link">
+      <a href="../01-foundations/" class="md-nav__link">
         
   
   
@@ -753,7 +897,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../workshop/01-foundations/01-why-agents-need-security/" class="md-nav__link">
+      <a href="../01-foundations/01-why-agents-need-security/" class="md-nav__link">
         
   
   
@@ -781,7 +925,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../workshop/01-foundations/02-defense-in-depth/" class="md-nav__link">
+      <a href="../01-foundations/02-defense-in-depth/" class="md-nav__link">
         
   
   
@@ -809,7 +953,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../workshop/01-foundations/03-adlc-inner-outer-loop/" class="md-nav__link">
+      <a href="../01-foundations/03-adlc-inner-outer-loop/" class="md-nav__link">
         
   
   
@@ -837,7 +981,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../workshop/01-foundations/04-technology-stack/" class="md-nav__link">
+      <a href="../01-foundations/04-technology-stack/" class="md-nav__link">
         
   
   
@@ -879,10 +1023,13 @@
       
       
         
+          
+          
+        
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
       
         
         
@@ -891,7 +1038,7 @@
         <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2_4" >
         
           
-          <label class="md-nav__link" for="__nav_2_4" id="__nav_2_4_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_2_4" id="__nav_2_4_label" tabindex="">
             
   
   
@@ -927,7 +1074,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../workshop/02-inner-loop/" class="md-nav__link">
+      <a href="../02-inner-loop/" class="md-nav__link">
         
   
   
@@ -955,7 +1102,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../workshop/02-inner-loop/01-understand-agent-code/" class="md-nav__link">
+      <a href="../02-inner-loop/01-understand-agent-code/" class="md-nav__link">
         
   
   
@@ -983,7 +1130,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../workshop/02-inner-loop/02-test-in-adk-web-ui/" class="md-nav__link">
+      <a href="../02-inner-loop/02-test-in-adk-web-ui/" class="md-nav__link">
         
   
   
@@ -1011,7 +1158,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../workshop/02-inner-loop/03-iterate-and-refine/" class="md-nav__link">
+      <a href="../02-inner-loop/03-iterate-and-refine/" class="md-nav__link">
         
   
   
@@ -1053,10 +1200,13 @@
       
       
         
+          
+          
+        
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
       
         
         
@@ -1065,7 +1215,7 @@
         <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2_5" >
         
           
-          <label class="md-nav__link" for="__nav_2_5" id="__nav_2_5_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_2_5" id="__nav_2_5_label" tabindex="">
             
   
   
@@ -1101,7 +1251,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../workshop/03-outer-loop/" class="md-nav__link">
+      <a href="../03-outer-loop/" class="md-nav__link">
         
   
   
@@ -1129,7 +1279,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../workshop/03-outer-loop/01-platform-setup/" class="md-nav__link">
+      <a href="../03-outer-loop/01-platform-setup/" class="md-nav__link">
         
   
   
@@ -1157,7 +1307,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../workshop/03-outer-loop/02-build-with-agentbuild/" class="md-nav__link">
+      <a href="../03-outer-loop/02-build-with-agentbuild/" class="md-nav__link">
         
   
   
@@ -1185,7 +1335,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../workshop/03-outer-loop/03-deploy-agent/" class="md-nav__link">
+      <a href="../03-outer-loop/03-deploy-agent/" class="md-nav__link">
         
   
   
@@ -1213,7 +1363,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../workshop/03-outer-loop/04-security-hardening/" class="md-nav__link">
+      <a href="../03-outer-loop/04-security-hardening/" class="md-nav__link">
         
   
   
@@ -1241,7 +1391,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../workshop/03-outer-loop/05-monitor-and-tune/" class="md-nav__link">
+      <a href="../03-outer-loop/05-monitor-and-tune/" class="md-nav__link">
         
   
   
@@ -1283,10 +1433,13 @@
       
       
         
+          
+          
+        
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
       
         
         
@@ -1295,7 +1448,7 @@
         <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2_6" >
         
           
-          <label class="md-nav__link" for="__nav_2_6" id="__nav_2_6_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_2_6" id="__nav_2_6_label" tabindex="">
             
   
   
@@ -1331,7 +1484,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../workshop/04-reference/" class="md-nav__link">
+      <a href="../04-reference/" class="md-nav__link">
         
   
   
@@ -1387,7 +1540,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../workshop/04-reference/manifest-reference/" class="md-nav__link">
+      <a href="../04-reference/manifest-reference/" class="md-nav__link">
         
   
   
@@ -1415,7 +1568,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../workshop/04-reference/troubleshooting/" class="md-nav__link">
+      <a href="../04-reference/troubleshooting/" class="md-nav__link">
         
   
   
@@ -1443,7 +1596,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../workshop/04-reference/cleanup/" class="md-nav__link">
+      <a href="../04-reference/cleanup/" class="md-nav__link">
         
   
   
@@ -1483,31 +1636,28 @@
       
   
   
-    
   
   
-  
     
     
     
     
-      
-        
-        
       
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
         
           
-          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
             
   
   
@@ -1525,7 +1675,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
             
@@ -1543,7 +1693,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../" class="md-nav__link">
+      <a href="../../concepts/" class="md-nav__link">
         
   
   
@@ -1577,13 +1727,10 @@
       
       
         
-          
-          
-        
       
     
     
-    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
@@ -1592,7 +1739,7 @@
         <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3_2" >
         
           
-          <label class="md-nav__link" for="__nav_3_2" id="__nav_3_2_label" tabindex="">
+          <label class="md-nav__link" for="__nav_3_2" id="__nav_3_2_label" tabindex="0">
             
   
   
@@ -1628,7 +1775,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../threat-model/" class="md-nav__link">
+      <a href="../../concepts/threat-model/" class="md-nav__link">
         
   
   
@@ -1656,7 +1803,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../defense-in-depth/" class="md-nav__link">
+      <a href="../../concepts/defense-in-depth/" class="md-nav__link">
         
   
   
@@ -1698,13 +1845,10 @@
       
       
         
-          
-          
-        
       
     
     
-    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
@@ -1713,7 +1857,7 @@
         <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3_3" >
         
           
-          <label class="md-nav__link" for="__nav_3_3" id="__nav_3_3_label" tabindex="">
+          <label class="md-nav__link" for="__nav_3_3" id="__nav_3_3_label" tabindex="0">
             
   
   
@@ -1749,7 +1893,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../google-adk/" class="md-nav__link">
+      <a href="../../concepts/google-adk/" class="md-nav__link">
         
   
   
@@ -1777,7 +1921,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../inner-outer-loop/" class="md-nav__link">
+      <a href="../../concepts/inner-outer-loop/" class="md-nav__link">
         
   
   
@@ -1819,13 +1963,10 @@
       
       
         
-          
-          
-        
       
     
     
-    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
@@ -1834,7 +1975,7 @@
         <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3_4" >
         
           
-          <label class="md-nav__link" for="__nav_3_4" id="__nav_3_4_label" tabindex="">
+          <label class="md-nav__link" for="__nav_3_4" id="__nav_3_4_label" tabindex="0">
             
   
   
@@ -1870,7 +2011,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../kagenti-platform/" class="md-nav__link">
+      <a href="../../concepts/kagenti-platform/" class="md-nav__link">
         
   
   
@@ -1898,7 +2039,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../agentbuild-source-to-image/" class="md-nav__link">
+      <a href="../../concepts/agentbuild-source-to-image/" class="md-nav__link">
         
   
   
@@ -1931,31 +2072,28 @@
                 
   
   
-    
   
   
-  
     
     
     
     
       
       
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
         
           
-          
         
-      
-    
-    
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_5" checked>
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3_5" >
         
           
-          <label class="md-nav__link" for="__nav_3_5" id="__nav_3_5_label" tabindex="">
+          <label class="md-nav__link" for="__nav_3_5" id="__nav_3_5_label" tabindex="0">
             
   
   
@@ -1973,7 +2111,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_5_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_5_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_3_5">
             <span class="md-nav__icon md-icon"></span>
             
@@ -1991,7 +2129,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../osc-explained/" class="md-nav__link">
+      <a href="../../concepts/osc-explained/" class="md-nav__link">
         
   
   
@@ -2019,7 +2157,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../istio-egress/" class="md-nav__link">
+      <a href="../../concepts/istio-egress/" class="md-nav__link">
         
   
   
@@ -2044,37 +2182,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Layer 3: Kuadrant & OPA
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../../concepts/kuadrant-opa/" class="md-nav__link">
         
   
   
@@ -2090,264 +2201,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#1-what-kuadrant-is" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        1. What Kuadrant Is
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#2-what-opa-is" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        2. What OPA Is
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#3-why-policy-enforcement-matters-for-ai-agents" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        3. Why Policy Enforcement Matters for AI Agents
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#4-how-kuadrant-authpolicy-works" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        4. How Kuadrant AuthPolicy Works
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="4. How Kuadrant AuthPolicy Works">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#architecture" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Architecture
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#basic-authpolicy-structure" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Basic AuthPolicy Structure
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#5-writing-rego-policies" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        5. Writing Rego Policies
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="5. Writing Rego Policies">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#allow-only-fiat-currencies" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Allow Only Fiat Currencies
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#deny-cryptocurrency" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Deny Cryptocurrency
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#6-what-gets-validated" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        6. What Gets Validated
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#7-where-policy-lives" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        7. Where Policy Lives
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="7. Where Policy Lives">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#option-1-inline-in-authpolicy" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Option 1: Inline in AuthPolicy
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#option-2-external-opa-server" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Option 2: External OPA Server
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#option-3-configmap-reference" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Option 3: ConfigMap Reference
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#8-policy-scope-and-targeting" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        8. Policy Scope and Targeting
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#9-kuadrant-vs-other-solutions" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        9. Kuadrant vs Other Solutions
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#10-relevance-to-ai-agents" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        10. Relevance to AI Agents
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#11-a-defensible-technical-statement" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        11. A Defensible Technical Statement
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#12-key-takeaway" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        12. Key Takeaway
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#references" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        References
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -2650,270 +2503,175 @@
   
 
 
-<h1 id="what-to-know-about-kuadrant-and-opa-policy">What to Know About Kuadrant and OPA Policy</h1>
+<h1 id="part-0-prerequisites">Part 0: Prerequisites</h1>
+<p><strong>Duration</strong>: 30-45 minutes | <strong>Persona</strong>: 👷 Platform Admin</p>
+<h2 id="before-the-workshop-begins">Before the Workshop Begins</h2>
+<p>This section covers the <strong>one-time platform setup</strong> required before running the workshop. If your cluster already has Kagenti, Kuadrant, and OSC installed, you can skip to <a href="../01-foundations/">Part 1: Foundations</a>.</p>
 <hr />
-<h2 id="1-what-kuadrant-is">1. What Kuadrant Is</h2>
-<p><strong>Kuadrant</strong> is a Kubernetes-native API management solution that provides:</p>
-<ul>
-<li><strong>Authentication</strong> (AuthN)</li>
-<li><strong>Authorization</strong> (AuthZ)</li>
-<li><strong>Rate limiting</strong></li>
-<li><strong>DNS management</strong></li>
-</ul>
-<p>In this workshop, we use Kuadrant's <strong>AuthPolicy</strong> with <strong>OPA (Open Policy Agent)</strong> to enforce tool-level policies.</p>
-<p><strong>Key idea</strong></p>
-<blockquote>
-<p>Kuadrant + OPA validates every tool call before it reaches the MCP server.</p>
-</blockquote>
-<hr />
-<h2 id="2-what-opa-is">2. What OPA Is</h2>
-<p><strong>OPA (Open Policy Agent)</strong> is a general-purpose policy engine that:</p>
-<ul>
-<li>Evaluates policies written in <strong>Rego</strong> (a declarative language)</li>
-<li>Returns allow/deny decisions</li>
-<li>Is CNCF-graduated and widely adopted</li>
-</ul>
-<p>OPA answers the question: <strong>"Is this action allowed?"</strong></p>
-<hr />
-<h2 id="3-why-policy-enforcement-matters-for-ai-agents">3. Why Policy Enforcement Matters for AI Agents</h2>
-<p>AI agents make decisions at runtime. These decisions are:</p>
-<ul>
-<li><strong>Non-deterministic</strong> - LLMs don't always produce the same output</li>
-<li><strong>Influenced by prompts</strong> - Including potentially malicious ones</li>
-<li><strong>Capable of calling tools</strong> - With real-world consequences</li>
-</ul>
-<p>Policy enforcement provides a <strong>deterministic checkpoint</strong>:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>User Prompt → LLM Decision → Tool Call → [Policy Check] → Execution
-</code></pre></div>
-<p>Even if the LLM is tricked, the policy engine can block the action.</p>
-<hr />
-<h2 id="4-how-kuadrant-authpolicy-works">4. How Kuadrant AuthPolicy Works</h2>
-<h3 id="architecture">Architecture</h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>Agent Pod → MCP Gateway → Authorino → OPA → MCP Server
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>                ↑
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>           AuthPolicy CR
-</code></pre></div>
-<ol>
-<li><strong>AuthPolicy</strong> defines rules as a Kubernetes Custom Resource</li>
-<li><strong>Authorino</strong> (Kuadrant's auth engine) evaluates requests</li>
-<li><strong>OPA</strong> can be used for complex policy logic</li>
-<li>Requests are allowed or denied before reaching the backend</li>
-</ol>
-<h3 id="basic-authpolicy-structure">Basic AuthPolicy Structure</h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">kuadrant.io/v1</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">AuthPolicy</span>
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="nt">metadata</span><span class="p">:</span>
-<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">currency-mcp-policy</span>
-<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">  </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">agent-sandbox</span>
-<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="nt">spec</span><span class="p">:</span>
-<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">  </span><span class="nt">targetRef</span><span class="p">:</span>
-<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="w">    </span><span class="nt">group</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gateway.networking.k8s.io</span>
-<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="w">    </span><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">HTTPRoute</span>
-<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">currency-mcp-route</span>
-<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>
-<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="w">  </span><span class="nt">rules</span><span class="p">:</span>
-<a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="w">    </span><span class="nt">authorization</span><span class="p">:</span>
-<a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a><span class="w">      </span><span class="nt">opa-policy</span><span class="p">:</span>
-<a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a><span class="w">        </span><span class="nt">rego</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
-<a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a><span class="w">          </span><span class="no"># Policy logic here</span>
-<a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a><span class="w">          </span><span class="no">allow = true { ... }</span>
-</code></pre></div>
-<hr />
-<h2 id="5-writing-rego-policies">5. Writing Rego Policies</h2>
-<p>Rego is a declarative policy language. Here's a simple example:</p>
-<h3 id="allow-only-fiat-currencies">Allow Only Fiat Currencies</h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="k">package</span><span class="w"> </span><span class="n">currency</span>
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>
-<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="k">default</span><span class="w"> </span><span class="n">allow</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">false</span>
-<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>
-<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="c1"># List of allowed currencies (fiat only)</span>
-<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="n">allowed_currencies</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="s2">&quot;USD&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;EUR&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;GBP&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;JPY&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;CAD&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;AUD&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;CHF&quot;</span><span class="p">}</span>
-<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>
-<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="c1"># Allow if both currencies are in the allowed list</span>
-<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="n">allow</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="w">    </span><span class="nb">input</span><span class="p">.</span><span class="n">from_currency</span><span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="n">allowed_currencies</span>
-<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="w">    </span><span class="nb">input</span><span class="p">.</span><span class="n">to_currency</span><span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="n">allowed_currencies</span>
-<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="p">}</span>
-</code></pre></div>
-<h3 id="deny-cryptocurrency">Deny Cryptocurrency</h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1"># Explicitly deny crypto</span>
-<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="n">blocked_currencies</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="s2">&quot;BTC&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;ETH&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;DOGE&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;XRP&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;SOL&quot;</span><span class="p">}</span>
-<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>
-<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="n">deny</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">    </span><span class="nb">input</span><span class="p">.</span><span class="n">from_currency</span><span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="n">blocked_currencies</span>
-<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="p">}</span>
-<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>
-<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="n">deny</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="w">    </span><span class="nb">input</span><span class="p">.</span><span class="n">to_currency</span><span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="n">blocked_currencies</span>
-<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="p">}</span>
-</code></pre></div>
-<hr />
-<h2 id="6-what-gets-validated">6. What Gets Validated</h2>
-<p>In the Currency Agent example, the policy validates the <strong>tool call arguments</strong>:</p>
+<h2 id="what-gets-installed">What Gets Installed</h2>
 <table>
 <thead>
 <tr>
-<th>Request</th>
-<th>Validation</th>
-<th>Result</th>
+<th>Component</th>
+<th>Purpose</th>
+<th>Workshop Role</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><code>get_exchange_rate(USD, EUR)</code></td>
-<td>Both in allowed list</td>
-<td>Allow</td>
+<td><strong>OpenShift Sandboxed Containers (OSC)</strong></td>
+<td>VM-based container isolation</td>
+<td>Layer 1: Kata runtime</td>
 </tr>
 <tr>
-<td><code>get_exchange_rate(USD, BTC)</code></td>
-<td>BTC is blocked</td>
-<td>Deny</td>
+<td><strong>Kagenti Platform</strong></td>
+<td>AI agent control plane</td>
+<td>Agent deployment, MCP Gateway</td>
 </tr>
 <tr>
-<td><code>get_exchange_rate(ETH, USD)</code></td>
-<td>ETH is blocked</td>
-<td>Deny</td>
+<td><strong>Istio</strong></td>
+<td>Service mesh (installed with Kagenti)</td>
+<td>Layer 2: Egress control</td>
+</tr>
+<tr>
+<td><strong>Kuadrant</strong></td>
+<td>API policy enforcement (installed with Kagenti)</td>
+<td>Layer 3: OPA policies</td>
 </tr>
 </tbody>
 </table>
-<p>The policy runs <strong>before</strong> the MCP server executes the tool.</p>
+<div class="admonition info">
+<p class="admonition-title">Kagenti bundles dependencies</p>
+<p>When you install Kagenti, it automatically installs Istio, Keycloak, cert-manager, and other dependencies. You don't need to install them separately.</p>
+</div>
 <hr />
-<h2 id="7-where-policy-lives">7. Where Policy Lives</h2>
-<h3 id="option-1-inline-in-authpolicy">Option 1: Inline in AuthPolicy</h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nt">spec</span><span class="p">:</span>
-<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">  </span><span class="nt">rules</span><span class="p">:</span>
-<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">    </span><span class="nt">authorization</span><span class="p">:</span>
-<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">      </span><span class="nt">opa-policy</span><span class="p">:</span>
-<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="w">        </span><span class="nt">rego</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
-<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="w">          </span><span class="no">package currency</span>
-<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="w">          </span><span class="no">default allow = false</span>
-<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="w">          </span><span class="no"># ... policy logic ...</span>
-</code></pre></div>
-<h3 id="option-2-external-opa-server">Option 2: External OPA Server</h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="nt">spec</span><span class="p">:</span>
-<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">  </span><span class="nt">rules</span><span class="p">:</span>
-<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">    </span><span class="nt">authorization</span><span class="p">:</span>
-<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">      </span><span class="nt">external-opa</span><span class="p">:</span>
-<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="w">        </span><span class="nt">url</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">http://opa-server:8181/v1/data/currency/allow</span>
-</code></pre></div>
-<h3 id="option-3-configmap-reference">Option 3: ConfigMap Reference</h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="nt">spec</span><span class="p">:</span>
-<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">  </span><span class="nt">rules</span><span class="p">:</span>
-<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">    </span><span class="nt">authorization</span><span class="p">:</span>
-<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">      </span><span class="nt">opa-policy</span><span class="p">:</span>
-<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="w">        </span><span class="nt">externalPolicy</span><span class="p">:</span>
-<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="w">          </span><span class="nt">configMapRef</span><span class="p">:</span>
-<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="w">            </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">currency-policy</span>
-<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="w">            </span><span class="nt">key</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">policy.rego</span>
-</code></pre></div>
-<hr />
-<h2 id="8-policy-scope-and-targeting">8. Policy Scope and Targeting</h2>
-<p>AuthPolicy uses <code>targetRef</code> to specify what it protects:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="nt">spec</span><span class="p">:</span>
-<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">  </span><span class="nt">targetRef</span><span class="p">:</span>
-<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="w">    </span><span class="nt">group</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gateway.networking.k8s.io</span>
-<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="w">    </span><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">HTTPRoute</span><span class="w">           </span><span class="c1"># or Gateway</span>
-<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">currency-mcp-route</span>
-</code></pre></div>
-<p>This means:</p>
+<h2 id="prerequisites-checklist">Prerequisites Checklist</h2>
+<p>Before starting, ensure you have:</p>
 <ul>
-<li>The policy only applies to requests matching this HTTPRoute</li>
-<li>Other routes are unaffected</li>
-<li>You can have different policies for different tools</li>
+<li>[ ] OpenShift 4.14+ cluster with admin access</li>
+<li>[ ] <code>oc</code> CLI installed and configured</li>
+<li>[ ] <code>helm</code> CLI v3.18+ installed</li>
+<li>[ ] GitHub account with Personal Access Token</li>
+<li>[ ] Gemini API key (or OpenAI API key)</li>
+<li>[ ] Quay.io account (for container registry)</li>
 </ul>
 <hr />
-<h2 id="9-kuadrant-vs-other-solutions">9. Kuadrant vs Other Solutions</h2>
+<h2 id="installation-steps">Installation Steps</h2>
+<pre class="mermaid"><code>flowchart LR
+    A["1. Verify&lt;br/&gt;Cluster"] --&gt; B["2. Install&lt;br/&gt;OSC"]
+    B --&gt; C["3. Install&lt;br/&gt;Kagenti"]
+    C --&gt; D["4. Verify&lt;br/&gt;Setup"]</code></pre>
 <table>
 <thead>
 <tr>
-<th>Aspect</th>
-<th>Kuadrant AuthPolicy</th>
-<th>Kubernetes RBAC</th>
-<th>Custom Middleware</th>
+<th>Step</th>
+<th>Document</th>
+<th>Duration</th>
+<th>Description</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>Scope</td>
-<td>API/route level</td>
-<td>Resource level</td>
-<td>Application level</td>
+<td>1</td>
+<td><a href="01-requirements/">OpenShift Requirements</a></td>
+<td>5 min</td>
+<td>Verify cluster meets requirements</td>
 </tr>
 <tr>
-<td>Granularity</td>
-<td>Request content</td>
-<td>Verb + resource</td>
-<td>Custom</td>
+<td>2</td>
+<td><a href="02-install-osc/">Install OSC</a></td>
+<td>10 min</td>
+<td>Install OpenShift Sandboxed Containers</td>
 </tr>
 <tr>
-<td>Kubernetes-native</td>
-<td>Yes (CRD)</td>
-<td>Yes</td>
-<td>No</td>
+<td>3</td>
+<td><a href="03-install-kagenti/">Install Kagenti</a></td>
+<td>20 min</td>
+<td>Install Kagenti platform with all dependencies</td>
 </tr>
 <tr>
-<td>Policy language</td>
-<td>Rego/OPA</td>
-<td>None</td>
-<td>Custom</td>
-</tr>
-<tr>
-<td>Hot-reload</td>
-<td>Yes</td>
-<td>Yes</td>
-<td>Depends</td>
+<td>4</td>
+<td><a href="04-verify-setup/">Verify Setup</a></td>
+<td>5 min</td>
+<td>Confirm everything is working</td>
 </tr>
 </tbody>
 </table>
 <hr />
-<h2 id="10-relevance-to-ai-agents">10. Relevance to AI Agents</h2>
-<p>Policy enforcement is the <strong>innermost defense layer</strong>:</p>
+<h2 id="who-needs-to-do-this">Who Needs to Do This?</h2>
 <table>
 <thead>
 <tr>
-<th>Layer</th>
-<th>What It Stops</th>
+<th>Scenario</th>
+<th>What to Do</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>Kata (VM)</td>
-<td>Container escapes</td>
+<td><strong>Fresh cluster, no Kagenti</strong></td>
+<td>Complete all steps in Part 0</td>
 </tr>
 <tr>
-<td>Istio (Network)</td>
-<td>Data exfiltration</td>
+<td><strong>Kagenti already installed</strong></td>
+<td>Skip to <a href="04-verify-setup/">Verify Setup</a>, then Part 1</td>
 </tr>
 <tr>
-<td><strong>OPA (Policy)</strong></td>
-<td>Invalid tool arguments</td>
+<td><strong>Workshop instructor provided cluster</strong></td>
+<td>Ask instructor, likely skip Part 0</td>
 </tr>
 </tbody>
 </table>
-<p>Even if an agent can reach the MCP server, it cannot:</p>
-<ul>
-<li>Call tools with blocked parameters</li>
-<li>Bypass business logic rules</li>
-<li>Execute unauthorized operations</li>
-</ul>
 <hr />
-<h2 id="11-a-defensible-technical-statement">11. A Defensible Technical Statement</h2>
-<blockquote>
-<p>Kuadrant AuthPolicy with OPA provides fine-grained, declarative policy enforcement for AI agent tool calls. By validating request content against Rego policies before execution, we prevent unauthorized operations even when the LLM makes unexpected decisions.</p>
-</blockquote>
+<h2 id="automated-installation">Automated Installation</h2>
+<p>If you prefer a single command:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># Clone the repository</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/rrbanda/agent-sandbox-ocp.git
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="nb">cd</span><span class="w"> </span>agent-sandbox-ocp
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="c1"># Create secrets file (edit with your credentials)</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>cp<span class="w"> </span>scripts/.secrets_template.yaml<span class="w"> </span>/tmp/.secrets.yaml
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="c1"># Edit /tmp/.secrets.yaml with your GitHub, Quay, and API keys</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="c1"># Run the install script</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>./scripts/install-kagenti.sh
+</code></pre></div>
+<p>The script handles all steps including known workarounds.</p>
 <hr />
-<h2 id="12-key-takeaway">12. Key Takeaway</h2>
-<blockquote>
-<p><strong>OPA doesn't trust the LLM's decision - it validates every tool call against explicit rules.</strong></p>
-</blockquote>
+<h2 id="time-investment">Time Investment</h2>
+<table>
+<thead>
+<tr>
+<th>Activity</th>
+<th>Time</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Reading requirements</td>
+<td>5 min</td>
+</tr>
+<tr>
+<td>Installing OSC</td>
+<td>10 min</td>
+</tr>
+<tr>
+<td>Installing Kagenti</td>
+<td>15-20 min</td>
+</tr>
+<tr>
+<td>Verification</td>
+<td>5 min</td>
+</tr>
+<tr>
+<td><strong>Total</strong></td>
+<td><strong>~40 min</strong></td>
+</tr>
+</tbody>
+</table>
+<p>This is a one-time investment. Once installed, Kagenti serves multiple teams and projects.</p>
 <hr />
-<h2 id="references">References</h2>
-<ul>
-<li><a href="https://docs.kuadrant.io/">Kuadrant Documentation</a></li>
-<li><a href="https://www.openpolicyagent.org/docs/latest/">OPA Documentation</a></li>
-<li><a href="https://www.openpolicyagent.org/docs/latest/policy-language/">Rego Language Reference</a></li>
-<li><a href="https://github.com/Kuadrant/authorino">Authorino (Kuadrant Auth Engine)</a></li>
-</ul>
+<h2 id="lets-begin">Let's Begin</h2>
+<p>👉 <strong><a href="01-requirements/">Step 1: OpenShift Requirements</a></strong></p>
 
 
 

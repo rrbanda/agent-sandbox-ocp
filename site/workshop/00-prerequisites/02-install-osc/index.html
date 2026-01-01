@@ -10,13 +10,13 @@
       
       
       
-        <link rel="canonical" href="https://rrbanda.github.io/agent-sandbox-ocp/workshop/03-outer-loop/05-monitor-and-tune/">
+        <link rel="canonical" href="https://rrbanda.github.io/agent-sandbox-ocp/workshop/00-prerequisites/02-install-osc/">
       
       
-        <link rel="prev" href="../04-security-hardening/">
+        <link rel="prev" href="../01-requirements/">
       
       
-        <link rel="next" href="../../04-reference/">
+        <link rel="next" href="../03-install-kagenti/">
       
       
         
@@ -27,7 +27,7 @@
     
     
       
-        <title>5. Monitor & Tune - Securing Code First Agents on OpenShift</title>
+        <title>Install OSC - Securing Code First Agents on OpenShift</title>
       
     
     
@@ -80,7 +80,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#section-5-monitor-tune" class="md-skip">
+        <a href="#install-openshift-sandboxed-containers" class="md-skip">
           Skip to content
         </a>
       
@@ -114,7 +114,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              5. Monitor & Tune
+              Install OSC
             
           </span>
         </div>
@@ -469,8 +469,10 @@
                 
   
   
+    
   
   
+  
     
     
     
@@ -484,13 +486,11 @@
       
     
     
-    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
         
-          
-        
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2_2" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_2" checked>
         
           
           <label class="md-nav__link" for="__nav_2_2" id="__nav_2_2_label" tabindex="">
@@ -511,7 +511,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_2_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_2_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_2_2">
             <span class="md-nav__icon md-icon"></span>
             
@@ -529,7 +529,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../00-prerequisites/" class="md-nav__link">
+      <a href="../" class="md-nav__link">
         
   
   
@@ -557,7 +557,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../00-prerequisites/01-requirements/" class="md-nav__link">
+      <a href="../01-requirements/" class="md-nav__link">
         
   
   
@@ -582,10 +582,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../../00-prerequisites/02-install-osc/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Install OSC
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -601,6 +628,248 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#what-osc-provides" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What OSC Provides
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#install-via-openshift-console" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Install via OpenShift Console
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Install via OpenShift Console">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-install-the-operator" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Install the Operator
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-create-kataconfig" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: Create KataConfig
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#install-via-cli" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Install via CLI
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Install via CLI">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-create-namespace-and-operator-group" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Create Namespace and Operator Group
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-create-subscription" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: Create Subscription
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-wait-for-operator" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Wait for Operator
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-create-kataconfig" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4: Create KataConfig
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#wait-for-node-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Wait for Node Configuration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#verify-installation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Verify Installation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Verify Installation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#check-runtimeclass" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Check RuntimeClass
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#check-kata-pods" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Check Kata Pods
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#test-kata-pod-optional" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Test Kata Pod (Optional)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Troubleshooting
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Troubleshooting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#nodes-stuck-in-notready" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Nodes stuck in NotReady
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kataconfig-not-progressing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        KataConfig not progressing
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#osc-installed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        OSC Installed
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -613,7 +882,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../00-prerequisites/03-install-kagenti/" class="md-nav__link">
+      <a href="../03-install-kagenti/" class="md-nav__link">
         
   
   
@@ -641,7 +910,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../00-prerequisites/04-verify-setup/" class="md-nav__link">
+      <a href="../04-verify-setup/" class="md-nav__link">
         
   
   
@@ -1056,8 +1325,6 @@
                 
   
   
-    
-  
   
   
     
@@ -1073,11 +1340,13 @@
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_5" checked>
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2_5" >
         
           
           <label class="md-nav__link" for="__nav_2_5" id="__nav_2_5_label" tabindex="">
@@ -1098,7 +1367,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_5_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_5_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_2_5">
             <span class="md-nav__icon md-icon"></span>
             
@@ -1116,7 +1385,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../" class="md-nav__link">
+      <a href="../../03-outer-loop/" class="md-nav__link">
         
   
   
@@ -1144,7 +1413,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../01-platform-setup/" class="md-nav__link">
+      <a href="../../03-outer-loop/01-platform-setup/" class="md-nav__link">
         
   
   
@@ -1172,7 +1441,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../02-build-with-agentbuild/" class="md-nav__link">
+      <a href="../../03-outer-loop/02-build-with-agentbuild/" class="md-nav__link">
         
   
   
@@ -1200,7 +1469,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../03-deploy-agent/" class="md-nav__link">
+      <a href="../../03-outer-loop/03-deploy-agent/" class="md-nav__link">
         
   
   
@@ -1228,7 +1497,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../04-security-hardening/" class="md-nav__link">
+      <a href="../../03-outer-loop/04-security-hardening/" class="md-nav__link">
         
   
   
@@ -1253,37 +1522,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    5. Monitor & Tune
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../../03-outer-loop/05-monitor-and-tune/" class="md-nav__link">
         
   
   
@@ -1299,270 +1541,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#the-journey-continues" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        The Journey Continues
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#observability-stack" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Observability Stack
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#step-1-view-traces-in-phoenix" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Step 1: View Traces in Phoenix
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Step 1: View Traces in Phoenix">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#access-phoenix" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Access Phoenix
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#what-youll-see" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        What You'll See
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#step-2-review-policy-decisions" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Step 2: Review Policy Decisions
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Step 2: Review Policy Decisions">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#check-authorino-logs" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Check Authorino Logs
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#example-blocked-request" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Example Blocked Request
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#step-3-key-metrics-to-watch" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Step 3: Key Metrics to Watch
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Step 3: Key Metrics to Watch">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#performance" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Performance
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#security" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Security
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#step-4-continuous-improvement" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Step 4: Continuous Improvement
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#workshop-complete" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Workshop Complete! 🎉
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#what-youve-accomplished" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        What You've Accomplished
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#the-transformation" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        The Transformation
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#next-steps" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Next Steps
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Next Steps">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#keep-learning" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Keep Learning
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#clean-up" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Clean Up
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#go-deeper" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Go Deeper
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#thank-you" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Thank You
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -2659,247 +2637,222 @@
   
 
 
-<h1 id="section-5-monitor-tune">Section 5: Monitor &amp; Tune</h1>
-<p><strong>Duration</strong>: 5 minutes | <strong>Persona</strong>: 👥 Both (Platform Admin + Developer)</p>
-<h2 id="the-journey-continues">The Journey Continues</h2>
-<p>Deployment isn't the finish line—it's the starting point for continuous improvement.</p>
-<p>Monitoring tells you how your agent behaves in the real world. Tuning makes it better over time.</p>
+<h1 id="install-openshift-sandboxed-containers">Install OpenShift Sandboxed Containers</h1>
+<p><strong>Duration</strong>: 10 minutes</p>
+<p>OpenShift Sandboxed Containers (OSC) provides the Kata Containers runtime for VM-based workload isolation. This is <strong>Layer 1</strong> of our defense-in-depth strategy.</p>
 <hr />
-<h2 id="observability-stack">Observability Stack</h2>
-<p>Kagenti provides built-in observability:</p>
+<h2 id="what-osc-provides">What OSC Provides</h2>
 <table>
 <thead>
 <tr>
 <th>Component</th>
-<th>What It Shows</th>
+<th>Purpose</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><strong>Phoenix</strong></td>
-<td>Visual traces of agent interactions</td>
+<td><strong>OSC Operator</strong></td>
+<td>Manages Kata runtime installation</td>
 </tr>
 <tr>
-<td><strong>OpenTelemetry</strong></td>
-<td>Distributed tracing across services</td>
+<td><strong>KataConfig</strong></td>
+<td>Configures which nodes run Kata</td>
 </tr>
 <tr>
-<td><strong>Authorino Logs</strong></td>
-<td>Audit trail of every policy decision</td>
+<td><strong>RuntimeClass</strong></td>
+<td><code>kata</code> runtime class for pods</td>
 </tr>
 </tbody>
 </table>
 <hr />
-<h2 id="step-1-view-traces-in-phoenix">Step 1: View Traces in Phoenix</h2>
-<h3 id="access-phoenix">Access Phoenix</h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># Get the Phoenix URL</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nv">PHOENIX_URL</span><span class="o">=</span><span class="k">$(</span>oc<span class="w"> </span>get<span class="w"> </span>route<span class="w"> </span>phoenix<span class="w"> </span>-n<span class="w"> </span>kagenti-system<span class="w"> </span>-o<span class="w"> </span><span class="nv">jsonpath</span><span class="o">=</span><span class="s1">&#39;https://{.spec.host}&#39;</span><span class="k">)</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Phoenix UI: </span><span class="nv">$PHOENIX_URL</span><span class="s2">&quot;</span>
+<h2 id="install-via-openshift-console">Install via OpenShift Console</h2>
+<h3 id="step-1-install-the-operator">Step 1: Install the Operator</h3>
+<ol>
+<li>Open the OpenShift Console</li>
+<li>Navigate to <strong>Operators → OperatorHub</strong></li>
+<li>Search for <strong>"OpenShift sandboxed containers"</strong></li>
+<li>Click <strong>Install</strong></li>
+<li>Accept default settings and click <strong>Install</strong></li>
+</ol>
+<p>Wait for the operator to install (1-2 minutes).</p>
+<h3 id="step-2-create-kataconfig">Step 2: Create KataConfig</h3>
+<ol>
+<li>Navigate to <strong>Operators → Installed Operators</strong></li>
+<li>Click <strong>OpenShift sandboxed containers Operator</strong></li>
+<li>Click the <strong>KataConfig</strong> tab</li>
+<li>Click <strong>Create KataConfig</strong></li>
+<li>Use this YAML:</li>
+</ol>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">kataconfiguration.openshift.io/v1</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">KataConfig</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="nt">metadata</span><span class="p">:</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">cluster</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="nt">spec</span><span class="p">:</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">  </span><span class="nt">kataConfigPoolSelector</span><span class="p">:</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">    </span><span class="nt">matchLabels</span><span class="p">:</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">      </span><span class="nt">node-role.kubernetes.io/kata</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;&quot;</span>
 </code></pre></div>
-<p>Open the URL in your browser.</p>
-<h3 id="what-youll-see">What You'll See</h3>
-<p>Every agent interaction is traced:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>┌─────────────────────────────────────────────────────────────────────────┐
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>│  Trace: &quot;Convert 100 USD to EUR&quot;                                         │
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>├─────────────────────────────────────────────────────────────────────────┤
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>│                                                                         │
-<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>│  ▼ currency-agent (1.5s)                                                │
-<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>│    │                                                                    │
-<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>│    ├─ LLM: gemini-2.0-flash-exp (0.4s)                                  │
-<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>│    │   Decision: Call get_exchange_rate                                 │
-<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>│    │                                                                    │
-<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>│    ├─ Tool: get_exchange_rate (0.6s)                                    │
-<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>│    │   Args: {currency_from: &quot;USD&quot;, currency_to: &quot;EUR&quot;}                 │
-<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>│    │   Result: {rate: 0.9245}                                           │
-<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>│    │                                                                    │
-<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>│    └─ LLM: Response Generation (0.5s)                                   │
-<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>│        Output: &quot;100 USD is approximately 92.45 EUR&quot;                     │
-<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a>│                                                                         │
-<a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a>└─────────────────────────────────────────────────────────────────────────┘
+<ol>
+<li>Click <strong>Create</strong></li>
+</ol>
+<div class="admonition note">
+<p class="admonition-title">Node Selection</p>
+<p>The <code>kataConfigPoolSelector</code> above selects nodes with the <code>kata</code> label. To run Kata on all worker nodes, use:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nt">spec</span><span class="p">:</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="nt">kataConfigPoolSelector</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">null</span>
+</code></pre></div>
+</div>
+<hr />
+<h2 id="install-via-cli">Install via CLI</h2>
+<h3 id="step-1-create-namespace-and-operator-group">Step 1: Create Namespace and Operator Group</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>cat<span class="w"> </span><span class="s">&lt;&lt; EOF | oc apply -f -</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="s">apiVersion: v1</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="s">kind: Namespace</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="s">metadata:</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="s">  name: openshift-sandboxed-containers-operator</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="s">---</span>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="s">apiVersion: operators.coreos.com/v1</span>
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="s">kind: OperatorGroup</span>
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="s">metadata:</span>
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="s">  name: sandboxed-containers-operator-group</span>
+<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="s">  namespace: openshift-sandboxed-containers-operator</span>
+<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="s">spec:</span>
+<a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="s">  targetNamespaces:</span>
+<a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a><span class="s">    - openshift-sandboxed-containers-operator</span>
+<a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a><span class="s">EOF</span>
+</code></pre></div>
+<h3 id="step-2-create-subscription">Step 2: Create Subscription</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>cat<span class="w"> </span><span class="s">&lt;&lt; EOF | oc apply -f -</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="s">apiVersion: operators.coreos.com/v1alpha1</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="s">kind: Subscription</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="s">metadata:</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="s">  name: sandboxed-containers-operator</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="s">  namespace: openshift-sandboxed-containers-operator</span>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="s">spec:</span>
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="s">  channel: stable</span>
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="s">  installPlanApproval: Automatic</span>
+<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="s">  name: sandboxed-containers-operator</span>
+<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="s">  source: redhat-operators</span>
+<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="s">  sourceNamespace: openshift-marketplace</span>
+<a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a><span class="s">EOF</span>
+</code></pre></div>
+<h3 id="step-3-wait-for-operator">Step 3: Wait for Operator</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1"># Wait for CSV to succeed</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>oc<span class="w"> </span>get<span class="w"> </span>csv<span class="w"> </span>-n<span class="w"> </span>openshift-sandboxed-containers-operator<span class="w"> </span>-w
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="c1"># Should show:</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="c1"># NAME                            DISPLAY   VERSION   PHASE</span>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="c1"># sandboxed-containers-operator   ...       1.x.x     Succeeded</span>
+</code></pre></div>
+<h3 id="step-4-create-kataconfig">Step 4: Create KataConfig</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>cat<span class="w"> </span><span class="s">&lt;&lt; EOF | oc apply -f -</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="s">apiVersion: kataconfiguration.openshift.io/v1</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="s">kind: KataConfig</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="s">metadata:</span>
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="s">  name: cluster</span>
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="s">spec:</span>
+<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="s">  kataConfigPoolSelector: null  # All worker nodes</span>
+<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="s">EOF</span>
 </code></pre></div>
 <hr />
-<h2 id="step-2-review-policy-decisions">Step 2: Review Policy Decisions</h2>
-<h3 id="check-authorino-logs">Check Authorino Logs</h3>
-<p>For blocked requests, see exactly why:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>oc<span class="w"> </span>logs<span class="w"> </span>-n<span class="w"> </span>kuadrant-system<span class="w"> </span>-l<span class="w"> </span><span class="nv">app</span><span class="o">=</span>authorino<span class="w"> </span>-c<span class="w"> </span>authorino<span class="w"> </span>--tail<span class="o">=</span><span class="m">50</span>
+<h2 id="wait-for-node-configuration">Wait for Node Configuration</h2>
+<p>KataConfig triggers a MachineConfig update on worker nodes. This takes 5-10 minutes.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1"># Watch node status</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>oc<span class="w"> </span>get<span class="w"> </span>nodes<span class="w"> </span>-w
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="c1"># Nodes will show: SchedulingDisabled → NotReady → Ready</span>
 </code></pre></div>
-<h3 id="example-blocked-request">Example Blocked Request</h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="p">{</span>
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="nt">&quot;level&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;info&quot;</span><span class="p">,</span>
-<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span><span class="nt">&quot;msg&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;authorization response&quot;</span><span class="p">,</span>
-<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">  </span><span class="nt">&quot;authorized&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
-<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">  </span><span class="nt">&quot;reason&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;denied by opa policy&quot;</span><span class="p">,</span>
-<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">  </span><span class="nt">&quot;policy&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;block-crypto-policy&quot;</span><span class="p">,</span>
-<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="w">  </span><span class="nt">&quot;currency_to&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;BTC&quot;</span>
-<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="p">}</span>
+<p>You can also watch the KataConfig status:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>oc<span class="w"> </span>get<span class="w"> </span>kataconfig<span class="w"> </span>cluster<span class="w"> </span>-o<span class="w"> </span><span class="nv">jsonpath</span><span class="o">=</span><span class="s1">&#39;{.status.conditions[*].type}{&quot;\n&quot;}{.status.conditions[*].status}&#39;</span>
 </code></pre></div>
-<p><strong>This is exactly what you want to see.</strong> Security is working.</p>
 <hr />
-<h2 id="step-3-key-metrics-to-watch">Step 3: Key Metrics to Watch</h2>
-<h3 id="performance">Performance</h3>
+<h2 id="verify-installation">Verify Installation</h2>
+<h3 id="check-runtimeclass">Check RuntimeClass</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>oc<span class="w"> </span>get<span class="w"> </span>runtimeclass<span class="w"> </span>kata
+</code></pre></div>
+<p>Expected output:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>NAME   HANDLER   AGE
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>kata   kata      5m
+</code></pre></div></p>
+<h3 id="check-kata-pods">Check Kata Pods</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>oc<span class="w"> </span>get<span class="w"> </span>pods<span class="w"> </span>-n<span class="w"> </span>openshift-sandboxed-containers-operator
+</code></pre></div>
+<p>Expected output:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>NAME                                       READY   STATUS    RESTARTS   AGE
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>controller-manager-xxxxx                   2/2     Running   0          10m
+</code></pre></div></p>
+<h3 id="test-kata-pod-optional">Test Kata Pod (Optional)</h3>
+<p>Create a test pod to verify Kata works:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>cat<span class="w"> </span><span class="s">&lt;&lt; EOF | oc apply -f -</span>
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="s">apiVersion: v1</span>
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="s">kind: Pod</span>
+<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="s">metadata:</span>
+<a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a><span class="s">  name: kata-test</span>
+<a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a><span class="s">  namespace: default</span>
+<a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a><span class="s">spec:</span>
+<a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a><span class="s">  runtimeClassName: kata</span>
+<a id="__codelineno-12-9" name="__codelineno-12-9" href="#__codelineno-12-9"></a><span class="s">  containers:</span>
+<a id="__codelineno-12-10" name="__codelineno-12-10" href="#__codelineno-12-10"></a><span class="s">  - name: test</span>
+<a id="__codelineno-12-11" name="__codelineno-12-11" href="#__codelineno-12-11"></a><span class="s">    image: registry.access.redhat.com/ubi9/ubi-minimal</span>
+<a id="__codelineno-12-12" name="__codelineno-12-12" href="#__codelineno-12-12"></a><span class="s">    command: [&quot;sleep&quot;, &quot;infinity&quot;]</span>
+<a id="__codelineno-12-13" name="__codelineno-12-13" href="#__codelineno-12-13"></a><span class="s">EOF</span>
+<a id="__codelineno-12-14" name="__codelineno-12-14" href="#__codelineno-12-14"></a>
+<a id="__codelineno-12-15" name="__codelineno-12-15" href="#__codelineno-12-15"></a><span class="c1"># Wait for pod</span>
+<a id="__codelineno-12-16" name="__codelineno-12-16" href="#__codelineno-12-16"></a>oc<span class="w"> </span><span class="nb">wait</span><span class="w"> </span>--for<span class="o">=</span><span class="nv">condition</span><span class="o">=</span>Ready<span class="w"> </span>pod/kata-test<span class="w"> </span>-n<span class="w"> </span>default<span class="w"> </span>--timeout<span class="o">=</span>120s
+<a id="__codelineno-12-17" name="__codelineno-12-17" href="#__codelineno-12-17"></a>
+<a id="__codelineno-12-18" name="__codelineno-12-18" href="#__codelineno-12-18"></a><span class="c1"># Verify it&#39;s running in a VM (check for kata-agent process)</span>
+<a id="__codelineno-12-19" name="__codelineno-12-19" href="#__codelineno-12-19"></a>oc<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>kata-test<span class="w"> </span>--<span class="w"> </span>cat<span class="w"> </span>/proc/1/cgroup<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>kata
+<a id="__codelineno-12-20" name="__codelineno-12-20" href="#__codelineno-12-20"></a>
+<a id="__codelineno-12-21" name="__codelineno-12-21" href="#__codelineno-12-21"></a><span class="c1"># Cleanup</span>
+<a id="__codelineno-12-22" name="__codelineno-12-22" href="#__codelineno-12-22"></a>oc<span class="w"> </span>delete<span class="w"> </span>pod<span class="w"> </span>kata-test<span class="w"> </span>-n<span class="w"> </span>default
+</code></pre></div>
+<hr />
+<h2 id="troubleshooting">Troubleshooting</h2>
+<h3 id="nodes-stuck-in-notready">Nodes stuck in NotReady</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="c1"># Check MachineConfigPool status</span>
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>oc<span class="w"> </span>get<span class="w"> </span>mcp<span class="w"> </span>worker
+<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>
+<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="c1"># Check for failed MachineConfigs</span>
+<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>oc<span class="w"> </span>describe<span class="w"> </span>mcp<span class="w"> </span>worker<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-A5<span class="w"> </span><span class="s2">&quot;Conditions&quot;</span>
+</code></pre></div>
+<h3 id="kataconfig-not-progressing">KataConfig not progressing</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="c1"># Check operator logs</span>
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>oc<span class="w"> </span>logs<span class="w"> </span>-n<span class="w"> </span>openshift-sandboxed-containers-operator<span class="w"> </span>deployment/controller-manager<span class="w"> </span>-c<span class="w"> </span>manager
+<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>
+<a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a><span class="c1"># Check KataConfig conditions</span>
+<a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a>oc<span class="w"> </span>describe<span class="w"> </span>kataconfig<span class="w"> </span>cluster
+</code></pre></div>
+<hr />
+<h2 id="osc-installed">OSC Installed</h2>
+<p>OpenShift Sandboxed Containers is now installed. Any pod with <code>runtimeClassName: kata</code> will run in a hardware-isolated VM.</p>
+<p>This is <strong>Layer 1</strong> of our defense-in-depth:</p>
 <table>
 <thead>
 <tr>
-<th>Metric</th>
-<th>Good</th>
-<th>Warning</th>
-<th>Action</th>
+<th>Layer</th>
+<th>Status</th>
+<th>Technology</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><strong>Response time</strong></td>
-<td>&lt; 2s</td>
-<td>2-5s</td>
-<td>Check LLM latency</td>
+<td><strong>1. VM Isolation</strong></td>
+<td>✅ Installed</td>
+<td>OSC / Kata</td>
 </tr>
 <tr>
-<td><strong>Tool call latency</strong></td>
-<td>&lt; 1s</td>
-<td>1-3s</td>
-<td>Check external API</td>
+<td>2. Network Egress</td>
+<td>⏳ Next (with Kagenti)</td>
+<td>Istio</td>
 </tr>
 <tr>
-<td><strong>Error rate</strong></td>
-<td>&lt; 1%</td>
-<td>1-5%</td>
-<td>Review error logs</td>
+<td>3. Tool Policy</td>
+<td>⏳ Next (with Kagenti)</td>
+<td>Kuadrant / OPA</td>
 </tr>
 </tbody>
 </table>
-<h3 id="security">Security</h3>
-<table>
-<thead>
-<tr>
-<th>What to Monitor</th>
-<th>Why</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>Blocked requests</strong></td>
-<td>Confirms policies are working</td>
-</tr>
-<tr>
-<td><strong>Egress denials</strong></td>
-<td>Catches unauthorized API attempts</td>
-</tr>
-<tr>
-<td><strong>Unusual patterns</strong></td>
-<td>Early warning of attacks</td>
-</tr>
-</tbody>
-</table>
-<hr />
-<h2 id="step-4-continuous-improvement">Step 4: Continuous Improvement</h2>
-<p>The feedback loop never stops:</p>
-<pre class="mermaid"><code>flowchart LR
-    A["Monitor"] --&gt; B["Analyze"]
-    B --&gt; C["Identify Issues"]
-    C --&gt; D["Update Agent&lt;br/&gt;or Policy"]
-    D --&gt; E["Deploy Changes"]
-    E --&gt; A</code></pre>
-<hr />
-<h2 id="workshop-complete">Workshop Complete! 🎉</h2>
-<p><strong>You did it.</strong></p>
-<p>You've gone from "I have an AI agent" to "I have a secured, observable, production-ready AI agent."</p>
-<hr />
-<h2 id="what-youve-accomplished">What You've Accomplished</h2>
-<table>
-<thead>
-<tr>
-<th>Phase</th>
-<th>What You Did</th>
-<th>Outcome</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>Foundations</strong></td>
-<td>Understood why agents need special security</td>
-<td>Clarity on the threat model</td>
-</tr>
-<tr>
-<td><strong>Inner Loop</strong></td>
-<td>Built and tested the Currency Agent</td>
-<td>Working, validated agent</td>
-</tr>
-<tr>
-<td><strong>Platform Setup</strong></td>
-<td>Created namespace, pipelines, secrets</td>
-<td>Infrastructure ready</td>
-</tr>
-<tr>
-<td><strong>Build</strong></td>
-<td>Used AgentBuild for source-to-image</td>
-<td>Production container images</td>
-</tr>
-<tr>
-<td><strong>Deploy</strong></td>
-<td>Deployed with Kata VM isolation</td>
-<td>Hardware-level protection</td>
-</tr>
-<tr>
-<td><strong>Secure</strong></td>
-<td>Applied egress control + OPA policies</td>
-<td>Defense in depth active</td>
-</tr>
-<tr>
-<td><strong>Monitor</strong></td>
-<td>Set up Phoenix traces</td>
-<td>Full observability</td>
-</tr>
-</tbody>
-</table>
-<hr />
-<h2 id="the-transformation">The Transformation</h2>
-<table>
-<thead>
-<tr>
-<th>Before This Workshop</th>
-<th>After This Workshop</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>"I hope my agent is secure"</td>
-<td>"I can prove it's secure"</td>
-</tr>
-<tr>
-<td>"I don't know what it's doing"</td>
-<td>"I can trace every action"</td>
-</tr>
-<tr>
-<td>"What if someone exploits it?"</td>
-<td>"Three independent layers protect it"</td>
-</tr>
-<tr>
-<td>"Is this production-ready?"</td>
-<td>"Yes, with VM isolation, egress control, and policy enforcement"</td>
-</tr>
-</tbody>
-</table>
-<hr />
-<h2 id="next-steps">Next Steps</h2>
-<h3 id="keep-learning">Keep Learning</h3>
-<ul>
-<li><a href="../../04-reference/manifest-reference/">Manifest Reference</a> - Every YAML explained</li>
-<li><a href="../../04-reference/troubleshooting/">Troubleshooting</a> - Common issues and fixes</li>
-</ul>
-<h3 id="clean-up">Clean Up</h3>
-<ul>
-<li><a href="../../04-reference/cleanup/">Cleanup Guide</a> - Remove workshop resources</li>
-</ul>
-<h3 id="go-deeper">Go Deeper</h3>
-<ul>
-<li><strong>Google ADK</strong>: <a href="https://google.github.io/adk-docs">google.github.io/adk-docs</a></li>
-<li><strong>Kagenti</strong>: <a href="https://github.com/kagenti/kagenti">github.com/kagenti/kagenti</a></li>
-</ul>
-<hr />
-<h2 id="thank-you">Thank You</h2>
-<p>You've taken a critical step toward deploying AI agents responsibly.</p>
-<p>The patterns you've learned—defense in depth, inner/outer loop, observability—apply to any agent you build.</p>
-<p><strong>Now go build something amazing. And secure.</strong></p>
+<p>👉 <strong><a href="../03-install-kagenti/">Step 3: Install Kagenti</a></strong></p>
 
 
 

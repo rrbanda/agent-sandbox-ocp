@@ -22,6 +22,12 @@ nav:
   - Home: index.md
   - Workshop:
     - Overview: workshop/index.md
+    - "Part 0: Prerequisites":
+      - Overview: workshop/00-prerequisites/index.md
+      - OpenShift Requirements: workshop/00-prerequisites/01-requirements.md
+      - Install OSC: workshop/00-prerequisites/02-install-osc.md
+      - Install Kagenti: workshop/00-prerequisites/03-install-kagenti.md
+      - Verify Setup: workshop/00-prerequisites/04-verify-setup.md
     - "Part 1: Foundations":
       - Overview: workshop/01-foundations/index.md
       - Why Agents Need Security: workshop/01-foundations/01-why-agents-need-security.md
