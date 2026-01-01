@@ -204,20 +204,32 @@ In this workshop, you'll use the **Web UI** deployed on the cluster for inner lo
 
 ### MCP Gateway
 
-The **MCP Gateway** is the central routing point for all tool calls. When an agent needs to use a tool:
+The **MCP Gateway** (Envoy-based) is the central routing point for all tool calls. When an agent needs to use a tool:
 
-1. Agent sends `tools/call` request to MCP Gateway
+1. Agent sends `tools/call` request to MCP Gateway **with Host header**
 2. Gateway routes to Authorino for policy check (OPA)
 3. If allowed, Gateway forwards to the appropriate MCP Server
 4. MCP Server executes the tool and returns results
 
 ```
-Agent ──▶ MCP Gateway ──▶ Authorino (OPA) ──▶ MCP Server ──▶ External API
-                              │
-                              └── DENY if policy violated
+Agent ──▶ MCP Gateway (Envoy) ──▶ Authorino (OPA) ──▶ MCP Server ──▶ External API
+     Host: currency-mcp.mcp.local          │
+                                           └── DENY if policy violated
 ```
 
 This is where **Layer 3 (Tool Policy)** is enforced.
+
+!!! warning "Critical: Host Header Required"
+    The agent **must** set the `Host` header when connecting to the MCP Gateway. Without it, requests bypass policy enforcement!
+    
+    ```python
+    MCPToolset(
+        connection_params=StreamableHTTPConnectionParams(
+            url=MCP_SERVER_URL,
+            headers={"Host": MCP_HOST_HEADER},  # ← Required for policy enforcement!
+        )
+    )
+    ```
 
 ### Key Features
 

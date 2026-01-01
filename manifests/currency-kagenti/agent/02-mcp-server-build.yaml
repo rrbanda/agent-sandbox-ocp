@@ -3,7 +3,7 @@
 # WHY:  Builds the MCP server that provides get_exchange_rate tool
 # HOW:  oc apply -f 02-mcp-server-build.yaml
 #
-# SOURCE: github.com/google/adk-samples - python/agents/currency-agent/mcp-server
+# SOURCE: This repository - agents/currency-mcp-server
 # NOTE: This folder HAS a Dockerfile, so buildah will be used
 
 ---
@@ -22,10 +22,10 @@ spec:
   mode: dev
 
   source:
-    # Official Google ADK samples repository
-    sourceRepository: "github.com/google/adk-samples.git"
+    # This repository - self-contained workshop code
+    sourceRepository: "github.com/rrbanda/agent-sandbox-ocp.git"
     sourceRevision: "main"
-    sourceSubfolder: "python/agents/currency-agent/mcp-server"
+    sourceSubfolder: "agents/currency-mcp-server"
     # GitHub credentials (create this secret if repo is private)
     # For public repos, this may still be required by the pipeline
     sourceCredentials:
@@ -42,4 +42,3 @@ spec:
     imageTag: "v1.0.0"
     # Quay.io registry
     imageRegistry: "quay.io/rbrhssa"
-

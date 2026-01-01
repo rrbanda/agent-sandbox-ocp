@@ -238,16 +238,48 @@ After deploying, we'll add restrictions:
 | Can call any external API | Only frankfurter.app allowed |
 | Runs in regular container | Runs in Kata VM |
 
+## Inner Loop vs Outer Loop: MCP Connectivity
+
+In the **inner loop** (local testing), the agent tool is a simple Python function that calls the API directly. In the **outer loop** (production), tools are provided by an MCP Server, routed through the MCP Gateway for policy enforcement.
+
+| Environment | Tool Source | Policy Enforcement |
+|-------------|-------------|-------------------|
+| **Inner Loop** | Python function in `agent.py` | None (development) |
+| **Outer Loop** | MCP Server via MCP Gateway | OPA via Host header |
+
+The production agent uses `MCPToolset` with a `Host` header to route through the gateway:
+
+```python
+# Production agent (agents/currency-agent/agent.py)
+from google.adk.tools.mcp_tool import MCPToolset, StreamableHTTPConnectionParams
+
+root_agent = LlmAgent(
+    model="gemini-2.5-flash",
+    name="currency_agent",
+    instruction=SYSTEM_INSTRUCTION,
+    tools=[
+        MCPToolset(
+            connection_params=StreamableHTTPConnectionParams(
+                url=MCP_SERVER_URL,
+                headers={"Host": MCP_HOST_HEADER},  # ← Enables OPA policy!
+            )
+        )
+    ],
+)
+```
+
+This is a key difference: the inner loop focuses on **agent behavior**, while the outer loop adds **security enforcement**.
+
 ## Source Code Location
 
-The agent code is from the official Google ADK samples:
+The reference implementation with MCP Gateway support:
 
-- **GitHub**: [google/adk-samples](https://github.com/google/adk-samples)
-- **Path**: `python/agents/currency-agent/`
+- **In this repo**: `agents/currency-agent/`
+- **ConfigMap**: `manifests/currency-kagenti/agent/05a-agent-code-configmap.yaml`
 
 In this workshop, the code is:
-- Embedded in a ConfigMap for the ADK Web UI demo
-- Built from Git source using AgentBuild for production deployment
+- Embedded in a ConfigMap for production deployment
+- Mounted into the agent container to enable Host header routing
 
 ## Key Takeaways
 

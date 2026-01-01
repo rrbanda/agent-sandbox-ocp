@@ -1377,6 +1377,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#05a-agent-code-configmapyaml" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        05a-agent-code-configmap.yaml
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#05-currency-agentyaml" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2469,12 +2480,13 @@
 <a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>│   ├── 04-mcp-server-deploy.yaml   # Deploy MCP server
 <a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>│   ├── 04b-mcp-httproute.yaml      # MCP Gateway routing
 <a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>│   ├── 04c-mcpserver.yaml          # MCPServer CR
-<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>│   ├── 05-currency-agent.yaml      # Agent CR (Kata)
-<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>│   └── 06-route.yaml               # External access
-<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>│
-<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>└── security/                   # 👷 Platform Admin (after testing)
-<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>    ├── 01-service-entry.yaml   # Istio egress control
-<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>    └── 02-authpolicy.yaml      # OPA tool policy
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>│   ├── 05a-agent-code-configmap.yaml # Agent code with Host header
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>│   ├── 05-currency-agent.yaml      # Agent CR (Kata)
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>│   └── 06-route.yaml               # External access
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>│
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>└── security/                   # 👷 Platform Admin (after testing)
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>    ├── 01-service-entry.yaml   # Istio egress control
+<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>    └── 02-authpolicy.yaml      # OPA tool policy
 </code></pre></div>
 <h2 id="platform-manifests">Platform Manifests</h2>
 <h3 id="00-namespaceyaml">00-namespace.yaml</h3>
@@ -2557,44 +2569,86 @@
 <a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="w">  </span><span class="nt">hostnames</span><span class="p">:</span>
 <a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">currency-mcp.mcp.local</span>
 </code></pre></div></p>
+<h3 id="05a-agent-code-configmapyaml">05a-agent-code-configmap.yaml</h3>
+<p><strong>Purpose</strong>: Agent code with MCP Gateway Host header support (enables OPA policy enforcement)</p>
+<p><strong>Apply</strong>:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>oc<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>agent/05a-agent-code-configmap.yaml
+</code></pre></div></p>
+<p><strong>Why It's Needed</strong>:
+The default agent image doesn't include the <code>Host</code> header needed for MCP Gateway routing. This ConfigMap provides updated agent code that:</p>
+<ol>
+<li>Sets <code>headers={"Host": MCP_HOST_HEADER}</code> in <code>StreamableHTTPConnectionParams</code></li>
+<li>Enables routing through MCP Gateway to the correct MCP Server</li>
+<li>Triggers OPA policy evaluation for every tool call</li>
+</ol>
+<p><strong>Key Code</strong>:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="n">MCPToolset</span><span class="p">(</span>
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>    <span class="n">connection_params</span><span class="o">=</span><span class="n">StreamableHTTPConnectionParams</span><span class="p">(</span>
+<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>        <span class="n">url</span><span class="o">=</span><span class="n">MCP_SERVER_URL</span><span class="p">,</span>
+<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a>        <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;Host&quot;</span><span class="p">:</span> <span class="n">MCP_HOST_HEADER</span><span class="p">},</span>  <span class="c1"># ← Critical for policy enforcement!</span>
+<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>    <span class="p">)</span>
+<a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a><span class="p">)</span>
+</code></pre></div></p>
+<div class="admonition warning">
+<p class="admonition-title">Without This ConfigMap</p>
+<p>Tool calls bypass the MCP Gateway's policy enforcement. BTC conversions would succeed.</p>
+</div>
 <h3 id="05-currency-agentyaml">05-currency-agent.yaml</h3>
 <p><strong>Purpose</strong>: Deploy Currency Agent with Kata VM isolation</p>
 <p><strong>Apply</strong>:
-<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>oc<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>agent/05-currency-agent.yaml
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="c1"># First apply the ConfigMap, then the Agent</span>
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>oc<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>agent/05a-agent-code-configmap.yaml
+<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>oc<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>agent/05-currency-agent.yaml
 </code></pre></div></p>
 <p><strong>Key Fields</strong>:
-<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="nt">spec</span><span class="p">:</span>
-<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="w">  </span><span class="nt">imageSource</span><span class="p">:</span>
-<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="w">    </span><span class="nt">buildRef</span><span class="p">:</span>
-<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="w">      </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">currency-agent-build</span><span class="w">    </span><span class="c1"># Reference to AgentBuild</span>
-<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a><span class="w">  </span><span class="nt">podTemplateSpec</span><span class="p">:</span>
-<a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a><span class="w">    </span><span class="nt">spec</span><span class="p">:</span>
-<a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a><span class="w">      </span><span class="nt">runtimeClassName</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">kata</span><span class="w">        </span><span class="c1"># Kata VM isolation</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="nt">spec</span><span class="p">:</span>
+<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="w">  </span><span class="nt">imageSource</span><span class="p">:</span>
+<a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a><span class="w">    </span><span class="nt">buildRef</span><span class="p">:</span>
+<a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a><span class="w">      </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">currency-agent-build</span><span class="w">    </span><span class="c1"># Reference to AgentBuild</span>
+<a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a><span class="w">  </span><span class="nt">podTemplateSpec</span><span class="p">:</span>
+<a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a><span class="w">    </span><span class="nt">spec</span><span class="p">:</span>
+<a id="__codelineno-15-7" name="__codelineno-15-7" href="#__codelineno-15-7"></a><span class="w">      </span><span class="nt">runtimeClassName</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">kata</span><span class="w">        </span><span class="c1"># Kata VM isolation</span>
+<a id="__codelineno-15-8" name="__codelineno-15-8" href="#__codelineno-15-8"></a><span class="w">      </span><span class="nt">containers</span><span class="p">:</span>
+<a id="__codelineno-15-9" name="__codelineno-15-9" href="#__codelineno-15-9"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">agent</span>
+<a id="__codelineno-15-10" name="__codelineno-15-10" href="#__codelineno-15-10"></a><span class="w">        </span><span class="nt">env</span><span class="p">:</span>
+<a id="__codelineno-15-11" name="__codelineno-15-11" href="#__codelineno-15-11"></a><span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">MCP_SERVER_URL</span>
+<a id="__codelineno-15-12" name="__codelineno-15-12" href="#__codelineno-15-12"></a><span class="w">          </span><span class="nt">value</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;http://mcp-gateway-istio.gateway-system.svc.cluster.local:8080/mcp&quot;</span>
+<a id="__codelineno-15-13" name="__codelineno-15-13" href="#__codelineno-15-13"></a><span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">MCP_HOST_HEADER</span>
+<a id="__codelineno-15-14" name="__codelineno-15-14" href="#__codelineno-15-14"></a><span class="w">          </span><span class="nt">value</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;currency-mcp.mcp.local&quot;</span>
+<a id="__codelineno-15-15" name="__codelineno-15-15" href="#__codelineno-15-15"></a><span class="w">        </span><span class="nt">volumeMounts</span><span class="p">:</span>
+<a id="__codelineno-15-16" name="__codelineno-15-16" href="#__codelineno-15-16"></a><span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">mountPath</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/app/currency_agent/agent.py</span>
+<a id="__codelineno-15-17" name="__codelineno-15-17" href="#__codelineno-15-17"></a><span class="w">          </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">agent-code</span>
+<a id="__codelineno-15-18" name="__codelineno-15-18" href="#__codelineno-15-18"></a><span class="w">          </span><span class="nt">subPath</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">agent.py</span>
+<a id="__codelineno-15-19" name="__codelineno-15-19" href="#__codelineno-15-19"></a><span class="w">      </span><span class="nt">volumes</span><span class="p">:</span>
+<a id="__codelineno-15-20" name="__codelineno-15-20" href="#__codelineno-15-20"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">agent-code</span>
+<a id="__codelineno-15-21" name="__codelineno-15-21" href="#__codelineno-15-21"></a><span class="w">        </span><span class="nt">configMap</span><span class="p">:</span>
+<a id="__codelineno-15-22" name="__codelineno-15-22" href="#__codelineno-15-22"></a><span class="w">          </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">currency-agent-code</span>
 </code></pre></div></p>
 <p><strong>Security</strong>:
-- Layer 1 (Kata) is enabled here via <code>runtimeClassName: kata</code></p>
+- Layer 1 (Kata) is enabled here via <code>runtimeClassName: kata</code>
+- Layer 3 (OPA) is enabled via MCP Gateway routing with Host header</p>
 <h3 id="06-routeyaml">06-route.yaml</h3>
 <p><strong>Purpose</strong>: Expose agent externally via OpenShift Route</p>
 <p><strong>Apply</strong>:
-<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>oc<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>agent/06-route.yaml
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>oc<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>agent/06-route.yaml
 </code></pre></div></p>
 <h2 id="security-manifests">Security Manifests</h2>
 <h3 id="01-service-entryyaml">01-service-entry.yaml</h3>
 <p><strong>Purpose</strong>: Define allowed external APIs (Istio egress control)</p>
 <p><strong>Apply</strong>:
-<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>oc<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>security/01-service-entry.yaml
+<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>oc<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>security/01-service-entry.yaml
 </code></pre></div></p>
 <p><strong>Allowed Hosts</strong>:
-<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="nt">spec</span><span class="p">:</span>
-<a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a><span class="w">  </span><span class="nt">hosts</span><span class="p">:</span>
-<a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">api.frankfurter.app</span><span class="w">           </span><span class="c1"># Currency rates</span>
-<a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">generativelanguage.googleapis.com</span><span class="w">  </span><span class="c1"># Gemini API</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="nt">spec</span><span class="p">:</span>
+<a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a><span class="w">  </span><span class="nt">hosts</span><span class="p">:</span>
+<a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">api.frankfurter.app</span><span class="w">           </span><span class="c1"># Currency rates</span>
+<a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">generativelanguage.googleapis.com</span><span class="w">  </span><span class="c1"># Gemini API</span>
 </code></pre></div></p>
 <p><strong>Security</strong>: Layer 2 (Network Egress)</p>
 <h3 id="02-authpolicyyaml">02-authpolicy.yaml</h3>
 <p><strong>Purpose</strong>: Block cryptocurrency conversions via OPA policy</p>
 <p><strong>Apply</strong>:
-<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>oc<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>security/02-authpolicy.yaml
+<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>oc<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>security/02-authpolicy.yaml
 </code></pre></div></p>
 <p><strong>Blocked Currencies</strong>:
 - BTC, ETH, DOGE, XRP, SOL, ADA, DOT, MATIC, SHIB, AVAX</p>
@@ -2680,13 +2734,13 @@
 </table>
 <h2 id="quick-apply-all">Quick Apply All</h2>
 <h3 id="platform-only">Platform Only</h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>oc<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>platform/
+<div class="highlight"><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>oc<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>platform/
 </code></pre></div>
 <h3 id="agent-only">Agent Only</h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>oc<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>agent/
+<div class="highlight"><pre><span></span><code><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>oc<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>agent/
 </code></pre></div>
 <h3 id="security-only-after-testing">Security Only (After Testing)</h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>oc<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>security/
+<div class="highlight"><pre><span></span><code><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a>oc<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>security/
 </code></pre></div>
 
 

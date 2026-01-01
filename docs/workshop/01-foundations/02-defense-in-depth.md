@@ -140,7 +140,7 @@ curl https://api.openai.com/v1/models
 
 ## Layer 3: Tool Policy Enforcement
 
-**Technology**: Kuadrant AuthPolicy + OPA (Open Policy Agent)
+**Technology**: MCP Gateway (Envoy) + Kuadrant AuthPolicy + OPA (Open Policy Agent)
 
 ### What It Does
 
@@ -153,9 +153,11 @@ Inspects every tool call and validates the arguments against policy rules. Block
 │                                                                         │
 │   Agent: "Convert 100 USD to BTC"                                       │
 │       │                                                                 │
+│       │  tools/call(get_exchange_rate, USD, BTC)                        │
+│       │  Host: currency-mcp.mcp.local    ← Routes to correct backend    │
 │       ▼                                                                 │
 │   ┌─────────────────────────────────────────────────────────────────┐  │
-│   │  MCP Gateway                                                     │  │
+│   │  MCP Gateway (Envoy)                                             │  │
 │   │       │                                                          │  │
 │   │       ▼                                                          │  │
 │   │   Authorino (OPA Policy Engine)                                  │  │
@@ -172,6 +174,9 @@ Inspects every tool call and validates the arguments against policy rules. Block
 │                                                                         │
 └─────────────────────────────────────────────────────────────────────────┘
 ```
+
+!!! info "Host Header Enables Routing"
+    The `Host: currency-mcp.mcp.local` header is what tells the MCP Gateway which backend MCP server to route to, and triggers the AuthPolicy evaluation.
 
 ### What It Protects Against
 

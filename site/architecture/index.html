@@ -2405,8 +2405,8 @@
     AgentCRD --&gt;|"2. reconcile"| Operator
     Operator --&gt;|"3. create pod&lt;br/&gt;(runtimeClassName: kata)"| AgentPod
 
-    %% Tool call flow
-    AgentPod --&gt;|"4. tools/call(get_exchange_rate)"| MCPGateway
+    %% Tool call flow (Host header enables routing + policy)
+    AgentPod --&gt;|"4. tools/call + Host header"| MCPGateway
     MCPGateway --&gt;|"5. authorize"| Authorino
     Authorino --&gt; OPA
     OPA --&gt;|"allow/deny"| Authorino
@@ -2436,7 +2436,7 @@
     Kata-&gt;&gt;Agent: Start agent in micro-VM
 
     Note over User,MCP: 2. Tool Call - BLOCKED by OPA (Crypto)
-    Agent-&gt;&gt;Gateway: tools/call("get_exchange_rate",&lt;br/&gt;{"currency_from": "USD", "currency_to": "BTC"})
+    Agent-&gt;&gt;Gateway: tools/call + Host: currency-mcp.mcp.local&lt;br/&gt;{"currency_from": "USD", "currency_to": "BTC"}
     Gateway-&gt;&gt;Authorino: Check authorization
     Authorino-&gt;&gt;OPA: Evaluate Rego policy
     OPA-&gt;&gt;OPA: BTC not in approved currencies
@@ -2445,7 +2445,7 @@
     Gateway--&gt;&gt;Agent: HTTP 403
 
     Note over User,MCP: 3. Tool Call - ALLOWED (Fiat)
-    Agent-&gt;&gt;Gateway: tools/call("get_exchange_rate",&lt;br/&gt;{"currency_from": "USD", "currency_to": "EUR"})
+    Agent-&gt;&gt;Gateway: tools/call + Host: currency-mcp.mcp.local&lt;br/&gt;{"currency_from": "USD", "currency_to": "EUR"}
     Gateway-&gt;&gt;Authorino: Check authorization
     Authorino-&gt;&gt;OPA: Evaluate Rego policy
     OPA--&gt;&gt;Authorino: ALLOW

@@ -46,7 +46,37 @@ oc get svc currency-mcp-server -n currency-kagenti
 ```
 
 
-## Step 2: Deploy Currency Agent
+## Step 2: Deploy Agent Code ConfigMap
+
+The agent needs updated code that routes through the MCP Gateway with the proper `Host` header. This enables OPA policy enforcement.
+
+```bash
+# Apply agent code ConfigMap
+oc apply -f agent/05a-agent-code-configmap.yaml
+```
+
+### Why This Is Critical
+
+Without the `Host` header, tool calls bypass the MCP Gateway's policy enforcement:
+
+| Configuration | What Happens |
+|---------------|--------------|
+| Direct to MCP Server | ❌ No policy check, BTC works |
+| Via MCP Gateway + Host header | ✅ OPA policy enforced, BTC blocked |
+
+The ConfigMap contains agent code that uses:
+
+```python
+MCPToolset(
+    connection_params=StreamableHTTPConnectionParams(
+        url=MCP_SERVER_URL,
+        headers={"Host": MCP_HOST_HEADER},  # ← Enables gateway routing!
+    )
+)
+```
+
+
+## Step 3: Deploy Currency Agent
 
 Now deploy the agent with Kata VM isolation:
 
@@ -73,7 +103,7 @@ spec:
   
   podTemplateSpec:
     spec:
-      runtimeClassName: kata        # ← Kata VM isolation
+      runtimeClassName: kata        # ← Kata VM isolation (Layer 1)
       
       containers:
       - name: agent
@@ -83,8 +113,21 @@ spec:
             secretKeyRef:
               name: gemini-api-key
               key: GOOGLE_API_KEY
+        # MCP Gateway configuration (Layer 3)
         - name: MCP_SERVER_URL
-          value: "http://currency-mcp-server.currency-kagenti.svc.cluster.local:8080/mcp"
+          value: "http://mcp-gateway-istio.gateway-system.svc.cluster.local:8080/mcp"
+        - name: MCP_HOST_HEADER
+          value: "currency-mcp.mcp.local"
+        
+        volumeMounts:
+        - mountPath: /app/currency_agent/agent.py
+          name: agent-code
+          subPath: agent.py
+      
+      volumes:
+      - name: agent-code
+        configMap:
+          name: currency-agent-code    # ← ConfigMap with Host header support
 ```
 
 | Field | Purpose |
@@ -92,10 +135,12 @@ spec:
 | `buildRef` | Uses image from AgentBuild (not hardcoded image) |
 | `runtimeClassName: kata` | Runs in Kata VM (Layer 1 security) |
 | `GOOGLE_API_KEY` | From secret for LLM access |
-| `MCP_SERVER_URL` | Points to MCP Server in same namespace |
+| `MCP_SERVER_URL` | Points to MCP Gateway (not direct to MCP Server!) |
+| `MCP_HOST_HEADER` | Routes to correct backend and triggers OPA policy |
+| `volumeMounts` + `configMap` | Overrides agent code with Host header support |
 
 
-## Step 3: Verify Kata Isolation
+## Step 4: Verify Kata Isolation
 
 Confirm the agent is running in a Kata VM:
 
@@ -121,7 +166,7 @@ oc debug node/<node-name> -- chroot /host crictl ps | grep currency-agent
 ```
 
 
-## Step 4: Expose Agent Externally
+## Step 5: Expose Agent Externally
 
 Create a Route to access the agent for testing:
 
@@ -136,7 +181,7 @@ echo "Agent URL: $AGENT_URL"
 ```
 
 
-## Step 5: Test the Agent
+## Step 6: Test the Agent
 
 Now test that the agent works:
 
@@ -178,7 +223,7 @@ curl -X POST "$AGENT_URL" \
 ```
 
 
-## Step 6: Test Cryptocurrency (No Policy Yet)
+## Step 7: Test Cryptocurrency (No Policy Yet)
 
 At this point, crypto conversions **still work** because we haven't applied security policies yet:
 

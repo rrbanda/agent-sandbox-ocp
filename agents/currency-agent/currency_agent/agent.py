@@ -25,6 +25,8 @@ SYSTEM_INSTRUCTION = (
 )
 
 # MCP Gateway configuration
+# When deployed to OpenShift, the agent connects through the MCP Gateway (Envoy)
+# which enforces OPA policies on tool calls
 MCP_SERVER_URL = os.getenv(
     "MCP_SERVER_URL",
     "http://mcp-gateway-istio.gateway-system.svc.cluster.local:8080/mcp"
@@ -36,6 +38,13 @@ logger.info(f"    URL: {MCP_SERVER_URL}")
 logger.info(f"    Host Header: {MCP_HOST_HEADER}")
 logger.info("--- 🤖 Creating ADK Currency Agent... ---")
 
+# Build connection headers for MCP Gateway routing
+# The Host header tells Envoy which backend MCP server to route to
+connection_headers = {}
+if MCP_HOST_HEADER:
+    connection_headers["Host"] = MCP_HOST_HEADER
+    logger.info(f"    Using Host header for MCP Gateway routing: {MCP_HOST_HEADER}")
+
 root_agent = LlmAgent(
     model="gemini-2.5-flash",
     name="currency_agent",
@@ -46,9 +55,7 @@ root_agent = LlmAgent(
             connection_params=StreamableHTTPConnectionParams(
                 url=MCP_SERVER_URL,
                 # Set Host header for MCP Gateway routing
-                headers={
-                    "Host": MCP_HOST_HEADER,
-                }
+                headers=connection_headers
             )
         )
     ],
@@ -56,3 +63,4 @@ root_agent = LlmAgent(
 
 # Make the agent A2A-compatible
 a2a_app = to_a2a(root_agent, port=10000)
+

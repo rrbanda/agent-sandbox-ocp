@@ -1,3 +1,6 @@
+# Currency Agent Dockerfile
+# Google ADK agent with MCP Gateway support for OPA policy enforcement
+
 FROM python:3.11-slim
 
 WORKDIR /app
@@ -7,7 +10,7 @@ RUN pip install uv
 
 # Copy project files
 COPY pyproject.toml .
-COPY *.py ./currency_agent/
+COPY currency_agent/ ./currency_agent/
 
 # Install dependencies
 RUN uv pip install --system .

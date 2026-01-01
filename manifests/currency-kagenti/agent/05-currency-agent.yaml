@@ -30,6 +30,8 @@ spec:
   replicas: 1
 
   # Build from source using Kagenti AgentBuild
+  # Source: github.com/rrbanda/agent-sandbox-ocp.git -> agents/currency-agent
+  # Includes MCP Gateway + Host header support for OPA policy enforcement
   imageSource:
     buildRef:
       name: currency-agent-build
@@ -105,18 +107,9 @@ spec:
           name: cache
         - mountPath: /tmp
           name: tmp
-        # Mount updated agent code with MCP Gateway + Host header support
-        - mountPath: /app/currency_agent/agent.py
-          name: agent-code
-          subPath: agent.py
 
       volumes:
       - name: cache
         emptyDir: {}
       - name: tmp
         emptyDir: {}
-      # ConfigMap containing agent code with MCP Gateway support
-      - name: agent-code
-        configMap:
-          name: currency-agent-code
-

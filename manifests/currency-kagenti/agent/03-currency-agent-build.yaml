@@ -3,9 +3,10 @@
 # WHY:  Builds the ADK agent that uses MCP tools and exposes A2A protocol
 # HOW:  oc apply -f 03-currency-agent-build.yaml
 #
-# SOURCE: github.com/google/adk-samples - python/agents/currency-agent
-# NOTE: This folder does NOT have a Dockerfile at root, so buildpacks will be used
+# SOURCE: This repository - agents/currency-agent
+# NOTE: This folder HAS a Dockerfile, so buildah will be used
 #       The agent uses `to_a2a()` wrapper for A2A protocol exposure
+#       Includes Host header support for MCP Gateway routing
 
 ---
 apiVersion: agent.kagenti.dev/v1alpha1
@@ -23,10 +24,11 @@ spec:
   mode: dev
 
   source:
-    # Official Google ADK samples repository
-    sourceRepository: "github.com/google/adk-samples.git"
+    # This repository - self-contained workshop code
+    # Includes Host header support for MCP Gateway routing
+    sourceRepository: "github.com/rrbanda/agent-sandbox-ocp.git"
     sourceRevision: "main"
-    sourceSubfolder: "python/agents/currency-agent"
+    sourceSubfolder: "agents/currency-agent"
     # GitHub credentials
     sourceCredentials:
       name: github-token-secret
@@ -42,4 +44,3 @@ spec:
     imageTag: "v1.0.0"
     # Quay.io registry
     imageRegistry: "quay.io/rbrhssa"
-

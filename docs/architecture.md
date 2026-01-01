@@ -52,8 +52,8 @@ flowchart TB
     AgentCRD -->|"2. reconcile"| Operator
     Operator -->|"3. create pod<br/>(runtimeClassName: kata)"| AgentPod
 
-    %% Tool call flow
-    AgentPod -->|"4. tools/call(get_exchange_rate)"| MCPGateway
+    %% Tool call flow (Host header enables routing + policy)
+    AgentPod -->|"4. tools/call + Host header"| MCPGateway
     MCPGateway -->|"5. authorize"| Authorino
     Authorino --> OPA
     OPA -->|"allow/deny"| Authorino
@@ -87,7 +87,7 @@ sequenceDiagram
     Kata->>Agent: Start agent in micro-VM
 
     Note over User,MCP: 2. Tool Call - BLOCKED by OPA (Crypto)
-    Agent->>Gateway: tools/call("get_exchange_rate",<br/>{"currency_from": "USD", "currency_to": "BTC"})
+    Agent->>Gateway: tools/call + Host: currency-mcp.mcp.local<br/>{"currency_from": "USD", "currency_to": "BTC"}
     Gateway->>Authorino: Check authorization
     Authorino->>OPA: Evaluate Rego policy
     OPA->>OPA: BTC not in approved currencies
@@ -96,7 +96,7 @@ sequenceDiagram
     Gateway-->>Agent: HTTP 403
 
     Note over User,MCP: 3. Tool Call - ALLOWED (Fiat)
-    Agent->>Gateway: tools/call("get_exchange_rate",<br/>{"currency_from": "USD", "currency_to": "EUR"})
+    Agent->>Gateway: tools/call + Host: currency-mcp.mcp.local<br/>{"currency_from": "USD", "currency_to": "EUR"}
     Gateway->>Authorino: Check authorization
     Authorino->>OPA: Evaluate Rego policy
     OPA-->>Authorino: ALLOW

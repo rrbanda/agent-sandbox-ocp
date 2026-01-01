@@ -966,6 +966,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#inner-loop-vs-outer-loop-mcp-connectivity" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Inner Loop vs Outer Loop: MCP Connectivity
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#source-code-location" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2675,15 +2686,57 @@
 </tr>
 </tbody>
 </table>
+<h2 id="inner-loop-vs-outer-loop-mcp-connectivity">Inner Loop vs Outer Loop: MCP Connectivity</h2>
+<p>In the <strong>inner loop</strong> (local testing), the agent tool is a simple Python function that calls the API directly. In the <strong>outer loop</strong> (production), tools are provided by an MCP Server, routed through the MCP Gateway for policy enforcement.</p>
+<table>
+<thead>
+<tr>
+<th>Environment</th>
+<th>Tool Source</th>
+<th>Policy Enforcement</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Inner Loop</strong></td>
+<td>Python function in <code>agent.py</code></td>
+<td>None (development)</td>
+</tr>
+<tr>
+<td><strong>Outer Loop</strong></td>
+<td>MCP Server via MCP Gateway</td>
+<td>OPA via Host header</td>
+</tr>
+</tbody>
+</table>
+<p>The production agent uses <code>MCPToolset</code> with a <code>Host</code> header to route through the gateway:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c1"># Production agent (agents/currency-agent/agent.py)</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">google.adk.tools.mcp_tool</span><span class="w"> </span><span class="kn">import</span> <span class="n">MCPToolset</span><span class="p">,</span> <span class="n">StreamableHTTPConnectionParams</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="n">root_agent</span> <span class="o">=</span> <span class="n">LlmAgent</span><span class="p">(</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>    <span class="n">model</span><span class="o">=</span><span class="s2">&quot;gemini-2.5-flash&quot;</span><span class="p">,</span>
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;currency_agent&quot;</span><span class="p">,</span>
+<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>    <span class="n">instruction</span><span class="o">=</span><span class="n">SYSTEM_INSTRUCTION</span><span class="p">,</span>
+<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>    <span class="n">tools</span><span class="o">=</span><span class="p">[</span>
+<a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a>        <span class="n">MCPToolset</span><span class="p">(</span>
+<a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a>            <span class="n">connection_params</span><span class="o">=</span><span class="n">StreamableHTTPConnectionParams</span><span class="p">(</span>
+<a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a>                <span class="n">url</span><span class="o">=</span><span class="n">MCP_SERVER_URL</span><span class="p">,</span>
+<a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a>                <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;Host&quot;</span><span class="p">:</span> <span class="n">MCP_HOST_HEADER</span><span class="p">},</span>  <span class="c1"># ← Enables OPA policy!</span>
+<a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a>            <span class="p">)</span>
+<a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a>        <span class="p">)</span>
+<a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a>    <span class="p">],</span>
+<a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a><span class="p">)</span>
+</code></pre></div>
+<p>This is a key difference: the inner loop focuses on <strong>agent behavior</strong>, while the outer loop adds <strong>security enforcement</strong>.</p>
 <h2 id="source-code-location">Source Code Location</h2>
-<p>The agent code is from the official Google ADK samples:</p>
+<p>The reference implementation with MCP Gateway support:</p>
 <ul>
-<li><strong>GitHub</strong>: <a href="https://github.com/google/adk-samples">google/adk-samples</a></li>
-<li><strong>Path</strong>: <code>python/agents/currency-agent/</code></li>
+<li><strong>In this repo</strong>: <code>agents/currency-agent/</code></li>
+<li><strong>ConfigMap</strong>: <code>manifests/currency-kagenti/agent/05a-agent-code-configmap.yaml</code></li>
 </ul>
 <p>In this workshop, the code is:
-- Embedded in a ConfigMap for the ADK Web UI demo
-- Built from Git source using AgentBuild for production deployment</p>
+- Embedded in a ConfigMap for production deployment
+- Mounted into the agent container to enable Host header routing</p>
 <h2 id="key-takeaways">Key Takeaways</h2>
 <ol>
 <li><strong>Code-first</strong>: Agents are defined in Python, enabling version control and testing</li>

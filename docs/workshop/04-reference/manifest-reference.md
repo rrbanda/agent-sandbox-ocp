@@ -17,6 +17,7 @@ manifests/currency-kagenti/
 │   ├── 04-mcp-server-deploy.yaml   # Deploy MCP server
 │   ├── 04b-mcp-httproute.yaml      # MCP Gateway routing
 │   ├── 04c-mcpserver.yaml          # MCPServer CR
+│   ├── 05a-agent-code-configmap.yaml # Agent code with Host header
 │   ├── 05-currency-agent.yaml      # Agent CR (Kata)
 │   └── 06-route.yaml               # External access
 │
@@ -154,12 +155,44 @@ spec:
 ```
 
 
+### 05a-agent-code-configmap.yaml
+
+**Purpose**: Agent code with MCP Gateway Host header support (enables OPA policy enforcement)
+
+**Apply**:
+```bash
+oc apply -f agent/05a-agent-code-configmap.yaml
+```
+
+**Why It's Needed**:
+The default agent image doesn't include the `Host` header needed for MCP Gateway routing. This ConfigMap provides updated agent code that:
+
+1. Sets `headers={"Host": MCP_HOST_HEADER}` in `StreamableHTTPConnectionParams`
+2. Enables routing through MCP Gateway to the correct MCP Server
+3. Triggers OPA policy evaluation for every tool call
+
+**Key Code**:
+```python
+MCPToolset(
+    connection_params=StreamableHTTPConnectionParams(
+        url=MCP_SERVER_URL,
+        headers={"Host": MCP_HOST_HEADER},  # ← Critical for policy enforcement!
+    )
+)
+```
+
+!!! warning "Without This ConfigMap"
+    Tool calls bypass the MCP Gateway's policy enforcement. BTC conversions would succeed.
+
+
 ### 05-currency-agent.yaml
 
 **Purpose**: Deploy Currency Agent with Kata VM isolation
 
 **Apply**:
 ```bash
+# First apply the ConfigMap, then the Agent
+oc apply -f agent/05a-agent-code-configmap.yaml
 oc apply -f agent/05-currency-agent.yaml
 ```
 
@@ -172,10 +205,26 @@ spec:
   podTemplateSpec:
     spec:
       runtimeClassName: kata        # Kata VM isolation
+      containers:
+      - name: agent
+        env:
+        - name: MCP_SERVER_URL
+          value: "http://mcp-gateway-istio.gateway-system.svc.cluster.local:8080/mcp"
+        - name: MCP_HOST_HEADER
+          value: "currency-mcp.mcp.local"
+        volumeMounts:
+        - mountPath: /app/currency_agent/agent.py
+          name: agent-code
+          subPath: agent.py
+      volumes:
+      - name: agent-code
+        configMap:
+          name: currency-agent-code
 ```
 
 **Security**:
 - Layer 1 (Kata) is enabled here via `runtimeClassName: kata`
+- Layer 3 (OPA) is enabled via MCP Gateway routing with Host header
 
 
 ### 06-route.yaml

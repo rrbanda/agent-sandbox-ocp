@@ -2590,7 +2590,7 @@
 <a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="c1"># Connection refused or timeout</span>
 </code></pre></div>
 <h2 id="layer-3-tool-policy-enforcement">Layer 3: Tool Policy Enforcement</h2>
-<p><strong>Technology</strong>: Kuadrant AuthPolicy + OPA (Open Policy Agent)</p>
+<p><strong>Technology</strong>: MCP Gateway (Envoy) + Kuadrant AuthPolicy + OPA (Open Policy Agent)</p>
 <h3 id="what-it-does_2">What It Does</h3>
 <p>Inspects every tool call and validates the arguments against policy rules. Blocks operations that violate policy <strong>before they execute</strong>.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>┌─────────────────────────────────────────────────────────────────────────┐
@@ -2599,25 +2599,31 @@
 <a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>│                                                                         │
 <a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>│   Agent: &quot;Convert 100 USD to BTC&quot;                                       │
 <a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>│       │                                                                 │
-<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>│       ▼                                                                 │
-<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>│   ┌─────────────────────────────────────────────────────────────────┐  │
-<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a>│   │  MCP Gateway                                                     │  │
-<a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a>│   │       │                                                          │  │
-<a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a>│   │       ▼                                                          │  │
-<a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a>│   │   Authorino (OPA Policy Engine)                                  │  │
-<a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a>│   │       │                                                          │  │
-<a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a>│   │       ├── Tool: get_exchange_rate                                │  │
-<a id="__codelineno-6-15" name="__codelineno-6-15" href="#__codelineno-6-15"></a>│   │       ├── Args: currency_from=USD, currency_to=BTC               │  │
-<a id="__codelineno-6-16" name="__codelineno-6-16" href="#__codelineno-6-16"></a>│   │       ├── Policy: BTC in blocked_currencies?                     │  │
-<a id="__codelineno-6-17" name="__codelineno-6-17" href="#__codelineno-6-17"></a>│   │       │                                                          │  │
-<a id="__codelineno-6-18" name="__codelineno-6-18" href="#__codelineno-6-18"></a>│   │       └── Result: ✗ DENIED (HTTP 403)                           │  │
-<a id="__codelineno-6-19" name="__codelineno-6-19" href="#__codelineno-6-19"></a>│   │                                                                  │  │
-<a id="__codelineno-6-20" name="__codelineno-6-20" href="#__codelineno-6-20"></a>│   └─────────────────────────────────────────────────────────────────┘  │
-<a id="__codelineno-6-21" name="__codelineno-6-21" href="#__codelineno-6-21"></a>│                                                                         │
-<a id="__codelineno-6-22" name="__codelineno-6-22" href="#__codelineno-6-22"></a>│   Agent receives: &quot;I&#39;m not able to convert to cryptocurrency&quot;           │
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>│       │  tools/call(get_exchange_rate, USD, BTC)                        │
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>│       │  Host: currency-mcp.mcp.local    ← Routes to correct backend    │
+<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a>│       ▼                                                                 │
+<a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a>│   ┌─────────────────────────────────────────────────────────────────┐  │
+<a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a>│   │  MCP Gateway (Envoy)                                             │  │
+<a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a>│   │       │                                                          │  │
+<a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a>│   │       ▼                                                          │  │
+<a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a>│   │   Authorino (OPA Policy Engine)                                  │  │
+<a id="__codelineno-6-15" name="__codelineno-6-15" href="#__codelineno-6-15"></a>│   │       │                                                          │  │
+<a id="__codelineno-6-16" name="__codelineno-6-16" href="#__codelineno-6-16"></a>│   │       ├── Tool: get_exchange_rate                                │  │
+<a id="__codelineno-6-17" name="__codelineno-6-17" href="#__codelineno-6-17"></a>│   │       ├── Args: currency_from=USD, currency_to=BTC               │  │
+<a id="__codelineno-6-18" name="__codelineno-6-18" href="#__codelineno-6-18"></a>│   │       ├── Policy: BTC in blocked_currencies?                     │  │
+<a id="__codelineno-6-19" name="__codelineno-6-19" href="#__codelineno-6-19"></a>│   │       │                                                          │  │
+<a id="__codelineno-6-20" name="__codelineno-6-20" href="#__codelineno-6-20"></a>│   │       └── Result: ✗ DENIED (HTTP 403)                           │  │
+<a id="__codelineno-6-21" name="__codelineno-6-21" href="#__codelineno-6-21"></a>│   │                                                                  │  │
+<a id="__codelineno-6-22" name="__codelineno-6-22" href="#__codelineno-6-22"></a>│   └─────────────────────────────────────────────────────────────────┘  │
 <a id="__codelineno-6-23" name="__codelineno-6-23" href="#__codelineno-6-23"></a>│                                                                         │
-<a id="__codelineno-6-24" name="__codelineno-6-24" href="#__codelineno-6-24"></a>└─────────────────────────────────────────────────────────────────────────┘
+<a id="__codelineno-6-24" name="__codelineno-6-24" href="#__codelineno-6-24"></a>│   Agent receives: &quot;I&#39;m not able to convert to cryptocurrency&quot;           │
+<a id="__codelineno-6-25" name="__codelineno-6-25" href="#__codelineno-6-25"></a>│                                                                         │
+<a id="__codelineno-6-26" name="__codelineno-6-26" href="#__codelineno-6-26"></a>└─────────────────────────────────────────────────────────────────────────┘
 </code></pre></div>
+<div class="admonition info">
+<p class="admonition-title">Host Header Enables Routing</p>
+<p>The <code>Host: currency-mcp.mcp.local</code> header is what tells the MCP Gateway which backend MCP server to route to, and triggers the AuthPolicy evaluation.</p>
+</div>
 <h3 id="what-it-protects-against_2">What It Protects Against</h3>
 <table>
 <thead>
