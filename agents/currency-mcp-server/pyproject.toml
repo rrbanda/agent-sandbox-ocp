@@ -2,9 +2,16 @@
 name = "currency-mcp-server"
 version = "0.1.0"
 description = "Currency conversion MCP server for the AI Agent Sandbox workshop"
-# Note: readme removed - Kagenti pipeline doesn't copy README.md
 requires-python = ">=3.9"
 dependencies = [
     "fastmcp>=2.0.0",
     "httpx>=0.25.0",
 ]
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+# Explicitly specify no packages - this is a single-file script
+py-modules = ["server"]
