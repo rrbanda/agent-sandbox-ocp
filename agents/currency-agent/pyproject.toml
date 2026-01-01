@@ -3,7 +3,8 @@ name = "currency-agent"
 version = "1.0.0"
 description = "Currency conversion agent with MCP Gateway support for OPA policy enforcement"
 readme = "README.md"
-requires-python = ">=3.11"
+# Lowered to 3.9 for UBI9 compatibility (Kagenti replaces base image)
+requires-python = ">=3.9"
 dependencies = [
     "google-adk>=1.0.0",
     "python-dotenv>=1.0.0",

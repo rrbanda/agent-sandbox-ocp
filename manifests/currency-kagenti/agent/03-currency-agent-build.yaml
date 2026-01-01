@@ -41,6 +41,6 @@ spec:
 
   buildOutput:
     image: "currency-agent"
-    imageTag: "v1.0.0"
+    imageTag: "v1.1.0"
     # Quay.io registry
     imageRegistry: "quay.io/rbrhssa"

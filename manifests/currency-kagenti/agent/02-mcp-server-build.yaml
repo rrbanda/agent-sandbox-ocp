@@ -39,6 +39,6 @@ spec:
 
   buildOutput:
     image: "currency-mcp-server"
-    imageTag: "v1.0.0"
+    imageTag: "v1.1.0"
     # Quay.io registry
     imageRegistry: "quay.io/rbrhssa"

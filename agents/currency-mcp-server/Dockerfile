@@ -1,24 +1,25 @@
 # Currency MCP Server Dockerfile
 # Provides the get_exchange_rate tool for currency conversion
+#
+# NOTE: Kagenti pipeline replaces base image with UBI9
+# Using pip instead of uv for better UBI compatibility
 
-# Use the official Python lightweight image
-FROM python:3.13-slim
+FROM python:3.11-slim
 
-# Install uv for fast dependency management
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
-
-# Install the project into /app
-COPY . /app
-WORKDIR /app
+# For UBI compatibility - use the app-root structure
+WORKDIR /opt/app-root/src
 
 # Allow statements and log messages to immediately appear in the logs
 ENV PYTHONUNBUFFERED=1
 
-# Install dependencies
-RUN uv sync --locked
+# Copy project files
+COPY pyproject.toml .
+COPY server.py .
 
-EXPOSE $PORT
+# Install dependencies using pip (more compatible with UBI)
+RUN pip install --no-cache-dir fastmcp httpx
+
+EXPOSE 8080
 
 # Run the FastMCP server
-CMD ["uv", "run", "server.py"]
-
+CMD ["python", "server.py"]
