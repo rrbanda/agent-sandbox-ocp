@@ -2,146 +2,146 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://rrbanda.github.io/agent-sandbox-ocp/</loc>
-         <lastmod>2025-12-31</lastmod>
+         <lastmod>2026-01-01</lastmod>
     </url>
     <url>
          <loc>https://rrbanda.github.io/agent-sandbox-ocp/architecture/</loc>
-         <lastmod>2025-12-31</lastmod>
+         <lastmod>2026-01-01</lastmod>
     </url>
     <url>
          <loc>https://rrbanda.github.io/agent-sandbox-ocp/troubleshooting/</loc>
-         <lastmod>2025-12-31</lastmod>
+         <lastmod>2026-01-01</lastmod>
     </url>
     <url>
          <loc>https://rrbanda.github.io/agent-sandbox-ocp/concepts/</loc>
-         <lastmod>2025-12-31</lastmod>
+         <lastmod>2026-01-01</lastmod>
     </url>
     <url>
          <loc>https://rrbanda.github.io/agent-sandbox-ocp/concepts/agentbuild-source-to-image/</loc>
-         <lastmod>2025-12-31</lastmod>
+         <lastmod>2026-01-01</lastmod>
     </url>
     <url>
          <loc>https://rrbanda.github.io/agent-sandbox-ocp/concepts/defense-in-depth/</loc>
-         <lastmod>2025-12-31</lastmod>
+         <lastmod>2026-01-01</lastmod>
     </url>
     <url>
          <loc>https://rrbanda.github.io/agent-sandbox-ocp/concepts/google-adk/</loc>
-         <lastmod>2025-12-31</lastmod>
+         <lastmod>2026-01-01</lastmod>
     </url>
     <url>
          <loc>https://rrbanda.github.io/agent-sandbox-ocp/concepts/inner-outer-loop/</loc>
-         <lastmod>2025-12-31</lastmod>
+         <lastmod>2026-01-01</lastmod>
     </url>
     <url>
          <loc>https://rrbanda.github.io/agent-sandbox-ocp/concepts/istio-egress/</loc>
-         <lastmod>2025-12-31</lastmod>
+         <lastmod>2026-01-01</lastmod>
     </url>
     <url>
          <loc>https://rrbanda.github.io/agent-sandbox-ocp/concepts/kagenti-platform/</loc>
-         <lastmod>2025-12-31</lastmod>
+         <lastmod>2026-01-01</lastmod>
     </url>
     <url>
          <loc>https://rrbanda.github.io/agent-sandbox-ocp/concepts/kuadrant-opa/</loc>
-         <lastmod>2025-12-31</lastmod>
+         <lastmod>2026-01-01</lastmod>
     </url>
     <url>
          <loc>https://rrbanda.github.io/agent-sandbox-ocp/concepts/osc-explained/</loc>
-         <lastmod>2025-12-31</lastmod>
+         <lastmod>2026-01-01</lastmod>
     </url>
     <url>
          <loc>https://rrbanda.github.io/agent-sandbox-ocp/concepts/threat-model/</loc>
-         <lastmod>2025-12-31</lastmod>
+         <lastmod>2026-01-01</lastmod>
     </url>
     <url>
          <loc>https://rrbanda.github.io/agent-sandbox-ocp/guides/demo-walkthrough/</loc>
-         <lastmod>2025-12-31</lastmod>
+         <lastmod>2026-01-01</lastmod>
     </url>
     <url>
          <loc>https://rrbanda.github.io/agent-sandbox-ocp/guides/developer-guide/</loc>
-         <lastmod>2025-12-31</lastmod>
+         <lastmod>2026-01-01</lastmod>
     </url>
     <url>
          <loc>https://rrbanda.github.io/agent-sandbox-ocp/guides/platform-admin-guide/</loc>
-         <lastmod>2025-12-31</lastmod>
+         <lastmod>2026-01-01</lastmod>
     </url>
     <url>
          <loc>https://rrbanda.github.io/agent-sandbox-ocp/workshop/</loc>
-         <lastmod>2025-12-31</lastmod>
+         <lastmod>2026-01-01</lastmod>
     </url>
     <url>
          <loc>https://rrbanda.github.io/agent-sandbox-ocp/workshop/01-foundations/</loc>
-         <lastmod>2025-12-31</lastmod>
+         <lastmod>2026-01-01</lastmod>
     </url>
     <url>
          <loc>https://rrbanda.github.io/agent-sandbox-ocp/workshop/01-foundations/01-why-agents-need-security/</loc>
-         <lastmod>2025-12-31</lastmod>
+         <lastmod>2026-01-01</lastmod>
     </url>
     <url>
          <loc>https://rrbanda.github.io/agent-sandbox-ocp/workshop/01-foundations/02-defense-in-depth/</loc>
-         <lastmod>2025-12-31</lastmod>
+         <lastmod>2026-01-01</lastmod>
     </url>
     <url>
          <loc>https://rrbanda.github.io/agent-sandbox-ocp/workshop/01-foundations/03-adlc-inner-outer-loop/</loc>
-         <lastmod>2025-12-31</lastmod>
+         <lastmod>2026-01-01</lastmod>
     </url>
     <url>
          <loc>https://rrbanda.github.io/agent-sandbox-ocp/workshop/01-foundations/04-technology-stack/</loc>
-         <lastmod>2025-12-31</lastmod>
+         <lastmod>2026-01-01</lastmod>
     </url>
     <url>
          <loc>https://rrbanda.github.io/agent-sandbox-ocp/workshop/02-inner-loop/</loc>
-         <lastmod>2025-12-31</lastmod>
+         <lastmod>2026-01-01</lastmod>
     </url>
     <url>
          <loc>https://rrbanda.github.io/agent-sandbox-ocp/workshop/02-inner-loop/01-understand-agent-code/</loc>
-         <lastmod>2025-12-31</lastmod>
+         <lastmod>2026-01-01</lastmod>
     </url>
     <url>
          <loc>https://rrbanda.github.io/agent-sandbox-ocp/workshop/02-inner-loop/02-test-in-adk-web-ui/</loc>
-         <lastmod>2025-12-31</lastmod>
+         <lastmod>2026-01-01</lastmod>
     </url>
     <url>
          <loc>https://rrbanda.github.io/agent-sandbox-ocp/workshop/02-inner-loop/03-iterate-and-refine/</loc>
-         <lastmod>2025-12-31</lastmod>
+         <lastmod>2026-01-01</lastmod>
     </url>
     <url>
          <loc>https://rrbanda.github.io/agent-sandbox-ocp/workshop/03-outer-loop/</loc>
-         <lastmod>2025-12-31</lastmod>
+         <lastmod>2026-01-01</lastmod>
     </url>
     <url>
          <loc>https://rrbanda.github.io/agent-sandbox-ocp/workshop/03-outer-loop/01-platform-setup/</loc>
-         <lastmod>2025-12-31</lastmod>
+         <lastmod>2026-01-01</lastmod>
     </url>
     <url>
          <loc>https://rrbanda.github.io/agent-sandbox-ocp/workshop/03-outer-loop/02-build-with-agentbuild/</loc>
-         <lastmod>2025-12-31</lastmod>
+         <lastmod>2026-01-01</lastmod>
     </url>
     <url>
          <loc>https://rrbanda.github.io/agent-sandbox-ocp/workshop/03-outer-loop/03-deploy-agent/</loc>
-         <lastmod>2025-12-31</lastmod>
+         <lastmod>2026-01-01</lastmod>
     </url>
     <url>
          <loc>https://rrbanda.github.io/agent-sandbox-ocp/workshop/03-outer-loop/04-security-hardening/</loc>
-         <lastmod>2025-12-31</lastmod>
+         <lastmod>2026-01-01</lastmod>
     </url>
     <url>
          <loc>https://rrbanda.github.io/agent-sandbox-ocp/workshop/03-outer-loop/05-monitor-and-tune/</loc>
-         <lastmod>2025-12-31</lastmod>
+         <lastmod>2026-01-01</lastmod>
     </url>
     <url>
          <loc>https://rrbanda.github.io/agent-sandbox-ocp/workshop/04-reference/</loc>
-         <lastmod>2025-12-31</lastmod>
+         <lastmod>2026-01-01</lastmod>
     </url>
     <url>
          <loc>https://rrbanda.github.io/agent-sandbox-ocp/workshop/04-reference/cleanup/</loc>
-         <lastmod>2025-12-31</lastmod>
+         <lastmod>2026-01-01</lastmod>
     </url>
     <url>
          <loc>https://rrbanda.github.io/agent-sandbox-ocp/workshop/04-reference/manifest-reference/</loc>
-         <lastmod>2025-12-31</lastmod>
+         <lastmod>2026-01-01</lastmod>
     </url>
     <url>
          <loc>https://rrbanda.github.io/agent-sandbox-ocp/workshop/04-reference/troubleshooting/</loc>
-         <lastmod>2025-12-31</lastmod>
+         <lastmod>2026-01-01</lastmod>
     </url>
 </urlset>

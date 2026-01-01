@@ -12,18 +12,31 @@ manifests/currency-kagenti/
 │   └── 01-pipeline-template.yaml # Build pipeline config
 │
 ├── agent/                      # 👩‍💻 Developer (per deployment)
-│   ├── 02-mcp-server-build.yaml    # AgentBuild: MCP server
-│   ├── 03-currency-agent-build.yaml # AgentBuild: Agent
+│   ├── 02-mcp-server-build.yaml    # AgentBuild: MCP server (from agents/)
+│   ├── 03-currency-agent-build.yaml # AgentBuild: Agent (from agents/)
 │   ├── 04-mcp-server-deploy.yaml   # Deploy MCP server
 │   ├── 04b-mcp-httproute.yaml      # MCP Gateway routing
 │   ├── 04c-mcpserver.yaml          # MCPServer CR
-│   ├── 05a-agent-code-configmap.yaml # Agent code with Host header
 │   ├── 05-currency-agent.yaml      # Agent CR (Kata)
 │   └── 06-route.yaml               # External access
 │
 └── security/                   # 👷 Platform Admin (after testing)
     ├── 01-service-entry.yaml   # Istio egress control
     └── 02-authpolicy.yaml      # OPA tool policy
+
+agents/                         # 📦 Source code (self-contained)
+├── currency-agent/             # ADK agent with MCP Gateway support
+│   ├── currency_agent/
+│   │   ├── __init__.py
+│   │   ├── __main__.py
+│   │   └── agent.py            # Includes Host header for routing
+│   ├── Dockerfile
+│   └── pyproject.toml
+│
+└── currency-mcp-server/        # FastMCP server
+    ├── server.py               # get_exchange_rate tool
+    ├── Dockerfile
+    └── pyproject.toml
 ```
 
 
@@ -81,7 +94,7 @@ oc apply -f platform/01-pipeline-template.yaml
 
 ### 02-mcp-server-build.yaml
 
-**Purpose**: Build MCP Server image from Git source
+**Purpose**: Build MCP Server image from this repository
 
 **Apply**:
 ```bash
@@ -92,17 +105,20 @@ oc apply -f agent/02-mcp-server-build.yaml
 ```yaml
 spec:
   source:
-    sourceRepository: "github.com/google/adk-samples.git"
-    sourceSubfolder: "python/agents/currency-agent/mcp-server"
+    # Self-contained - builds from this repository
+    sourceRepository: "github.com/rrbanda/agent-sandbox-ocp.git"
+    sourceSubfolder: "agents/currency-mcp-server"
   buildOutput:
     image: "currency-mcp-server"
     imageRegistry: "quay.io/rbrhssa"
 ```
 
+**What It Builds**: FastMCP server with `get_exchange_rate` tool from `agents/currency-mcp-server/`
+
 
 ### 03-currency-agent-build.yaml
 
-**Purpose**: Build Currency Agent image from Git source
+**Purpose**: Build Currency Agent image from this repository
 
 **Apply**:
 ```bash
@@ -113,12 +129,15 @@ oc apply -f agent/03-currency-agent-build.yaml
 ```yaml
 spec:
   source:
-    sourceRepository: "github.com/google/adk-samples.git"
-    sourceSubfolder: "python/agents/currency-agent"
+    # Self-contained - builds from this repository
+    sourceRepository: "github.com/rrbanda/agent-sandbox-ocp.git"
+    sourceSubfolder: "agents/currency-agent"
   buildOutput:
     image: "currency-agent"
     imageRegistry: "quay.io/rbrhssa"
 ```
+
+**What It Builds**: Google ADK agent with MCP Gateway Host header support from `agents/currency-agent/`
 
 
 ### 04-mcp-server-deploy.yaml
@@ -155,44 +174,12 @@ spec:
 ```
 
 
-### 05a-agent-code-configmap.yaml
-
-**Purpose**: Agent code with MCP Gateway Host header support (enables OPA policy enforcement)
-
-**Apply**:
-```bash
-oc apply -f agent/05a-agent-code-configmap.yaml
-```
-
-**Why It's Needed**:
-The default agent image doesn't include the `Host` header needed for MCP Gateway routing. This ConfigMap provides updated agent code that:
-
-1. Sets `headers={"Host": MCP_HOST_HEADER}` in `StreamableHTTPConnectionParams`
-2. Enables routing through MCP Gateway to the correct MCP Server
-3. Triggers OPA policy evaluation for every tool call
-
-**Key Code**:
-```python
-MCPToolset(
-    connection_params=StreamableHTTPConnectionParams(
-        url=MCP_SERVER_URL,
-        headers={"Host": MCP_HOST_HEADER},  # ← Critical for policy enforcement!
-    )
-)
-```
-
-!!! warning "Without This ConfigMap"
-    Tool calls bypass the MCP Gateway's policy enforcement. BTC conversions would succeed.
-
-
 ### 05-currency-agent.yaml
 
 **Purpose**: Deploy Currency Agent with Kata VM isolation
 
 **Apply**:
 ```bash
-# First apply the ConfigMap, then the Agent
-oc apply -f agent/05a-agent-code-configmap.yaml
 oc apply -f agent/05-currency-agent.yaml
 ```
 
@@ -201,10 +188,10 @@ oc apply -f agent/05-currency-agent.yaml
 spec:
   imageSource:
     buildRef:
-      name: currency-agent-build    # Reference to AgentBuild
+      name: currency-agent-build    # Built from agents/currency-agent/
   podTemplateSpec:
     spec:
-      runtimeClassName: kata        # Kata VM isolation
+      runtimeClassName: kata        # Kata VM isolation (Layer 1)
       containers:
       - name: agent
         env:
@@ -212,19 +199,11 @@ spec:
           value: "http://mcp-gateway-istio.gateway-system.svc.cluster.local:8080/mcp"
         - name: MCP_HOST_HEADER
           value: "currency-mcp.mcp.local"
-        volumeMounts:
-        - mountPath: /app/currency_agent/agent.py
-          name: agent-code
-          subPath: agent.py
-      volumes:
-      - name: agent-code
-        configMap:
-          name: currency-agent-code
 ```
 
 **Security**:
-- Layer 1 (Kata) is enabled here via `runtimeClassName: kata`
-- Layer 3 (OPA) is enabled via MCP Gateway routing with Host header
+- Layer 1 (Kata) is enabled via `runtimeClassName: kata`
+- Layer 3 (OPA) is enabled via MCP Gateway routing (Host header support baked into image)
 
 
 ### 06-route.yaml

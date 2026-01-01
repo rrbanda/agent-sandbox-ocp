@@ -134,7 +134,8 @@ oc describe authpolicy block-crypto-policy -n currency-kagenti
 ### Test Cryptocurrency Conversion (Should Be BLOCKED)
 
 ```bash
-AGENT_URL=$(oc get route currency-agent -n currency-kagenti \
+# Get the A2A route URL
+AGENT_URL=$(oc get route currency-agent-a2a -n currency-kagenti \
   -o jsonpath='https://{.spec.host}')
 
 # This should be BLOCKED now

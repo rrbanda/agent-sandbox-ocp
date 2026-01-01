@@ -19,64 +19,97 @@ This approach makes your AI logic **scalable and easy to reuse**.
 
 ## Agent Structure
 
-The Currency Agent has a simple structure:
+The Currency Agent lives in this repository under `agents/`:
 
 ```
-currency-agent/
-├── agent.py           # Agent definition + tools
-├── requirements.txt   # Dependencies (google-adk)
-└── __init__.py        # Exports root_agent
+agents/
+├── currency-agent/                # The ADK agent
+│   ├── currency_agent/
+│   │   ├── __init__.py
+│   │   ├── __main__.py            # Entry point
+│   │   └── agent.py               # Agent definition with MCP Gateway support
+│   ├── Dockerfile                 # UBI9-based container image
+│   └── pyproject.toml             # Dependencies (google-adk)
+│
+└── currency-mcp-server/           # The MCP tool server
+    ├── server.py                  # FastMCP with get_exchange_rate tool
+    ├── Dockerfile
+    └── pyproject.toml
 ```
+
+This **self-contained structure** means everything builds from this single repository.
 
 ## The Agent Definition
 
+The agent uses **MCPToolset** to call tools via the MCP Server (which provides `get_exchange_rate`):
+
 ```python
-# agent.py
+# agents/currency-agent/currency_agent/agent.py
 
-from google.adk.agents import Agent
-import urllib.request
-import json
+from google.adk.agents import LlmAgent
+from google.adk.a2a.utils.agent_to_a2a import to_a2a
+from google.adk.tools.mcp_tool import MCPToolset, StreamableHTTPConnectionParams
+import os
 
-def get_exchange_rate(currency_from: str, currency_to: str) -> dict:
-    """Get the exchange rate between two currencies.
-    
-    Args:
-        currency_from: Source currency code (e.g., USD, EUR, GBP)
-        currency_to: Target currency code (e.g., EUR, JPY, GBP)
-    
-    Returns:
-        Dictionary with the exchange rate and date
-    """
-    url = f"https://api.frankfurter.app/latest?from={currency_from}&to={currency_to}"
-    try:
-        with urllib.request.urlopen(url, timeout=10) as response:
-            data = json.loads(response.read().decode())
-            rate = data.get("rates", {}).get(currency_to, "N/A")
-            return {
-                "from": currency_from,
-                "to": currency_to, 
-                "rate": rate,
-                "date": data.get("date", "unknown"),
-                "message": f"1 {currency_from} = {rate} {currency_to}"
-            }
-    except Exception as e:
-        return {"error": str(e)}
-
-# Define the Currency Agent
-root_agent = Agent(
-    name="currency_agent",
-    model="gemini-2.0-flash-exp",
-    description="A helpful currency conversion agent that provides live exchange rates",
-    instruction="""You are a friendly currency conversion assistant. 
-    
-When users ask about currency conversions:
-1. Use the get_exchange_rate tool to fetch live rates
-2. Present the results clearly with the current rate
-3. Offer to help with more conversions
-
-Supported currencies include: USD, EUR, GBP, JPY, CAD, AUD, CHF, CNY, and more.""",
-    tools=[get_exchange_rate]
+SYSTEM_INSTRUCTION = (
+    "You are a specialized assistant for currency conversions. "
+    "Your sole purpose is to use the 'get_exchange_rate' tool to answer questions about currency exchange rates."
 )
+
+# MCP Gateway configuration (for production deployment)
+MCP_SERVER_URL = os.getenv(
+    "MCP_SERVER_URL",
+    "http://mcp-gateway-istio.gateway-system.svc.cluster.local:8080/mcp"
+)
+MCP_HOST_HEADER = os.getenv("MCP_HOST_HEADER", "currency-mcp.mcp.local")
+
+# Build connection headers for MCP Gateway routing
+connection_headers = {}
+if MCP_HOST_HEADER:
+    connection_headers["Host"] = MCP_HOST_HEADER
+
+root_agent = LlmAgent(
+    model="gemini-2.5-flash",
+    name="currency_agent",
+    description="An agent that can help with currency conversions",
+    instruction=SYSTEM_INSTRUCTION,
+    tools=[
+        MCPToolset(
+            connection_params=StreamableHTTPConnectionParams(
+                url=MCP_SERVER_URL,
+                headers=connection_headers  # ← Enables MCP Gateway routing
+            )
+        )
+    ],
+)
+
+# Make the agent A2A-compatible
+a2a_app = to_a2a(root_agent, port=10000)
+```
+
+The actual currency exchange logic is in the **MCP Server** (`agents/currency-mcp-server/server.py`):
+
+```python
+# agents/currency-mcp-server/server.py
+
+from fastmcp import FastMCP
+import httpx
+
+mcp = FastMCP("Currency MCP Server 💵")
+
+@mcp.tool()
+def get_exchange_rate(
+    currency_from: str = "USD",
+    currency_to: str = "EUR",
+    currency_date: str = "latest",
+):
+    """Get current exchange rate from Frankfurter API."""
+    response = httpx.get(
+        f"https://api.frankfurter.app/{currency_date}",
+        params={"from": currency_from, "to": currency_to},
+    )
+    response.raise_for_status()
+    return response.json()
 ```
 
 ## Key Components Explained
@@ -240,46 +273,41 @@ After deploying, we'll add restrictions:
 
 ## Inner Loop vs Outer Loop: MCP Connectivity
 
-In the **inner loop** (local testing), the agent tool is a simple Python function that calls the API directly. In the **outer loop** (production), tools are provided by an MCP Server, routed through the MCP Gateway for policy enforcement.
+The same agent code works in both environments. The difference is which MCP Server it connects to:
 
-| Environment | Tool Source | Policy Enforcement |
-|-------------|-------------|-------------------|
-| **Inner Loop** | Python function in `agent.py` | None (development) |
-| **Outer Loop** | MCP Server via MCP Gateway | OPA via Host header |
+| Environment | MCP_SERVER_URL | Policy Enforcement |
+|-------------|----------------|-------------------|
+| **Inner Loop** | Local MCP Server (`localhost:8080`) | None (development) |
+| **Outer Loop** | MCP Gateway on OpenShift | OPA via Host header |
 
-The production agent uses `MCPToolset` with a `Host` header to route through the gateway:
+The agent code automatically routes through the MCP Gateway when deployed:
 
 ```python
-# Production agent (agents/currency-agent/agent.py)
-from google.adk.tools.mcp_tool import MCPToolset, StreamableHTTPConnectionParams
+# The Host header enables MCP Gateway routing + OPA policy enforcement
+connection_headers = {"Host": MCP_HOST_HEADER}
 
-root_agent = LlmAgent(
-    model="gemini-2.5-flash",
-    name="currency_agent",
-    instruction=SYSTEM_INSTRUCTION,
-    tools=[
-        MCPToolset(
-            connection_params=StreamableHTTPConnectionParams(
-                url=MCP_SERVER_URL,
-                headers={"Host": MCP_HOST_HEADER},  # ← Enables OPA policy!
-            )
-        )
-    ],
+MCPToolset(
+    connection_params=StreamableHTTPConnectionParams(
+        url=MCP_SERVER_URL,           # MCP Gateway URL
+        headers=connection_headers     # Routes to correct backend
+    )
 )
 ```
 
-This is a key difference: the inner loop focuses on **agent behavior**, while the outer loop adds **security enforcement**.
+This architecture means:
+- **Inner loop**: Focus on agent behavior without security complexity
+- **Outer loop**: Same code, but security policies are enforced at the gateway
 
 ## Source Code Location
 
-The reference implementation with MCP Gateway support:
+Everything is in this repository:
 
-- **In this repo**: `agents/currency-agent/`
-- **ConfigMap**: `manifests/currency-kagenti/agent/05a-agent-code-configmap.yaml`
+| Component | Path | Purpose |
+|-----------|------|---------|
+| **Currency Agent** | `agents/currency-agent/` | ADK agent with A2A protocol |
+| **MCP Server** | `agents/currency-mcp-server/` | FastMCP server with `get_exchange_rate` |
 
-In this workshop, the code is:
-- Embedded in a ConfigMap for production deployment
-- Mounted into the agent container to enable Host header routing
+Both are built as container images via **AgentBuild** CRs that point to this repository.
 
 ## Key Takeaways
 

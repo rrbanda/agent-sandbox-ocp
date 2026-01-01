@@ -50,8 +50,8 @@ oc logs -n currency-kagenti deployment/currency-agent
 ### Get URLs
 
 ```bash
-# Agent URL
-echo "https://$(oc get route currency-agent -n currency-kagenti -o jsonpath='{.spec.host}')"
+# Agent A2A URL
+echo "https://$(oc get route currency-agent-a2a -n currency-kagenti -o jsonpath='{.spec.host}')"
 
 # ADK Web UI URL
 echo "https://$(oc get route adk-server -n adk-web -o jsonpath='{.spec.host}')/dev-ui/"
@@ -60,10 +60,15 @@ echo "https://$(oc get route adk-server -n adk-web -o jsonpath='{.spec.host}')/d
 ### Test the Agent
 
 ```bash
-# Quick test
-curl -X POST "https://$(oc get route currency-agent -n currency-kagenti -o jsonpath='{.spec.host}')" \
+# Quick test (USD to EUR - should work)
+curl -X POST "https://$(oc get route currency-agent-a2a -n currency-kagenti -o jsonpath='{.spec.host}')/" \
   -H "Content-Type: application/json" \
-  -d '{"jsonrpc":"2.0","method":"message/send","id":"1","params":{"message":{"role":"user","parts":[{"text":"Convert 100 USD to EUR"}]}}}'
+  -d '{"jsonrpc":"2.0","method":"message/send","id":"1","params":{"message":{"messageId":"test-1","role":"user","parts":[{"text":"What is 100 USD in EUR?"}]}}}'
+
+# Test blocked (USD to BTC - should return 403)
+curl -X POST "https://$(oc get route currency-agent-a2a -n currency-kagenti -o jsonpath='{.spec.host}')/" \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","method":"message/send","id":"2","params":{"message":{"messageId":"test-2","role":"user","parts":[{"text":"What is 100 USD in BTC?"}]}}}'
 ```
 
 ### Verify Security
