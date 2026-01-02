@@ -1,140 +1,171 @@
 # Secure AI Agents on OpenShift
 
-A reference implementation for deploying AI agents with enterprise-grade security on OpenShift.
+A hands-on workshop for deploying AI agents with enterprise-grade security on OpenShift.
 
-## The Problem
+## The Challenge
 
 As AI agents become more capable—executing code, calling APIs, making decisions—they introduce new security risks:
 
 - **Untrusted code execution**: LLMs can generate malicious code
-- **Data exfiltration**: Agents might leak secrets to external services
+- **Data exfiltration**: Agents might leak secrets to external services  
 - **Unauthorized actions**: Prompt injection can cause unintended behavior
 
 ## The Solution: Defense in Depth
 
-This demo shows how to protect AI agents with **three independent security layers**:
+This workshop demonstrates how to protect AI agents with **three independent security layers**:
 
-```mermaid
-flowchart LR
-    subgraph L1["Layer 1: VM Isolation (Kata)"]
-        subgraph L2["Layer 2: Network Egress (Istio)"]
-            subgraph L3["Layer 3: Tool Policy (OPA)"]
-                A["Agent<br/>Execution"]
-            end
-        end
-    end
-    
-    style L1 fill:#CC0000,color:#FFFFFF
-    style L2 fill:#A30000,color:#FFFFFF
-    style L3 fill:#820000,color:#FFFFFF
-    style A fill:#4A4A4A,color:#FFFFFF
+```
+┌─────────────────────────────────────────────────────────────┐
+│  Layer 1: VM Isolation (Kata Containers)                    │
+│  ┌───────────────────────────────────────────────────────┐  │
+│  │  Layer 2: Network Egress (Istio Service Mesh)         │  │
+│  │  ┌─────────────────────────────────────────────────┐  │  │
+│  │  │  Layer 3: Tool Policy (Kuadrant + OPA)          │  │  │
+│  │  │  ┌───────────────────────────────────────────┐  │  │  │
+│  │  │  │           Agent Execution                 │  │  │  │
+│  │  │  └───────────────────────────────────────────┘  │  │  │
+│  │  └─────────────────────────────────────────────────┘  │  │
+│  └───────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────┘
 ```
 
 | Layer | Technology | Protection |
 |-------|------------|------------|
-| **1. VM Isolation** | OpenShift Sandboxed Containers | Agent runs in hardware-isolated VM (foundation) |
+| **1. VM Isolation** | OpenShift Sandboxed Containers | Agent runs in hardware-isolated VM |
 | **2. Network Egress** | Istio Service Mesh | Controls what external APIs agents can reach |
-| **3. Tool Policy** | Kuadrant + OPA | Validates tool calls before execution |
+| **3. Tool Policy** | Kuadrant + OPA via MCP Gateway | Validates tool calls before execution |
+
+## 📚 Workshop
+
+**[Start the Workshop →](https://rrbanda.github.io/agent-sandbox-ocp/)**
+
+The workshop is structured in four parts:
+
+| Part | Title | Description |
+|------|-------|-------------|
+| **Part 0** | [Prerequisites](docs/workshop/00-prerequisites/) | Install OSC, Kagenti, and verify setup |
+| **Part 1** | [Foundations](docs/workshop/01-foundations/) | Security concepts and technology stack |
+| **Part 2** | [Inner Loop](docs/workshop/02-inner-loop/) | Develop and test agents locally with ADK |
+| **Part 3** | [Outer Loop](docs/workshop/03-outer-loop/) | Deploy to OpenShift with full security |
 
 ## Quick Start
 
-### For Developers (Inner Loop)
+### Prerequisites
 
-Test your agent locally with Google ADK:
+- OpenShift 4.14+ with cluster admin access
+- [OpenShift Sandboxed Containers](https://docs.openshift.com/container-platform/latest/sandboxed_containers/index.html) operator
+- [Kagenti Platform](https://github.com/kagenti/kagenti)
+- [Gemini API Key](https://aistudio.google.com/app/apikey)
 
-```bash
-cd currency_agent
-adk web
-# Open http://localhost:8000/dev-ui/
-```
+### Install Kagenti
 
-### For Platform Admins (One-Time Setup)
-
-Configure a secure agent namespace:
+We provide automated scripts for installing Kagenti:
 
 ```bash
-# Prerequisites: OpenShift 4.14+, OSC Operator, Kuadrant, Kagenti
-oc apply -f manifests/currency-demo/
+# 1. Copy and fill in your credentials
+cp scripts/.secrets_template.yaml .secrets.yaml
+# Edit .secrets.yaml with your API keys
+
+# 2. Run the installation script
+./scripts/install-kagenti.sh
 ```
 
-### Deploy & Test
+See [Installation Guide](docs/kagenti-installation-guide.md) for detailed instructions.
+
+### Deploy the Demo Agent
 
 ```bash
-# Deploy agent to secured namespace
-oc apply -f manifests/currency-demo/05-currency-agent.yaml
+# Deploy the currency agent with security layers
+oc apply -f manifests/currency-kagenti/
 
-# Test via ADK Web UI
-open "https://$(oc get route adk-server -n adk-web -o jsonpath='{.spec.host}')/dev-ui/"
+# Test the agent
+curl -X POST "https://$(oc get route currency-agent -n currency-kagenti -o jsonpath='{.spec.host}')/run" \
+  -H "Content-Type: application/json" \
+  -d '{"prompt": "Convert 100 USD to EUR"}'
 ```
-
-## Documentation
-
-### Concepts
-
-| Document | Description |
-|----------|-------------|
-| [Threat Model](docs/concepts/threat-model.md) | Why AI agents need special security |
-| [Defense in Depth](docs/concepts/defense-in-depth.md) | The three-layer protection model |
-| [Inner & Outer Loop](docs/concepts/inner-outer-loop.md) | Developer experience from local to production |
-
-### Guides
-
-| Document | Description |
-|----------|-------------|
-| [Developer Guide](docs/guides/developer-guide.md) | Build and deploy agents (Agent Developer persona) |
-| [Platform Admin Guide](docs/guides/platform-admin-guide.md) | Configure secure agent namespaces |
-| [Demo Walkthrough](docs/guides/demo-walkthrough.md) | Step-by-step demo script |
-
-### Reference
-
-| Document | Description |
-|----------|-------------|
-| [Architecture](docs/architecture.md) | Technical architecture diagrams |
-| [Troubleshooting](docs/troubleshooting.md) | Common issues and solutions |
 
 ## Project Structure
 
 ```
 agent-sandbox-ocp/
+├── agents/                          # Agent source code
+│   ├── currency-agent/              # ADK-based currency agent
+│   │   ├── currency_agent/
+│   │   │   └── agent.py             # Agent logic with MCP toolset
+│   │   ├── Dockerfile
+│   │   └── pyproject.toml
+│   └── currency-mcp-server/         # MCP server for exchange rates
+│       ├── server.py
+│       ├── Dockerfile
+│       └── pyproject.toml
 ├── docs/
-│   ├── concepts/                   # Conceptual documentation
-│   │   ├── threat-model.md
-│   │   ├── defense-in-depth.md
-│   │   └── inner-outer-loop.md
-│   ├── guides/                     # Step-by-step guides
-│   │   ├── developer-guide.md
-│   │   ├── platform-admin-guide.md
-│   │   └── demo-walkthrough.md
-│   ├── images/                     # Screenshots
-│   │   ├── adk-web-ui-initial.png
-│   │   ├── adk-web-ui-conversion.png
-│   │   └── adk-web-ui-trace.png
-│   ├── architecture.md             # Technical architecture
-│   └── troubleshooting.md          # Common issues
+│   ├── workshop/                    # Workshop content
+│   │   ├── 00-prerequisites/        # Setup & installation
+│   │   ├── 01-foundations/          # Security concepts
+│   │   ├── 02-inner-loop/           # Local development
+│   │   ├── 03-outer-loop/           # Production deployment
+│   │   └── 04-reference/            # Troubleshooting & cleanup
+│   ├── concepts/                    # Technology explainers
+│   │   ├── osc-explained.md         # OpenShift Sandboxed Containers
+│   │   ├── istio-egress.md          # Istio & egress control
+│   │   ├── kuadrant-opa.md          # Kuadrant & OPA policies
+│   │   ├── kagenti-platform.md      # Kagenti platform
+│   │   └── google-adk.md            # Google ADK
+│   ├── kagenti-installation-guide.md
+│   └── architecture.md
 ├── manifests/
-│   ├── currency-demo/              # Security demo manifests
-│   │   ├── 00-kataconfig.yaml
-│   │   ├── 01-namespaces.yaml
-│   │   ├── 02-currency-mcp-server.yaml
-│   │   ├── 03-currency-httproute.yaml
-│   │   ├── 04-authpolicy.yaml
-│   │   ├── 05-currency-agent.yaml
-│   │   └── 06-service-entry.yaml
-│   └── adk-web/                    # ADK Web UI deployment
-│       ├── 00-namespace.yaml
-│       └── 01-adk-server.yaml
-└── scripts/
-    ├── demo-complete.sh            # Full security test script
-    └── deploy-adk-web.sh           # ADK Web UI deployment
+│   └── currency-kagenti/            # Production manifests
+│       ├── platform/                # Namespace, RBAC, pipelines
+│       ├── agent/                   # Agent & MCP server resources
+│       └── security/                # AuthPolicy, ServiceEntry
+├── scripts/
+│   ├── install-kagenti.sh           # Automated Kagenti installation
+│   ├── uninstall-kagenti.sh         # Clean uninstall script
+│   └── .secrets_template.yaml       # Credentials template
+└── mkdocs.yml                       # Documentation site config
 ```
 
-## Prerequisites
+## Key Concepts
 
-- OpenShift 4.14+ with admin access
-- [Kagenti Platform](https://github.com/kagenti/kagenti) installed
-- [Kuadrant Operator](https://kuadrant.io/) installed
-- [OpenShift Sandboxed Containers](https://docs.openshift.com/container-platform/latest/sandboxed_containers/index.html) operator installed
-- [Gemini API Key](https://aistudio.google.com/app/apikey)
+| Concept | Description |
+|---------|-------------|
+| [OpenShift Sandboxed Containers](docs/concepts/osc-explained.md) | VM-level isolation using Kata Containers |
+| [Istio Egress Control](docs/concepts/istio-egress.md) | Network policies for external API access |
+| [Kuadrant & OPA](docs/concepts/kuadrant-opa.md) | Policy enforcement for tool calls |
+| [Kagenti Platform](docs/concepts/kagenti-platform.md) | Kubernetes-native agent management |
+| [Google ADK](docs/concepts/google-adk.md) | Agent development framework |
+
+## Architecture
+
+The currency agent demonstrates the complete security flow:
+
+```
+User Request
+    │
+    ▼
+┌─────────────────┐
+│  Currency Agent │  (Runs in Kata VM)
+│  (Google ADK)   │
+└────────┬────────┘
+         │ MCP tool call
+         ▼
+┌─────────────────┐
+│   MCP Gateway   │  (Envoy + Broker)
+│   + AuthPolicy  │  ← OPA blocks crypto
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│   MCP Server    │  (Runs in Kata VM)
+│  (Frankfurter)  │
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│  ServiceEntry   │  ← Istio allows only
+│  (Egress)       │     frankfurter.dev
+└─────────────────┘
+```
 
 ## License
 
