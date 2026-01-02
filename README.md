@@ -33,7 +33,7 @@ This workshop demonstrates how to protect AI agents with **three independent sec
 |-------|------------|------------|
 | **1. VM Isolation** | OpenShift Sandboxed Containers | Agent runs in hardware-isolated VM |
 | **2. Network Egress** | Istio Service Mesh | Controls what external APIs agents can reach |
-| **3. Tool Policy** | Kuadrant + OPA via MCP Gateway | Validates tool calls before execution |
+| **3. Tool Policy** | Kuadrant + OPA *(optional)* | Validates tool calls before execution |
 
 ## 📚 Workshop
 
@@ -55,6 +55,7 @@ The workshop is structured in four parts:
 - OpenShift 4.14+ with cluster admin access
 - [OpenShift Sandboxed Containers](https://docs.openshift.com/container-platform/latest/sandboxed_containers/index.html) operator
 - [Kagenti Platform](https://github.com/kagenti/kagenti)
+- [Kuadrant Operator](https://kuadrant.io/) *(optional - for OPA policy layer)*
 - [Gemini API Key](https://aistudio.google.com/app/apikey)
 
 ### Install Kagenti

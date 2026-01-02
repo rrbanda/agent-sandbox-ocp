@@ -11,6 +11,8 @@ metadata:
   labels:
     app.kubernetes.io/name: currency-kagenti
     app.kubernetes.io/component: agent-demo
-    # Enable Istio sidecar injection if needed
-    # istio-injection: enabled
+    # REQUIRED: Istio discovery selector - without this, Istio ignores HTTPRoutes
+    istio-discovery: enabled
+    # Optional: Enable Istio ambient mode for egress control
+    # istio.io/dataplane-mode: ambient
 

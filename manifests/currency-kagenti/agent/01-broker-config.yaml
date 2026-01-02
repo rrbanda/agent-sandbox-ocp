@@ -1,0 +1,30 @@
+# Currency Kagenti Demo - Step 1: MCP Broker Configuration
+# WHAT: Configures the MCP Gateway Broker to know about our MCP server
+# WHY:  The broker needs this to route tools/call requests to the correct backend
+# HOW:  oc apply -f 01-broker-config.yaml
+#
+# NOTE: This configures the central broker in mcp-system namespace.
+#       The MCPServer controller should do this automatically, but there's a bug
+#       where it logs "Successfully regenerated" but doesn't update the ConfigMap.
+#       This manifest provides a workaround.
+#
+# IMPORTANT: If you have multiple MCP servers, merge their configs into one ConfigMap.
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mcp-gateway-config
+  namespace: mcp-system
+  labels:
+    mcp.kagenti.com/aggregated: "true"
+data:
+  config.yaml: |
+    servers:
+      - name: currency-mcp-server
+        url: http://currency-mcp-server.currency-kagenti.svc.cluster.local:8080/mcp
+        hostname: currency-mcp.mcp.local
+        enabled: true
+        toolPrefix: "currency_"
+    virtualServers: []
+

@@ -19,7 +19,7 @@ metadata:
 spec:
   parentRefs:
     - name: mcp-gateway
-      namespace: kagenti-system
+      namespace: gateway-system
   hostnames:
     - currency-mcp.mcp.local
   rules:
